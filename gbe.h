@@ -63,10 +63,29 @@ typedef struct {
 	uint8_t SPR[255];     // [FE00-FE9F] // 160 bytes?
 	uint8_t IO[128];      // [FF00-FF7F] 
 	uint8_t ZERO[128];    // [FF80-FFFF]
+
+	bool bios = true;
+	uint8_t BIOS[256]; 
+
+	uint8_t readByte(uint16_t addr) {
+	return BIOS[addr];
+	}
+
+	uint16_t readWord(uint16_t addr) {
+		return ((uint16_t)(BIOS[addr]) << 8) & ((uint16_t)(BIOS[addr+1]));
+	}
+
+	void writeByte(uint16_t addr, uint8_t val) {
+		assert(0);
+	}
+
+	void writeWord(uint16_t addr, uint16_t val) {
+		assert(0);	
+	}
 } memory;
 
 typedef struct {
 	char name[16];
-	uint8_t arity;
+	uint8_t argw;
 	instr_fn fn;
 } instruction;

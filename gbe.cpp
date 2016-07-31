@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "gbe.h"
@@ -7,71 +8,71 @@ unsigned char ROM[1010101];
 
 instruction instructions[256] = {
 	{"NOP", 0, NULL},         // 0x00
-	{"LD BC, nn", 0, NULL},   // 0x01
+	{"LD BC, 0x%04X", 2, NULL},   // 0x01
 	{"LD (BC), A", 0, NULL},  // 0x02
 	{"INC BC", 0, NULL},      // 0x03
 	{"INC B", 0, NULL},       // 0x04
 	{"DEC B", 0, NULL},       // 0x05
-	{"LD B, n", 0, NULL},     // 0x06
+	{"LD B, 0x%02X", 1, NULL},     // 0x06
 	{"RLC A", 0, NULL},       // 0x07
-	{"LD (nn), SP", 0, NULL}, // 0x08
+	{"LD (0x%04X), SP", 2, NULL}, // 0x08
 	{"ADD HL, BC", 0, NULL},  // 0x09
 	{"LD A, (BC)", 0, NULL},  // 0x0A
 	{"DEC BC", 0, NULL},      // 0x0B
 	{"INC C", 0, NULL},       // 0x0C
 	{"DEC C", 0, NULL},       // 0x0D
-	{"LD C, n", 0, NULL},     // 0x0E
+	{"LD C, 0x%02X", 1, NULL},     // 0x0E
 	{"RRC A", 0, NULL},       // 0x0F
 
 	{"STOP", 0, NULL},        // 0x10
-	{"LD DE, nn", 0, NULL},   // 0x11
+	{"LD DE, 0x%04X", 2, NULL},   // 0x11
 	{"LD (DE), A", 0, NULL},  // 0x12
 	{"INC DE", 0, NULL},      // 0x13
 	{"INC D", 0, NULL},       // 0x14
 	{"DEC D", 0, NULL},       // 0x15
-	{"LD D, n", 0, NULL},     // 0x16
+	{"LD D, 0x%02X", 1, NULL},     // 0x16
 	{"RL A", 0, NULL},        // 0x17
-	{"JR n", 0, NULL},        // 0x18
+	{"JR 0x%02X", 1, NULL},        // 0x18
 	{"ADD HL, DE", 0, NULL},  // 0x19
 	{"LD A, (DE)", 0, NULL},  // 0x1A
 	{"DEC DE", 0, NULL},      // 0x1B
 	{"INC E", 0, NULL},       // 0x1C
 	{"DEC E", 0, NULL},       // 0x1D
-	{"LD E, n", 0, NULL},     // 0x1E
+	{"LD E, 0x%02X", 1, NULL},     // 0x1E
 	{"RR A", 0, NULL},        // 0x1F
 
 	{"JR NZ, n", 0, NULL},    // 0x20
-	{"LD HL, nn", 0, NULL},   // 0x21
+	{"LD HL, 0x%04X", 2, NULL},   // 0x21
 	{"LD (DE), A", 0, NULL},  // 0x22
 	{"INC HL", 0, NULL},      // 0x23
 	{"INC H", 0, NULL},       // 0x24
 	{"DEC H", 0, NULL},       // 0x25
-	{"LD H, n", 0, NULL},     // 0x26
+	{"LD H, 0x%02X", 1, NULL},     // 0x26
 	{"DAA", 0, NULL},         // 0x27
-	{"JR Z, n", 0, NULL},     // 0x28
+	{"JR Z, 0x%02X", 1, NULL},     // 0x28
 	{"ADD HL, HL", 0, NULL},  // 0x29
 	{"LDI A, (HL)", 0, NULL}, // 0x2A
 	{"DEC HL", 0, NULL},      // 0x2B
 	{"INC L", 0, NULL},       // 0x2C
 	{"DEC L", 0, NULL},       // 0x2D
-	{"LD L, n", 0, NULL},     // 0x2E
+	{"LD L, 0x%02X", 1, NULL},     // 0x2E
 	{"CPL", 0, NULL},         // 0x2F
  
-	{"JR NC, n", 0, NULL},    // 0x30
-	{"LD SP, nn", 0, NULL},   // 0x31
+	{"JR NC, 0x%02X", 1, NULL},    // 0x30
+	{"LD SP, 0x%04X", 2, NULL},   // 0x31
 	{"LDD (HL), A", 0, NULL}, // 0x32
 	{"INC SP", 0, NULL},      // 0x33
 	{"INC (HL)", 0, NULL},    // 0x34
 	{"DEC (HL)", 0, NULL},    // 0x35
-	{"LD (HL), n", 0, NULL},  // 0x36
+	{"LD (HL), 0x%02X", 1, NULL},  // 0x36
 	{"SCF", 0, NULL},         // 0x37
-	{"JR C, n", 0, NULL},     // 0x38
+	{"JR C, 0x%02X", 1, NULL},     // 0x38
 	{"ADD HL, SP", 0, NULL},  // 0x39
 	{"LDD A, (HL)", 0, NULL}, // 0x3A
 	{"DEC SP", 0, NULL},      // 0x3B
 	{"INC A", 0, NULL},       // 0x3C
 	{"DEC A", 0, NULL},       // 0x3D
-	{"LD A, n", 0, NULL},     // 0x3E
+	{"LD A, 0x%02X", 1, NULL},     // 0x3E
 	{"CCF", 0, NULL},         // 0x3F
 
 	{"LD B, B", 0, NULL},     // 0x40
@@ -212,19 +213,19 @@ instruction instructions[256] = {
 
 	{"RET NZ", 0, NULL},      // 0xC0
 	{"POP BC", 0, NULL},      // 0xC1
-	{"JP NZ, nn", 0, NULL},   // 0xC2
-	{"JP nn", 0, NULL},       // 0xC3
-	{"CALL NZ, nn", 0, NULL}, // 0xC4
+	{"JP NZ, 0x%04X", 2, NULL},   // 0xC2
+	{"JP 0x%04X", 2, NULL},       // 0xC3
+	{"CALL NZ, 0x%04X", 2, NULL}, // 0xC4
 	{"PUSH BC", 0, NULL},     // 0xC5
-	{"ADD A, n", 0, NULL},    // 0xC6
+	{"ADD A, 0x%02X", 1, NULL},    // 0xC6
 	{"RST 0", 0, NULL},       // 0xC7
 	{"RET Z", 0, NULL},       // 0xC7
 	{"RET", 0, NULL},         // 0xC8
-	{"JP Z, nn", 0, NULL},    // 0xC9
-	{"Ext", 0, NULL},         // 0xCA
-	{"CALL Z, nn", 0, NULL},  // 0xCC
-	{"CALL nn", 0, NULL},     // 0xCD
-	{"ADC A, n", 0, NULL},    // 0xCE
+	{"JP Z, 0x%04X", 2, NULL},    // 0xC9
+	{"Ext Op", 0, NULL},         // 0xCA
+	{"CALL Z, 0x%04X", 2, NULL},  // 0xCC
+	{"CALL 0x%04X", 2, NULL},     // 0xCD
+	{"ADC A, 0x%02X", 1, NULL},    // 0xCE
 	{"RST 8", 0, NULL},       // 0xCF
 
 };
@@ -232,23 +233,53 @@ instruction instructions[256] = {
 registers REG;
 memory MEM;
 
-int main(int argc, char ** argv) {
-	assert(argc == 2);
+void readROMFile(char * filename) {
 	FILE* romfile; 
-	romfile = fopen(argv[1], "rb");
+	romfile = fopen(filename, "rb");
 
-	if (!romfile) assert(0);
+	assert(romfile);
 
 	fseek(romfile, 0, SEEK_END);
 	size_t n = ftell(romfile);
 	fseek(romfile, 0, SEEK_SET);
-
 	fread(ROM,n,1,romfile);
-
 	fclose(romfile);
+}
 
-	for (int i = 0; i < n; ++i) {
-		printf("%02X ", ROM[i]);
+void readBIOSFile(char * filename) {
+	FILE* biosfile; 
+	biosfile = fopen(filename, "rb");
+
+	assert(biosfile);
+
+	fseek(biosfile, 0, SEEK_END);
+	size_t n = ftell(biosfile);
+	assert(n == 256);
+	fseek(biosfile, 0, SEEK_SET);
+	fread(MEM.BIOS,n,1,biosfile);
+
+	fclose(biosfile);
+}
+
+int main(int argc, char ** argv) {
+	readBIOSFile("rom.bin");
+	readROMFile("tetris.gb");
+
+	while (1) {
+		uint8_t opcode = MEM.readByte(REG.PC);
+		instruction instr = instructions[opcode];
+		if (instr.fn) {
+			instr.fn();
+		} else {
+			printf("Missing instruction 0x%02X at 0x%04X: ", opcode, REG.PC);
+			if (instr.argw == 0)
+				printf(instr.name);
+			else if (instr.argw == 1)
+				printf(instr.name, MEM.readByte(REG.PC+1));
+			else if (instr.argw == 2)
+				printf(instr.name, MEM.readByte(REG.PC+1));
+			printf("\n");
+			exit(1);
+		}
 	}
-	printf("\n");
 }

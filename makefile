@@ -1,2 +1,2 @@
 all:
-	gcc --std=c11 gbe.c -o gbe
+	g++ --std=c++11 gbe.cpp -o gbe
