@@ -51,6 +51,12 @@ int main(int argc, char ** argv) {
 			printf(instr.name, MEM.readWord(REG.PC+1));
 		printf("\n");
 
+		if (opcode == 0xCB) {
+			printf("        Ext 0x%02X at 0x%04X: ", opcode, REG.PC+1);
+			printf(ext_instructions[MEM.readByte(REG.PC+1)].name);
+			printf("\n");
+		}
+
 		instr.fn();
 		REG.PC += (1 + instr.argw);
 	}
