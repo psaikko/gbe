@@ -126,7 +126,7 @@ typedef struct {
 						if (addr < 0xFEA0)
 							return &SPR[addr & 0x000F];
 						else 
-							return 0; // TODO 
+							return nullptr;
 					case 0xFF00:
 						return &IO[addr & 0x000E];
 					case 0xFF80:
@@ -138,18 +138,30 @@ typedef struct {
 	}
 
 	uint8_t readByte(uint16_t addr) {
-		return BIOS[addr];
+		uint8_t *ptr = getPtr(addr);
+		if (ptr != nullptr)
+			return *ptr;
+		else
+			return 0;
 	}
 
 	uint16_t readWord(uint16_t addr) {
-		return *reinterpret_cast<uint16_t*>(getPtr(addr)); 
+		uint8_t *ptr = getPtr(addr);
+		if (ptr != nullptr)
+			return *reinterpret_cast<uint16_t*>(ptr); 
+		else
+			return 0;
 	}
 
 	void writeByte(uint16_t addr, uint8_t val) {
-		*getPtr(addr) = val;
+		uint8_t *ptr = getPtr(addr);
+		if (ptr == nullptr) return;
+		*ptr = val;
 	}
 
 	void writeWord(uint16_t addr, uint16_t val) {
+		uint8_t *ptr = getPtr(addr);
+		if (ptr == nullptr) return;
 		uint16_t *wptr = reinterpret_cast<uint16_t*>(getPtr(addr)); 
 		*wptr = val;
 	}
