@@ -6,7 +6,7 @@
 
 unsigned char ROM[1010101];
 
-void readROMFile(char * filename) {
+void readROMFile(const char * filename) {
 	FILE* romfile; 
 	romfile = fopen(filename, "rb");
 
@@ -19,7 +19,7 @@ void readROMFile(char * filename) {
 	fclose(romfile);
 }
 
-void readBIOSFile(char * filename) {
+void readBIOSFile(const char * filename) {
 	FILE* biosfile; 
 	biosfile = fopen(filename, "rb");
 
@@ -58,6 +58,5 @@ int main(int argc, char ** argv) {
 		}
 
 		instr.fn();
-		REG.PC += (1 + instr.argw);
 	}
 }

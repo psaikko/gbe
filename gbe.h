@@ -165,6 +165,7 @@ memory MEM;
 
 void nop() {
 	REG.T += 4;
+	REG.PC += 1;
 }
 
 // 8-bit arithmetic
@@ -176,6 +177,7 @@ void inc_rb(uint8_t * ptr) {
 	set_flag_cond(FLAG_H, (*ptr) & 0x0F == 0);
 	set_flag_cond(FLAG_Z, (*ptr) == 0);
 	REG.T += 4;
+	REG.PC += 1;
 }
 
 void inc_atHL() {
@@ -187,6 +189,7 @@ void inc_atHL() {
 	set_flag_cond(FLAG_Z, (val + 1) == 0);
 
 	REG.T += 12;
+	REG.PC += 1;
 }
 
 void xor_rb(uint8_t * from) {
@@ -197,6 +200,7 @@ void xor_rb(uint8_t * from) {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 4;
+	REG.PC += 1;
 } 
 
 void xor_n() {
@@ -207,6 +211,7 @@ void xor_n() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 2;
 }
 
 void xor_atHL() {
@@ -218,6 +223,7 @@ void xor_atHL() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void or_rb(uint8_t * from) {
@@ -228,6 +234,7 @@ void or_rb(uint8_t * from) {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 4;
+	REG.PC += 1;
 } 
 
 void or_n() {
@@ -238,6 +245,7 @@ void or_n() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 2;
 }
 
 void or_atHL() {
@@ -249,6 +257,7 @@ void or_atHL() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void and_rb(uint8_t * from) {
@@ -260,6 +269,7 @@ void and_rb(uint8_t * from) {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 4;
+	REG.PC += 1;
 } 
 
 void and_n() {
@@ -271,6 +281,7 @@ void and_n() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 2;
 }
 
 void and_atHL() {
@@ -283,6 +294,7 @@ void and_atHL() {
 	else unset_flag(FLAG_Z);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void cp_rb(uint8_t * from) {
@@ -295,6 +307,7 @@ void cp_rb(uint8_t * from) {
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
 	REG.T += 4;
+	REG.PC += 1;
 } 
 
 void cp_n() {
@@ -307,6 +320,7 @@ void cp_n() {
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
 	REG.T += 8;
+	REG.PC += 2;
 }
 
 void cp_atHL() {
@@ -319,6 +333,7 @@ void cp_atHL() {
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 // 16-bit arithmetic
@@ -326,6 +341,7 @@ void cp_atHL() {
 void inc_rw(uint16_t * ptr) {
 	(*ptr)++;
 	REG.T += 8;	
+	REG.PC += 1;
 }
 
 // 8-bit loads
@@ -333,90 +349,107 @@ void inc_rw(uint16_t * ptr) {
 void ld_rb_rb(uint8_t *to, uint8_t *from) {
 	(*to) = (*from);
 	REG.T += 4;	
+	REG.PC += 1;
 }
 
 void ld_rb_n(uint8_t *to) {
 	(*to) = ARGBYTE;
 	REG.T += 8;	
+	REG.PC += 2;
 }
 
 void ld_rb_atHL(uint8_t *to) {
 	(*to) = MEM.readByte(REG.HL);
-	REG.T += 12;		
+	REG.T += 12;	
+	REG.PC += 1;	
 }
 
 void ld_atHL_rb(uint8_t *from) {
 	MEM.writeByte(REG.HL, *from);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ld_atHL_n() {
 	MEM.writeByte(REG.HL, ARGBYTE);
 	REG.T += 12;
+	REG.PC += 2;
 }
 
 void ld_A_atrw(uint16_t *addr) {
 	REG.A = MEM.readWord(*addr);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ld_A_atnn() {
 	REG.A = MEM.readByte(ARGWORD);
 	REG.T += 16;
+	REG.PC += 3;
 }
 
 void ld_atrw_A(uint16_t *addr) {
 	MEM.writeByte(*addr, REG.A);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ld_atnn_A() {
 	MEM.writeByte(ARGWORD, REG.A);
 	REG.T += 16;
+	REG.PC += 3;
 }
 
 void ldh_A_atC() {
 	REG.A = MEM.readByte(0xFF00 | REG.C);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldh_atC_A() {
 	MEM.writeByte(0xFF00| REG.C, REG.A);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldd_A_atHL() {
 	REG.A = MEM.readByte(REG.HL);
 	REG.HL--;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldd_atHL_A() {
 	MEM.writeByte(REG.HL, REG.A);
 	REG.HL--;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldi_A_atHL() {
 	REG.A = MEM.readByte(REG.HL);
 	REG.HL++;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldi_atHL_A() {
 	MEM.writeByte(REG.HL, REG.A);
 	REG.HL++;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void ldh_atn_A() {
 	MEM.writeByte(0xFF00 | ARGBYTE, REG.A);
 	REG.T += 12;
+	REG.PC += 2;
 }
 
 void ldh_A_atn() {
 	REG.A = MEM.readByte(0xFF00 | ARGBYTE);
 	REG.T += 12;
+	REG.PC += 2;
 }
 
 // 16-bit loads
@@ -424,17 +457,20 @@ void ldh_A_atn() {
 void ld_rw_nn(uint16_t* to) {
 	*to = ARGWORD;
 	REG.T += 12;
+	REG.PC += 3;
 }
 
 void ld_atnn_SP() {
 	uint16_t addr = ARGWORD;
 	MEM.writeWord(addr, REG.SP);
 	REG.T += 20;
+	REG.PC += 3;
 }
 
 void ld_SP_HL() {
 	REG.SP = REG.HL;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 // ext block
@@ -450,19 +486,22 @@ void rrc_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void rrc_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
-	bool carry = *at & BIT_0;
+	uint8_t val = MEM.readByte(REG.HL);
+	bool carry = val & BIT_0;
 	set_flag_cond(FLAG_C, carry);
-	*at >>= 1;
-	if (carry) *at |= BIT_7;
+	val >>= 1;
+	if (carry) val |= BIT_7;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // rotate left
@@ -476,19 +515,22 @@ void rlc_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void rlc_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
-	bool carry = *at & BIT_7;
+	uint8_t val = MEM.readByte(REG.HL);
+	bool carry = val & BIT_7;
 	set_flag_cond(FLAG_C, carry);
-	*at <<= 1;
-	if (carry) *at |= BIT_0;
+	val <<= 1;
+	if (carry) val |= BIT_0;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // rotate right (through carry flag)
@@ -502,19 +544,22 @@ void rr_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void rr_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
+	uint8_t val = MEM.readByte(REG.HL);
 	bool carry = get_flag(FLAG_C);
-	set_flag_cond(FLAG_C, *at & BIT_0);
-	*at >>= 1;
-	if (carry) *at |= BIT_7;
+	set_flag_cond(FLAG_C, val & BIT_0);
+	val >>= 1;
+	if (carry) val |= BIT_7;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // rotate left (through carry flag)
@@ -528,19 +573,22 @@ void rl_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void rl_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
+	uint8_t val = MEM.readByte(REG.HL);
 	bool carry = get_flag(FLAG_C);
-	set_flag_cond(FLAG_C, *at & BIT_7);
-	*at <<= 1;
-	if (carry) *at |= BIT_0;
+	set_flag_cond(FLAG_C, val & BIT_7);
+	val <<= 1;
+	if (carry) val |= BIT_0;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // shift left
@@ -552,17 +600,20 @@ void sla_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void sla_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
-	set_flag_cond(FLAG_C, *at & BIT_7);
-	*at <<= 1;
+	uint8_t val = MEM.readByte(REG.HL);
+	set_flag_cond(FLAG_C, val & BIT_7);
+	val <<= 1;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // shift right (keep bit 7)
@@ -575,18 +626,21 @@ void sra_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void sra_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
-	set_flag_cond(FLAG_C, *at & BIT_0);
-	*at >>= 1;
-	if (*at & BIT_6) *at |= BIT_7;
+	uint8_t val = MEM.readByte(REG.HL);
+	set_flag_cond(FLAG_C, val & BIT_0);
+	val >>= 1;
+	if (val & BIT_6) val |= BIT_7;
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H);
-	set_flag_cond(FLAG_Z, *at == 0);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 // shift right
@@ -598,29 +652,43 @@ void srl_rb(uint8_t * at) {
 	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void srl_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
-	set_flag_cond(FLAG_C, *at & BIT_0);
-	*at >>= 1;
+	uint8_t val = MEM.readByte(REG.HL);
+	set_flag_cond(FLAG_C, val & BIT_0);
+	val >>= 1;
+	MEM.writeByte(REG.HL, val);
 
 	REG.T += 8;	
+	REG.PC += 1;
 }
 
 void swap_rb(uint8_t * at) {
+	uint8_t tmp = *at & 0x0F;
+	*at >>= 4;
+	*at &= (tmp << 4);
 
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
+	set_flag_cond(FLAG_Z, *at == 0);
 
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void swap_atHL() {
-	uint8_t *at = MEM.getPtr(REG.HL);
+	uint8_t val = MEM.readByte(REG.HL);
+	uint8_t tmp = val & 0x0F;
+	val >>= 4;
+	val &= (tmp << 4);
+	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
+	set_flag_cond(FLAG_Z, val == 0);
 
 	REG.T += 16;	
+	REG.PC += 1;
 }
 
 void bit_i_rb(const uint8_t mask, uint8_t *from) {
@@ -628,6 +696,7 @@ void bit_i_rb(const uint8_t mask, uint8_t *from) {
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (*from & mask) == 0);
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void bit_i_atHL(const uint8_t mask) {
@@ -635,26 +704,62 @@ void bit_i_atHL(const uint8_t mask) {
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (MEM.readByte(REG.HL) & mask) == 0);
 	REG.T += 12;
+	REG.PC += 1;
 }
 
 void res_i_rb(const uint8_t mask, uint8_t * to) {
 	*to &= ~mask;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void res_i_atHL(const uint8_t mask) {
-	*MEM.getPtr(REG.HL) &= ~mask;
+	uint8_t val = MEM.readByte(REG.HL);
+	val &= ~mask;
+	MEM.writeByte(REG.HL, val);
+
 	REG.T += 16;
+	REG.PC += 1;
 }
 
 void set_i_rb(const uint8_t mask, uint8_t * to) {
 	*to |= mask;
 	REG.T += 8;
+	REG.PC += 1;
 }
 
 void set_i_atHL(const uint8_t mask) {
-	*MEM.getPtr(REG.HL) |= mask;
+	uint8_t val = MEM.readByte(REG.HL);
+	val |= mask;
+	MEM.writeByte(REG.HL, val);
+
 	REG.T += 16;
+	REG.PC += 1;
+}
+
+// jumps
+
+void jp_nn() {
+	uint16_t target = ARGWORD;
+}
+
+void jp_f_nn(uint8_t mask) {
+	uint16_t target = ARGWORD;
+
+}
+
+void jp_atHL() {
+
+}
+
+void jr_e() {
+	uint8_t n = MEM.readByte(REG.PC + 1);
+	int8_t* e = reinterpret_cast<int8_t*>(&n);
+}
+
+void jr_f_e(uint8_t mask) {
+	uint8_t n = MEM.readByte(REG.PC + 1);
+	int8_t* e = reinterpret_cast<int8_t*>(&n);
 }
 
 typedef struct {
@@ -942,6 +1047,7 @@ instruction ext_instructions[256] = {
 };
 
 void ext() {
+	REG.PC += 1;
 	ext_instructions[ARGBYTE].fn();
 }
 
@@ -980,7 +1086,7 @@ instruction instructions[256] = {
 	{"LD E, 0x%02X", 1, [&](){ ld_rb_n(&REG.E); }},   // 0x1E
 	{"RR A", 0, TODO},           // 0x1F
 
-	{"JR NZ, n", 0, TODO},       // 0x20
+	{"JR NZ, 0x%02X", 1, TODO},       // 0x20
 	{"LD HL, 0x%04X", 2, [&](){ ld_rw_nn(&REG.HL); }},  // 0x21
 	{"LD (DE), A", 0, [&](){ ld_atrw_A(&REG.DE); }},     // 0x22
 	{"INC HL", 0, [&](){ inc_rw(&REG.HL); }},         // 0x23
