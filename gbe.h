@@ -142,8 +142,7 @@ typedef struct {
 	}
 
 	uint16_t readWord(uint16_t addr) {
-		uint8_t *ptr = getPtr(addr);
-		return (uint16_t)(*(ptr + 1)) << 8 | (uint16_t)(*ptr);
+		return *reinterpret_cast<uint16_t*>(getPtr(addr)); 
 	}
 
 	void writeByte(uint16_t addr, uint8_t val) {
@@ -151,10 +150,8 @@ typedef struct {
 	}
 
 	void writeWord(uint16_t addr, uint16_t val) {
-		uint8_t * ptr = getPtr(addr);
-		*ptr = (uint8_t)val;
-		val >>= 8; ++ptr;
-		*ptr = (uint8_t)val;
+		uint16_t *wptr = reinterpret_cast<uint16_t*>(getPtr(addr)); 
+		*wptr = val;
 	}
 } memory;
 
