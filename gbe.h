@@ -832,6 +832,42 @@ void di() {
 	REG.PC += 1;
 }
 
+// calls
+
+void call_nn() {
+	MEM.writeWord(REG.SP - 2, REG.PC);
+	REG.PC = ARGWORD;
+	REG.SP -= 2;
+	REG.T += 24;
+}
+
+void call_f_nn(uint8_t mask) {
+	bool cond = get_flag(mask);
+	if (cond) {
+		MEM.writeWord(REG.SP - 2, REG.PC);
+		REG.PC = ARGWORD;
+		REG.SP -= 2;
+		REG.T += 24;
+	} else {
+		REG.T += 12;
+		REG.PC += 3;
+	}
+}
+
+void call_nf_nn(uint8_t mask) {
+	bool cond = !get_flag(mask);
+	if (cond) {
+		MEM.writeWord(REG.SP - 2, REG.PC);
+		REG.PC = ARGWORD;
+		REG.SP -= 2;
+		REG.T += 24;
+	} else {
+		REG.T += 12;
+		REG.PC += 3;
+	}
+}
+
+
 typedef struct {
 	char name[16];
 	uint8_t argw;
@@ -1332,7 +1368,7 @@ instruction instructions[256] = {
 	{"POP BC", 0, TODO},         // 0xC1
 	{"JP NZ, 0x%04X", 2, [](){ jp_nf_nn(FLAG_Z); }},  // 0xC2
 	{"JP 0x%04X", 2, [](){ jp_nn(); }},      // 0xC3
-	{"CALL NZ, 0x%04X", 2, TODO},// 0xC4
+	{"CALL NZ, 0x%04X", 2, [](){ call_nf_nn(FLAG_Z); }},// 0xC4
 	{"PUSH BC", 0, TODO},        // 0xC5
 	{"ADD A, 0x%02X", 1, TODO},  // 0xC6
 	{"RST 0", 0, TODO},          // 0xC7
@@ -1340,8 +1376,8 @@ instruction instructions[256] = {
 	{"RET", 0, TODO},            // 0xC9
 	{"JP Z, 0x%04X", 2, [](){ jp_f_nn(FLAG_Z); }},   // 0xCA
 	{"Ext Op", 1, [&](){ ext(); }},         // 0xCB
-	{"CALL Z, 0x%04X", 2, TODO}, // 0xCC
-	{"CALL 0x%04X", 2, TODO},    // 0xCD
+	{"CALL Z, 0x%04X", 2, [](){ call_f_nn(FLAG_Z); }}, // 0xCC
+	{"CALL 0x%04X", 2, [](){ call_nn(); }},    // 0xCD
 	{"ADC A, 0x%02X", 1, TODO},  // 0xCE
 	{"RST 8", 0, TODO},          // 0xCF
 
@@ -1349,7 +1385,7 @@ instruction instructions[256] = {
 	{"POP DE", 0, TODO},         // 0xD1
 	{"JP NC, 0x%04X", 2, [](){ jp_nf_nn(FLAG_C); }},  // 0xD2
 	{"XX", 0, TODO},      // 0xD3
-	{"CALL NC, 0x%04X", 2, TODO},// 0xD4
+	{"CALL NC, 0x%04X", 2, [](){ call_nf_nn(FLAG_C); }},// 0xD4
 	{"PUSH DE", 0, TODO},        // 0xD5
 	{"SUB A, 0x%02X", 1, TODO},  // 0xD6
 	{"RST 10", 0, TODO},          // 0xD7
@@ -1357,7 +1393,7 @@ instruction instructions[256] = {
 	{"RETI", 0, TODO},            // 0xD9
 	{"JP C, 0x%04X", 2, [](){ jp_f_nn(FLAG_C); }},   // 0xDA
 	{"XX", 0, TODO},         // 0xDB
-	{"CALL C, 0x%04X", 2, TODO}, // 0xDC
+	{"CALL C, 0x%04X", 2, [](){ call_f_nn(FLAG_C); }}, // 0xDC
 	{"XX", 0, TODO},    // 0xDD
 	{"SBC A, 0x%02X", 1, TODO},  // 0xDE
 	{"RST 18", 0, TODO},          // 0xDF

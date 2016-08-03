@@ -4,18 +4,12 @@
 #include <string>
 #include "gbe.h"
 
-unsigned char ROM[1010101];
-
 void readROMFile(const char * filename) {
 	FILE* romfile; 
 	romfile = fopen(filename, "rb");
 
-	assert(romfile);
-
-	fseek(romfile, 0, SEEK_END);
-	size_t n = ftell(romfile);
-	fseek(romfile, 0, SEEK_SET);
-	fread(ROM,n,1,romfile);
+	fread(REG.ROM0,0x3fff,1,romfile);
+	fread(REG.ROM1,0x3fff,1,romfile);
 	fclose(romfile);
 }
 
