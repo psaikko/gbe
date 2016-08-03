@@ -8,8 +8,8 @@ void readROMFile(const char * filename) {
 	FILE* romfile; 
 	romfile = fopen(filename, "rb");
 
-	fread(REG.ROM0,0x3fff,1,romfile);
-	fread(REG.ROM1,0x3fff,1,romfile);
+	fread(MEM.ROM0,0x3fff,1,romfile);
+	fread(MEM.ROM1,0x3fff,1,romfile);
 	fclose(romfile);
 }
 
