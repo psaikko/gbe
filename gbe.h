@@ -49,6 +49,7 @@ typedef struct {
 	uint16_t SP;
 	uint16_t PC;
 	uint64_t T;
+	bool IE;
 } registers;
 
 registers REG;
@@ -704,6 +705,7 @@ void bit_i_rb(const uint8_t mask, uint8_t *from) {
 	unset_flag(FLAG_N);
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (*from & mask) == 0);
+
 	REG.T += 8;
 	REG.PC += 1;
 }
@@ -712,6 +714,7 @@ void bit_i_atHL(const uint8_t mask) {
 	unset_flag(FLAG_N);
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (MEM.readByte(REG.HL) & mask) == 0);
+
 	REG.T += 12;
 	REG.PC += 1;
 }
@@ -749,26 +752,84 @@ void set_i_atHL(const uint8_t mask) {
 // jumps
 
 void jp_nn() {
-	uint16_t target = ARGWORD;
+	REG.T += 16;
+	REG.PC = ARGWORD;
 }
 
 void jp_f_nn(uint8_t mask) {
-	uint16_t target = ARGWORD;
+	bool cond = get_flag(mask);
+	if (cond) {
+		REG.T += 16;
+		REG.PC = ARGWORD;
+	} else {
+		REG.T += 12;
+		REG.PC += 3;
+	}
+}
 
+void jp_nf_nn(uint8_t mask) {
+	bool cond = !get_flag(mask);
+	if (cond) {
+		REG.T += 16;
+		REG.PC = ARGWORD;
+	} else {
+		REG.T += 12;
+		REG.PC += 3;
+	}
 }
 
 void jp_atHL() {
-
+	REG.T += 4;
+	REG.PC = REG.HL;
 }
 
 void jr_e() {
 	uint8_t n = MEM.readByte(REG.PC + 1);
-	int8_t* e = reinterpret_cast<int8_t*>(&n);
+	int8_t e = *reinterpret_cast<int8_t*>(&n);
+	REG.PC += e;
+
+	REG.T += 12;
+	REG.PC += 2;
 }
 
 void jr_f_e(uint8_t mask) {
-	uint8_t n = MEM.readByte(REG.PC + 1);
-	int8_t* e = reinterpret_cast<int8_t*>(&n);
+	bool cond = get_flag(mask);
+	if (cond) {
+		uint8_t n = MEM.readByte(REG.PC + 1);
+		int8_t e = *reinterpret_cast<int8_t*>(&n);
+		REG.T += 12;
+		REG.PC += e;
+	} else {
+		REG.T += 8;
+	}
+	REG.PC += 2;
+}
+
+void jr_nf_e(uint8_t mask) {
+	bool cond = !get_flag(mask);
+	if (cond) {
+		uint8_t n = MEM.readByte(REG.PC + 1);
+		int8_t e = *reinterpret_cast<int8_t*>(&n);
+		REG.T += 12;
+		REG.PC += e;
+	} else {
+		REG.T += 8;
+	}
+	REG.PC += 2;
+}
+
+// interrupts
+
+void ei() {
+	REG.IE = 1;
+	REG.T += 4;
+	REG.PC += 1;
+}
+
+void di() {
+	REG.IE = 0;
+	REG.T += 4;
+	REG.PC += 1;
 }
 
 typedef struct {
@@ -1056,8 +1117,10 @@ instruction ext_instructions[256] = {
 };
 
 void ext() {
+	uint8_t opcode = ARGBYTE;
 	REG.PC += 1;
-	ext_instructions[ARGBYTE].fn();
+
+	ext_instructions[opcode].fn();
 }
 
 instruction instructions[256] = {
@@ -1086,7 +1149,7 @@ instruction instructions[256] = {
 	{"DEC D", 0, TODO},          // 0x15
 	{"LD D, 0x%02X", 1, [&](){ ld_rb_n(&REG.D); }},   // 0x16
 	{"RL A", 0, TODO},           // 0x17
-	{"JR 0x%02X", 1, TODO},      // 0x18
+	{"JR 0x%02X", 1, [](){ jr_e(); }},      // 0x18
 	{"ADD HL, DE", 0, TODO},     // 0x19
 	{"LD A, (DE)", 0, [&](){ ld_A_atrw(&REG.DE); }},     // 0x1A
 	{"DEC DE", 0, TODO},         // 0x1B
@@ -1095,7 +1158,7 @@ instruction instructions[256] = {
 	{"LD E, 0x%02X", 1, [&](){ ld_rb_n(&REG.E); }},   // 0x1E
 	{"RR A", 0, TODO},           // 0x1F
 
-	{"JR NZ, 0x%02X", 1, TODO},       // 0x20
+	{"JR NZ, 0x%02X", 1, [](){ jr_nf_e(FLAG_Z); }},       // 0x20
 	{"LD HL, 0x%04X", 2, [&](){ ld_rw_nn(&REG.HL); }},  // 0x21
 	{"LD (DE), A", 0, [&](){ ld_atrw_A(&REG.DE); }},     // 0x22
 	{"INC HL", 0, [&](){ inc_rw(&REG.HL); }},         // 0x23
@@ -1103,7 +1166,7 @@ instruction instructions[256] = {
 	{"DEC H", 0, TODO},          // 0x25
 	{"LD H, 0x%02X", 1, [&](){ ld_rb_n(&REG.H); }},   // 0x26
 	{"DAA", 0, TODO},            // 0x27
-	{"JR Z, 0x%02X", 1, TODO},   // 0x28
+	{"JR Z, 0x%02X", 1, [](){ jr_f_e(FLAG_Z); }},   // 0x28
 	{"ADD HL, HL", 0, TODO},     // 0x29
 	{"LDI A, (HL)", 0, [&](){ ldi_A_atHL(); }},    // 0x2A
 	{"DEC HL", 0, TODO},         // 0x2B
@@ -1112,7 +1175,7 @@ instruction instructions[256] = {
 	{"LD L, 0x%02X", 1, [&](){ ld_rb_n(&REG.L); }},   // 0x2E
 	{"CPL", 0, TODO},            // 0x2F
  
-	{"JR NC, 0x%02X", 1, TODO},  // 0x30
+	{"JR NC, 0x%02X", 1, [](){ jr_nf_e(FLAG_C); }},  // 0x30
 	{"LD SP, 0x%04X", 2, [&](){ ld_rw_nn(&REG.SP); }},  // 0x31
 	{"LDD (HL), A", 0, [&](){ ldd_atHL_A(); }},    // 0x32
 	{"INC SP", 0, [&](){ inc_rw(&REG.SP); }},         // 0x33
@@ -1120,7 +1183,7 @@ instruction instructions[256] = {
 	{"DEC (HL)", 0, TODO},       // 0x35
 	{"LD (HL), 0x%02X", 1, [&](){ ld_atHL_n(); }},// 0x36
 	{"SCF", 0, TODO},            // 0x37
-	{"JR C, 0x%02X", 1, TODO},   // 0x38
+	{"JR C, 0x%02X", 1, [](){ jr_f_e(FLAG_C); }},   // 0x38
 	{"ADD HL, SP", 0, TODO},     // 0x39
 	{"LDD A, (HL)", 0, [&](){ ldd_A_atHL(); }},    // 0x3A
 	{"DEC SP", 0, TODO},         // 0x3B
@@ -1267,15 +1330,15 @@ instruction instructions[256] = {
 
 	{"RET NZ", 0, TODO},         // 0xC0
 	{"POP BC", 0, TODO},         // 0xC1
-	{"JP NZ, 0x%04X", 2, TODO},  // 0xC2
-	{"JP 0x%04X", 2, TODO},      // 0xC3
+	{"JP NZ, 0x%04X", 2, [](){ jp_nf_nn(FLAG_Z); }},  // 0xC2
+	{"JP 0x%04X", 2, [](){ jp_nn(); }},      // 0xC3
 	{"CALL NZ, 0x%04X", 2, TODO},// 0xC4
 	{"PUSH BC", 0, TODO},        // 0xC5
 	{"ADD A, 0x%02X", 1, TODO},  // 0xC6
 	{"RST 0", 0, TODO},          // 0xC7
 	{"RET Z", 0, TODO},          // 0xC8
 	{"RET", 0, TODO},            // 0xC9
-	{"JP Z, 0x%04X", 2, TODO},   // 0xCA
+	{"JP Z, 0x%04X", 2, [](){ jp_f_nn(FLAG_Z); }},   // 0xCA
 	{"Ext Op", 1, [&](){ ext(); }},         // 0xCB
 	{"CALL Z, 0x%04X", 2, TODO}, // 0xCC
 	{"CALL 0x%04X", 2, TODO},    // 0xCD
@@ -1284,7 +1347,7 @@ instruction instructions[256] = {
 
 	{"RET NC", 0, TODO},         // 0xD0
 	{"POP DE", 0, TODO},         // 0xD1
-	{"JP NC, 0x%04X", 2, TODO},  // 0xD2
+	{"JP NC, 0x%04X", 2, [](){ jp_nf_nn(FLAG_C); }},  // 0xD2
 	{"XX", 0, TODO},      // 0xD3
 	{"CALL NC, 0x%04X", 2, TODO},// 0xD4
 	{"PUSH DE", 0, TODO},        // 0xD5
@@ -1292,7 +1355,7 @@ instruction instructions[256] = {
 	{"RST 10", 0, TODO},          // 0xD7
 	{"RET C", 0, TODO},          // 0xD8
 	{"RETI", 0, TODO},            // 0xD9
-	{"JP C, 0x%04X", 2, TODO},   // 0xDA
+	{"JP C, 0x%04X", 2, [](){ jp_f_nn(FLAG_C); }},   // 0xDA
 	{"XX", 0, TODO},         // 0xDB
 	{"CALL C, 0x%04X", 2, TODO}, // 0xDC
 	{"XX", 0, TODO},    // 0xDD
@@ -1308,7 +1371,7 @@ instruction instructions[256] = {
 	{"AND n", 1, [&](){ and_n(); }},  // 0xE6
 	{"RST 20", 0, TODO},          // 0xE7
 	{"ADD SP, d", 0, TODO},          // 0xE8
-	{"JP (HL)", 0, TODO},            // 0xE9
+	{"JP (HL)", 0, [](){ jp_atHL(); }},            // 0xE9
 	{"LD (0x%04X), A", 2, TODO},   // 0xEA
 	{"XX", 0, TODO},         // 0xEB
 	{"XX", 0, TODO}, // 0xEC
@@ -1319,7 +1382,7 @@ instruction instructions[256] = {
 	{"LDH A, (0x%02X)", 1, [&](){ ldh_A_atn(); }},         // 0xF0
 	{"POP AF", 0, TODO},         // 0xF1
 	{"XX", 0, TODO},  // 0xF2
-	{"DI", 0, TODO},      // 0xF3
+	{"DI", 0, [](){ di(); }},      // 0xF3
 	{"XX", 0, TODO},// 0xF4
 	{"PUSH AF", 0, TODO},        // 0xF5
 	{"OR n", 1, [&](){ or_n(); }},  // 0xF6
@@ -1327,7 +1390,7 @@ instruction instructions[256] = {
 	{"LDHL SP, d", 0, TODO},          // 0xF8
 	{"LD SP, HL", 0, [&](){ ld_SP_HL(); }},            // 0xF9
 	{"LD A, (0x%04X)", 2, TODO},   // 0xFA
-	{"EI", 0, TODO},         // 0xFB
+	{"EI", 0, [](){ di(); }},         // 0xFB
 	{"XX", 0, TODO}, // 0xFC
 	{"XX", 0, TODO},    // 0xFD
 	{"CP n", 1, [&](){ cp_n(); }},  // 0xFE
