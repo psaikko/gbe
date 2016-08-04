@@ -2,179 +2,11 @@
 #include <inttypes.h>
 #include <functional>
 #include <algorithm>
-
-typedef void (*instr_fn)(void);
-
-typedef struct {
-	struct {
-		union {
-			uint16_t AF;
-			struct {
-				uint8_t F;
-				uint8_t A;
-			};
-		};
-	};
-
-	struct {
-		union {
-			uint16_t BC;
-			struct {
-				uint8_t C;
-				uint8_t B;
-			};
-		};
-	};
-
-	struct {
-		union {
-			uint16_t DE;
-			struct {
-				uint8_t E;
-				uint8_t D;
-			};
-		};
-	};
-
-	struct {
-		union {
-			uint16_t HL;
-			struct {
-				uint8_t L;
-				uint8_t H;
-			};
-		};
-	};
-
-	uint16_t SP;
-	uint16_t PC;
-	uint64_t T;
-	bool IE;
-} registers;
-
-registers REG;
-
-const uint8_t FLAG_C = 0x10;
-const uint8_t FLAG_H = 0x20;
-const uint8_t FLAG_N = 0x40;
-const uint8_t FLAG_Z = 0x80;
-
-const uint8_t BIT_0 = 0x01;
-const uint8_t BIT_1 = 0x02;
-const uint8_t BIT_2 = 0x04;
-const uint8_t BIT_3 = 0x08;
-const uint8_t BIT_4 = 0x10;
-const uint8_t BIT_5 = 0x20;
-const uint8_t BIT_6 = 0x40;
-const uint8_t BIT_7 = 0x80;
-
-void set_flag(uint8_t flag) {
-	REG.F |= flag;
-}
-
-void set_flag_cond(uint8_t flag, bool on) {
-	if (on) REG.F |= flag;
-	else    REG.F &= ~flag;
-}
-
-void unset_flag(uint8_t flag) {
-	REG.F &= ~flag;
-}
-
-bool get_flag(uint8_t flag) {
-	return REG.F & flag;
-}
-
-typedef struct {
-	uint8_t ROM0[16384];  // [0000-3FFF] 
-	uint8_t ROM1[16384];  // [4000-7FFF]
-	uint8_t grRAM[8192];  // [8000-9FFF] 
-	uint8_t extRAM[8192]; // [A000-BFFF]
-	uint8_t RAM[8192];    // [C000-DFFF]
-	uint8_t _RAM[7680];   // [E000-FDFF]
-	uint8_t SPR[255];     // [FE00-FE9F] // 160 bytes?
-	uint8_t IO[128];      // [FF00-FF7F] 
-	uint8_t ZERO[128];    // [FF80-FFFF]
-
-	bool bios = true;
-	uint8_t BIOS[256]; 
-
-	uint8_t* getPtr(uint16_t addr) {
-		// switch by 8192 byte segments
-		switch(addr >> 15) {
-			case 0:
-				if (bios) {
-					if (REG.PC < 0x100) 
-						return &BIOS[addr];
-					else
-						bios = false;
-				}
-			case 1:
-				return &ROM0[addr];
-			case 2:
-			case 3:
-				return &ROM1[addr & 0x3FFF];
-			case 4:
-				return &grRAM[addr & 0x1FFF];
-			case 5:
-				return &extRAM[addr & 0x1FFF];
-			case 6:
-				return &RAM[addr & 0x1FFF];
-			case 7:
-				switch (addr & 0xFFF8) {
-					case 0xFE00:
-					case 0xFE80:
-						if (addr < 0xFEA0)
-							return &SPR[addr & 0x000F];
-						else 
-							return nullptr;
-					case 0xFF00:
-						return &IO[addr & 0x000E];
-					case 0xFF80:
-						return &ZERO[addr & 0x000E];
-					default:
-						return &RAM[addr & 0x1FFF];
-				}
-		}
-	}
-
-	uint8_t readByte(uint16_t addr) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr != nullptr)
-			return *ptr;
-		else
-			return 0;
-	}
-
-	uint16_t readWord(uint16_t addr) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr != nullptr)
-			return *reinterpret_cast<uint16_t*>(ptr); 
-		else
-			return 0;
-	}
-
-	void writeByte(uint16_t addr, uint8_t val) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr == nullptr) return;
-		*ptr = val;
-	}
-
-	void writeWord(uint16_t addr, uint16_t val) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr == nullptr) return;
-		uint16_t *wptr = reinterpret_cast<uint16_t*>(getPtr(addr)); 
-		*wptr = val;
-	}
-} memory;
-
-memory MEM;
-
-#define ARGBYTE (MEM.readByte(REG.PC + 1))
-#define ARGWORD (MEM.readWord(REG.PC + 1))
+#include "reg.h"
+#include "mem.h"
 
 void nop() {
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 }
 
@@ -186,7 +18,7 @@ void inc_rb(uint8_t * ptr) {
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_H, (*ptr) & 0x0F == 0);
 	set_flag_cond(FLAG_Z, (*ptr) == 0);
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 }
 
@@ -198,7 +30,29 @@ void inc_atHL() {
 	set_flag_cond(FLAG_H, val & 0x0F == 0x0F);
 	set_flag_cond(FLAG_Z, (val + 1) == 0);
 
-	REG.T += 12;
+	REG.TCLK = 12;
+	REG.PC += 1;
+}
+
+void dec_rb(uint8_t * ptr) {
+	(*ptr)--;
+
+	set_flag(FLAG_N);
+	set_flag_cond(FLAG_H, (*ptr) & 0x0F == 0x0F);
+	set_flag_cond(FLAG_Z, (*ptr) == 0);
+	REG.TCLK = 4;
+	REG.PC += 1;
+}
+
+void dec_atHL() {
+	uint8_t val = MEM.readByte(REG.HL);
+	MEM.writeByte(REG.HL, val - 1);
+
+	set_flag(FLAG_N);
+	set_flag_cond(FLAG_H, val & 0x0F == 0x00);
+	set_flag_cond(FLAG_Z, (val - 1) == 0);
+
+	REG.TCLK = 12;
 	REG.PC += 1;
 }
 
@@ -209,7 +63,7 @@ void xor_rb(uint8_t * from) {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 } 
 
@@ -220,7 +74,7 @@ void xor_n() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 2;
 }
 
@@ -232,7 +86,7 @@ void xor_atHL() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -243,7 +97,7 @@ void or_rb(uint8_t * from) {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 } 
 
@@ -254,7 +108,7 @@ void or_n() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 2;
 }
 
@@ -266,7 +120,7 @@ void or_atHL() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -278,7 +132,7 @@ void and_rb(uint8_t * from) {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 } 
 
@@ -290,7 +144,7 @@ void and_n() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 2;
 }
 
@@ -303,7 +157,7 @@ void and_atHL() {
 	if (REG.A == 0) set_flag(FLAG_Z);
 	else unset_flag(FLAG_Z);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -316,7 +170,7 @@ void cp_rb(uint8_t * from) {
 	set_flag_cond(FLAG_C, e > REG.A);
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 } 
 
@@ -329,7 +183,7 @@ void cp_n() {
 	set_flag_cond(FLAG_C, e > REG.A);
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 2;
 }
 
@@ -342,7 +196,7 @@ void cp_atHL() {
 	set_flag_cond(FLAG_C, e > REG.A);
 	set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -350,7 +204,13 @@ void cp_atHL() {
 
 void inc_rw(uint16_t * ptr) {
 	(*ptr)++;
-	REG.T += 8;	
+	REG.TCLK = 8;	
+	REG.PC += 1;
+}
+
+void dec_rw(uint16_t * ptr) {
+	(*ptr)--;
+	REG.TCLK = 8;	
 	REG.PC += 1;
 }
 
@@ -358,107 +218,107 @@ void inc_rw(uint16_t * ptr) {
 
 void ld_rb_rb(uint8_t *to, uint8_t *from) {
 	(*to) = (*from);
-	REG.T += 4;	
+	REG.TCLK = 4;	
 	REG.PC += 1;
 }
 
 void ld_rb_n(uint8_t *to) {
 	(*to) = ARGBYTE;
-	REG.T += 8;	
+	REG.TCLK = 8;	
 	REG.PC += 2;
 }
 
 void ld_rb_atHL(uint8_t *to) {
 	(*to) = MEM.readByte(REG.HL);
-	REG.T += 12;	
+	REG.TCLK = 12;	
 	REG.PC += 1;	
 }
 
 void ld_atHL_rb(uint8_t *from) {
 	MEM.writeByte(REG.HL, *from);
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ld_atHL_n() {
 	MEM.writeByte(REG.HL, ARGBYTE);
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 2;
 }
 
 void ld_A_atrw(uint16_t *addr) {
 	REG.A = MEM.readWord(*addr);
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ld_A_atnn() {
 	REG.A = MEM.readByte(ARGWORD);
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 3;
 }
 
 void ld_atrw_A(uint16_t *addr) {
 	MEM.writeByte(*addr, REG.A);
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ld_atnn_A() {
 	MEM.writeByte(ARGWORD, REG.A);
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 3;
 }
 
 void ldh_A_atC() {
 	REG.A = MEM.readByte(0xFF00 | REG.C);
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldh_atC_A() {
 	MEM.writeByte(0xFF00| REG.C, REG.A);
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldd_A_atHL() {
 	REG.A = MEM.readByte(REG.HL);
 	REG.HL--;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldd_atHL_A() {
 	MEM.writeByte(REG.HL, REG.A);
 	REG.HL--;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldi_A_atHL() {
 	REG.A = MEM.readByte(REG.HL);
 	REG.HL++;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldi_atHL_A() {
 	MEM.writeByte(REG.HL, REG.A);
 	REG.HL++;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
 void ldh_atn_A() {
 	MEM.writeByte(0xFF00 | ARGBYTE, REG.A);
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 2;
 }
 
 void ldh_A_atn() {
 	REG.A = MEM.readByte(0xFF00 | ARGBYTE);
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 2;
 }
 
@@ -466,20 +326,20 @@ void ldh_A_atn() {
 
 void ld_rw_nn(uint16_t* to) {
 	*to = ARGWORD;
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 3;
 }
 
 void ld_atnn_SP() {
 	uint16_t addr = ARGWORD;
 	MEM.writeWord(addr, REG.SP);
-	REG.T += 20;
+	REG.TCLK = 20;
 	REG.PC += 3;
 }
 
 void ld_SP_HL() {
 	REG.SP = REG.HL;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -499,14 +359,14 @@ void ld_HL_SP_e() {
 void push_rw(uint16_t *at) {
 	MEM.writeWord(REG.SP - 2, *at);
 	REG.SP -= 2;
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
 void pop_rw(uint16_t *at) {
 	*at = MEM.readWord(REG.SP);
 	REG.SP += 2;
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 1;
 }
 
@@ -522,7 +382,7 @@ void rrc_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -537,7 +397,7 @@ void rrc_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -551,7 +411,7 @@ void rlc_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -566,7 +426,7 @@ void rlc_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -580,7 +440,7 @@ void rr_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -595,7 +455,7 @@ void rr_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -609,7 +469,7 @@ void rl_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -624,7 +484,7 @@ void rl_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -636,7 +496,7 @@ void sla_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -649,7 +509,7 @@ void sla_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -662,7 +522,7 @@ void sra_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -676,7 +536,7 @@ void sra_atHL() {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
@@ -688,7 +548,7 @@ void srl_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -698,7 +558,7 @@ void srl_atHL() {
 	val >>= 1;
 	MEM.writeByte(REG.HL, val);
 
-	REG.T += 8;	
+	REG.TCLK = 8;	
 	REG.PC += 1;
 }
 
@@ -710,7 +570,7 @@ void swap_rb(uint8_t * at) {
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
 	set_flag_cond(FLAG_Z, *at == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -724,7 +584,7 @@ void swap_atHL() {
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
 	set_flag_cond(FLAG_Z, val == 0);
 
-	REG.T += 16;	
+	REG.TCLK = 16;	
 	REG.PC += 1;
 }
 
@@ -733,7 +593,7 @@ void bit_i_rb(const uint8_t mask, uint8_t *from) {
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (*from & mask) == 0);
 
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -742,13 +602,13 @@ void bit_i_atHL(const uint8_t mask) {
 	unset_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (MEM.readByte(REG.HL) & mask) == 0);
 
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 1;
 }
 
 void res_i_rb(const uint8_t mask, uint8_t * to) {
 	*to &= ~mask;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -757,13 +617,13 @@ void res_i_atHL(const uint8_t mask) {
 	val &= ~mask;
 	MEM.writeByte(REG.HL, val);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
 void set_i_rb(const uint8_t mask, uint8_t * to) {
 	*to |= mask;
-	REG.T += 8;
+	REG.TCLK = 8;
 	REG.PC += 1;
 }
 
@@ -772,24 +632,24 @@ void set_i_atHL(const uint8_t mask) {
 	val |= mask;
 	MEM.writeByte(REG.HL, val);
 
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC += 1;
 }
 
 // jumps
 
 void jp_nn() {
-	REG.T += 16;
+	REG.TCLK = 16;
 	REG.PC = ARGWORD;
 }
 
 void jp_f_nn(uint8_t mask) {
 	bool cond = get_flag(mask);
 	if (cond) {
-		REG.T += 16;
+		REG.TCLK = 16;
 		REG.PC = ARGWORD;
 	} else {
-		REG.T += 12;
+		REG.TCLK = 12;
 		REG.PC += 3;
 	}
 }
@@ -797,16 +657,16 @@ void jp_f_nn(uint8_t mask) {
 void jp_nf_nn(uint8_t mask) {
 	bool cond = !get_flag(mask);
 	if (cond) {
-		REG.T += 16;
+		REG.TCLK = 16;
 		REG.PC = ARGWORD;
 	} else {
-		REG.T += 12;
+		REG.TCLK = 12;
 		REG.PC += 3;
 	}
 }
 
 void jp_atHL() {
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC = REG.HL;
 }
 
@@ -815,7 +675,7 @@ void jr_e() {
 	int8_t e = *reinterpret_cast<int8_t*>(&n);
 	REG.PC += e;
 
-	REG.T += 12;
+	REG.TCLK = 12;
 	REG.PC += 2;
 }
 
@@ -824,10 +684,10 @@ void jr_f_e(uint8_t mask) {
 	if (cond) {
 		uint8_t n = MEM.readByte(REG.PC + 1);
 		int8_t e = *reinterpret_cast<int8_t*>(&n);
-		REG.T += 12;
+		REG.TCLK = 12;
 		REG.PC += e;
 	} else {
-		REG.T += 8;
+		REG.TCLK = 8;
 	}
 	REG.PC += 2;
 }
@@ -837,10 +697,10 @@ void jr_nf_e(uint8_t mask) {
 	if (cond) {
 		uint8_t n = MEM.readByte(REG.PC + 1);
 		int8_t e = *reinterpret_cast<int8_t*>(&n);
-		REG.T += 12;
+		REG.TCLK = 12;
 		REG.PC += e;
 	} else {
-		REG.T += 8;
+		REG.TCLK = 8;
 	}
 	REG.PC += 2;
 }
@@ -849,13 +709,13 @@ void jr_nf_e(uint8_t mask) {
 
 void ei() {
 	REG.IE = 1;
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 }
 
 void di() {
 	REG.IE = 0;
-	REG.T += 4;
+	REG.TCLK = 4;
 	REG.PC += 1;
 }
 
@@ -867,7 +727,7 @@ void call_nn() {
 	MEM.writeWord(REG.SP - 2, REG.PC);
 	REG.PC = nn;
 	REG.SP -= 2;
-	REG.T += 24;
+	REG.TCLK = 24;
 }
 
 void call_f_nn(uint8_t mask) {
@@ -878,9 +738,9 @@ void call_f_nn(uint8_t mask) {
 		MEM.writeWord(REG.SP - 2, REG.PC);
 		REG.PC = nn;
 		REG.SP -= 2;
-		REG.T += 24;
+		REG.TCLK = 24;
 	} else {
-		REG.T += 12;
+		REG.TCLK = 12;
 	}
 }
 
@@ -892,9 +752,9 @@ void call_nf_nn(uint8_t mask) {
 		MEM.writeWord(REG.SP - 2, REG.PC);
 		REG.PC = nn;
 		REG.SP -= 2;
-		REG.T += 24;
+		REG.TCLK = 24;
 	} else {
-		REG.T += 12;
+		REG.TCLK = 12;
 	}
 }
 
@@ -906,6 +766,44 @@ void rst(uint8_t addr) {
 	REG.PC = addr;
 }
 
+// ret
+
+void ret() {
+	REG.PC = MEM.readWord(REG.SP);
+	REG.SP += 2;
+	REG.TCLK = 16;
+}
+
+void ret_f(uint8_t mask) {
+	bool cond = get_flag(mask);
+	if (cond) {
+		REG.PC = MEM.readWord(REG.SP);
+		REG.SP += 2;
+		REG.TCLK = 20;
+	} else {
+		REG.PC += 1;
+		REG.TCLK = 8;
+	}
+}
+
+void ret_nf(uint8_t mask) {
+	bool cond = !get_flag(mask);
+	if (cond) {
+		REG.PC = MEM.readWord(REG.SP);
+		REG.SP += 2;
+		REG.TCLK = 20;
+	} else {
+		REG.PC += 1;
+		REG.TCLK = 8;
+	}	
+}
+
+void reti() {
+	REG.PC = MEM.readWord(REG.SP);
+	REG.SP += 2;
+	REG.TCLK = 16;
+	REG.IE = 1;
+}
 
 typedef struct {
 	char name[16];
@@ -1204,15 +1102,15 @@ instruction instructions[256] = {
 	{"LD (BC), A", 0, [](){ ld_atrw_A(&REG.BC); }},     // 0x02
 	{"INC BC", 0, [](){ inc_rw(&REG.BC); }},         // 0x03
 	{"INC B", 0, [](){ inc_rb(&REG.B); }},          // 0x04
-	{"DEC B", 0, TODO},          // 0x05
+	{"DEC B", 0, [](){ dec_rb(&REG.B); }},          // 0x05
 	{"LD B, 0x%02X", 1, [](){ ld_rb_n(&REG.B); }},   // 0x06
 	{"RLC A", 0, [](){ rlc_rb(&REG.A); }},          // 0x07
 	{"LD (0x%04X), SP", 2, [](){ ld_atnn_SP(); }},// 0x08
 	{"ADD HL, BC", 0, TODO},     // 0x09
 	{"LD A, (BC)", 0, [](){ ld_A_atrw(&REG.BC); }},     // 0x0A
-	{"DEC BC", 0, TODO},         // 0x0B
+	{"DEC BC", 0, [](){ dec_rw(&REG.BC); }},         // 0x0B
 	{"INC C", 0, [](){ inc_rb(&REG.C); }},          // 0x0C
-	{"DEC C", 0, TODO},          // 0x0D
+	{"DEC C", 0, [](){ dec_rb(&REG.C); }},          // 0x0D
 	{"LD C, 0x%02X", 1, [](){ ld_rb_n(&REG.C); }},   // 0x0E
 	{"RRC A", 0, [](){ rrc_rb(&REG.A); }},          // 0x0F
 
@@ -1221,15 +1119,15 @@ instruction instructions[256] = {
 	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x12
 	{"INC DE", 0, [](){ inc_rw(&REG.DE); } },         // 0x13
 	{"INC D", 0, [](){ inc_rb(&REG.D); }},          // 0x14
-	{"DEC D", 0, TODO},          // 0x15
+	{"DEC D", 0, [](){ dec_rb(&REG.D); }},          // 0x15
 	{"LD D, 0x%02X", 1, [](){ ld_rb_n(&REG.D); }},   // 0x16
 	{"RL A", 0, [](){ rl_rb(&REG.A); }},           // 0x17
 	{"JR 0x%02X", 1, [](){ jr_e(); }},      // 0x18
 	{"ADD HL, DE", 0, TODO},     // 0x19
 	{"LD A, (DE)", 0, [](){ ld_A_atrw(&REG.DE); }},     // 0x1A
-	{"DEC DE", 0, TODO},         // 0x1B
+	{"DEC DE", 0, [](){ dec_rw(&REG.DE); }},         // 0x1B
 	{"INC E", 0, [](){ inc_rb(&REG.E); }},          // 0x1C
-	{"DEC E", 0, TODO},          // 0x1D
+	{"DEC E", 0, [](){ dec_rb(&REG.E); }},          // 0x1D
 	{"LD E, 0x%02X", 1, [](){ ld_rb_n(&REG.E); }},   // 0x1E
 	{"RR A", 0, [](){ rr_rb(&REG.A); }},           // 0x1F
 
@@ -1238,15 +1136,15 @@ instruction instructions[256] = {
 	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x22
 	{"INC HL", 0, [](){ inc_rw(&REG.HL); }},         // 0x23
 	{"INC H", 0, [](){ inc_rb(&REG.H); }},          // 0x24
-	{"DEC H", 0, TODO},          // 0x25
+	{"DEC H", 0, [](){ dec_rb(&REG.H); }},          // 0x25
 	{"LD H, 0x%02X", 1, [](){ ld_rb_n(&REG.H); }},   // 0x26
 	{"DAA", 0, TODO},            // 0x27
 	{"JR Z, 0x%02X", 1, [](){ jr_f_e(FLAG_Z); }},   // 0x28
 	{"ADD HL, HL", 0, TODO},     // 0x29
 	{"LDI A, (HL)", 0, [](){ ldi_A_atHL(); }},    // 0x2A
-	{"DEC HL", 0, TODO},         // 0x2B
+	{"DEC HL", 0, [](){ dec_rw(&REG.HL); }},         // 0x2B
 	{"INC L", 0, [](){ inc_rb(&REG.L); }},          // 0x2C
-	{"DEC L", 0, TODO},          // 0x2D
+	{"DEC L", 0, [](){ dec_rb(&REG.L); }},          // 0x2D
 	{"LD L, 0x%02X", 1, [](){ ld_rb_n(&REG.L); }},   // 0x2E
 	{"CPL", 0, TODO},            // 0x2F
  
@@ -1255,15 +1153,15 @@ instruction instructions[256] = {
 	{"LDD (HL), A", 0, [](){ ldd_atHL_A(); }},    // 0x32
 	{"INC SP", 0, [](){ inc_rw(&REG.SP); }},         // 0x33
 	{"INC (HL)", 0, [](){ inc_atHL(); }},       // 0x34
-	{"DEC (HL)", 0, TODO},       // 0x35
+	{"DEC (HL)", 0, [](){ dec_atHL(); }},       // 0x35
 	{"LD (HL), 0x%02X", 1, [](){ ld_atHL_n(); }},// 0x36
 	{"SCF", 0, TODO},            // 0x37
 	{"JR C, 0x%02X", 1, [](){ jr_f_e(FLAG_C); }},   // 0x38
 	{"ADD HL, SP", 0, TODO},     // 0x39
 	{"LDD A, (HL)", 0, [](){ ldd_A_atHL(); }},    // 0x3A
-	{"DEC SP", 0, TODO},         // 0x3B
-	{"INC A", 0, TODO},          // 0x3C
-	{"DEC A", 0, TODO},          // 0x3D
+	{"DEC SP", 0, [](){ dec_rw(&REG.SP); }},         // 0x3B
+	{"INC A", 0, [](){ inc_rb(&REG.B); }},          // 0x3C
+	{"DEC A", 0, [](){ dec_rb(&REG.A); }},          // 0x3D
 	{"LD A, 0x%02X", 1, [](){ ld_rb_n(&REG.A); }},   // 0x3E
 	{"CCF", 0, TODO},            // 0x3F
 
@@ -1403,7 +1301,7 @@ instruction instructions[256] = {
 	{"CP (HL)", 0, [](){ cp_atHL(); }},        // 0xBE
 	{"CP A", 0, [](){ cp_rb(&REG.A); }},           // 0xBF
 
-	{"RET NZ", 0, TODO},         // 0xC0
+	{"RET NZ", 0, [](){ ret_nf(FLAG_Z); }},         // 0xC0
 	{"POP BC", 0, [](){ pop_rw(&REG.BC); }},         // 0xC1
 	{"JP NZ, 0x%04X", 2, [](){ jp_nf_nn(FLAG_Z); }},  // 0xC2
 	{"JP 0x%04X", 2, [](){ jp_nn(); }},      // 0xC3
@@ -1411,8 +1309,8 @@ instruction instructions[256] = {
 	{"PUSH BC", 0, [](){ push_rw(&REG.BC); }},        // 0xC5
 	{"ADD A, 0x%02X", 1, TODO},  // 0xC6
 	{"RST 0", 0, [](){ rst(0); }},          // 0xC7
-	{"RET Z", 0, TODO},          // 0xC8
-	{"RET", 0, TODO},            // 0xC9
+	{"RET Z", 0, [](){ ret_f(FLAG_Z); }},          // 0xC8
+	{"RET", 0, [](){ ret(); }},            // 0xC9
 	{"JP Z, 0x%04X", 2, [](){ jp_f_nn(FLAG_Z); }},   // 0xCA
 	{"Ext Op", 1, [](){ ext(); }},         // 0xCB
 	{"CALL Z, 0x%04X", 2, [](){ call_f_nn(FLAG_Z); }}, // 0xCC
@@ -1420,7 +1318,7 @@ instruction instructions[256] = {
 	{"ADC A, 0x%02X", 1, TODO},  // 0xCE
 	{"RST 8", 0, [](){ rst(8); }},          // 0xCF
 
-	{"RET NC", 0, TODO},         // 0xD0
+	{"RET NC", 0, [](){ ret_nf(FLAG_C); }},         // 0xD0
 	{"POP DE", 0, [](){ pop_rw(&REG.DE); }},         // 0xD1
 	{"JP NC, 0x%04X", 2, [](){ jp_nf_nn(FLAG_C); }},  // 0xD2
 	{"XX", 0, TODO},      // 0xD3
@@ -1428,8 +1326,8 @@ instruction instructions[256] = {
 	{"PUSH DE", 0, [](){ push_rw(&REG.DE); }},        // 0xD5
 	{"SUB A, 0x%02X", 1, TODO},  // 0xD6
 	{"RST 10", 0, [](){ rst(10); }},          // 0xD7
-	{"RET C", 0, TODO},          // 0xD8
-	{"RETI", 0, TODO},            // 0xD9
+	{"RET C", 0, [](){ ret_f(FLAG_C); }},          // 0xD8
+	{"RETI", 0, [](){ reti(); }},            // 0xD9
 	{"JP C, 0x%04X", 2, [](){ jp_f_nn(FLAG_C); }},   // 0xDA
 	{"XX", 0, TODO},         // 0xDB
 	{"CALL C, 0x%04X", 2, [](){ call_f_nn(FLAG_C); }}, // 0xDC
@@ -1447,7 +1345,7 @@ instruction instructions[256] = {
 	{"RST 20", 0, [](){ rst(20); }},          // 0xE7
 	{"ADD SP, d", 0, TODO},          // 0xE8
 	{"JP (HL)", 0, [](){ jp_atHL(); }},            // 0xE9
-	{"LD (0x%04X), A", 2, TODO},   // 0xEA
+	{"LD (0x%04X), A", 2, [](){ ld_atnn_A(); }},   // 0xEA
 	{"XX", 0, TODO},         // 0xEB
 	{"XX", 0, TODO}, // 0xEC
 	{"XX", 0, TODO},    // 0xED
