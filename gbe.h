@@ -910,10 +910,10 @@ void rst(uint8_t addr) {
 typedef struct {
 	char name[16];
 	uint8_t argw;
-	std::function<void()> fn;
+	void (*fn)(void);
 } instruction;
 
-std::function<void()> TODO = [&](){
+void TODO(void){
 	printf("Operation not implemented.\nContext:\n");
 	uint16_t start = (REG.PC >= 10) ? REG.PC - 10 : 0;
 	for (uint16_t i = start; i < REG.PC; ++i)
@@ -927,268 +927,268 @@ std::function<void()> TODO = [&](){
 };
 
 instruction ext_instructions[256] = {
-	{"RLC B", 0, [&](){ rlc_rb(&REG.B); }}, //0xCB01
-	{"RLC C", 0, [&](){ rlc_rb(&REG.C);}}, //0xCB02
-	{"RLC D", 0, [&](){ rlc_rb(&REG.D);}}, //0xCB03
-	{"RLC E", 0, [&](){ rlc_rb(&REG.E);}}, //0xCB04
-	{"RLC H", 0, [&](){ rlc_rb(&REG.H);}}, //0xCB05
-	{"RLC L", 0, [&](){ rlc_rb(&REG.L);}}, //0xCB06
-	{"RLC (HL)", 0, [&](){ rlc_atHL();}}, //0xCB07
-	{"RLC A", 0, [&](){ rlc_rb(&REG.A);}}, //0xCB08
-	{"RRC B", 0, [&](){ rrc_rb(&REG.B);}}, //0xCB09
-	{"RRC C", 0, [&](){ rrc_rb(&REG.C);}}, //0xCB0A
-	{"RRC D", 0, [&](){ rrc_rb(&REG.D);}}, //0xCB0B
-	{"RRC E", 0, [&](){ rrc_rb(&REG.E);}}, //0xCB0C
-	{"RRC H", 0, [&](){ rrc_rb(&REG.H);}}, //0xCB0D
-	{"RRC L", 0, [&](){ rrc_rb(&REG.L);}}, //0xCB0E 
-	{"RRC (HL)", 0, [&](){ rrc_atHL();}}, //0xCB0F
-	{"RRC A", 0, [&](){ rrc_rb(&REG.A);}}, //0xCB01
+	{"RLC B", 0, [](){ rlc_rb(&REG.B); }}, //0xCB01
+	{"RLC C", 0, [](){ rlc_rb(&REG.C);}}, //0xCB02
+	{"RLC D", 0, [](){ rlc_rb(&REG.D);}}, //0xCB03
+	{"RLC E", 0, [](){ rlc_rb(&REG.E);}}, //0xCB04
+	{"RLC H", 0, [](){ rlc_rb(&REG.H);}}, //0xCB05
+	{"RLC L", 0, [](){ rlc_rb(&REG.L);}}, //0xCB06
+	{"RLC (HL)", 0, [](){ rlc_atHL();}}, //0xCB07
+	{"RLC A", 0, [](){ rlc_rb(&REG.A);}}, //0xCB08
+	{"RRC B", 0, [](){ rrc_rb(&REG.B);}}, //0xCB09
+	{"RRC C", 0, [](){ rrc_rb(&REG.C);}}, //0xCB0A
+	{"RRC D", 0, [](){ rrc_rb(&REG.D);}}, //0xCB0B
+	{"RRC E", 0, [](){ rrc_rb(&REG.E);}}, //0xCB0C
+	{"RRC H", 0, [](){ rrc_rb(&REG.H);}}, //0xCB0D
+	{"RRC L", 0, [](){ rrc_rb(&REG.L);}}, //0xCB0E 
+	{"RRC (HL)", 0, [](){ rrc_atHL();}}, //0xCB0F
+	{"RRC A", 0, [](){ rrc_rb(&REG.A);}}, //0xCB01
 
-	{"RL B", 0, [&](){ rl_rb(&REG.B); }}, //0xCB11
-	{"RL C", 0, [&](){ rl_rb(&REG.C);}}, //0xCB12
-	{"RL D", 0, [&](){ rl_rb(&REG.D);}}, //0xCB13
-	{"RL E", 0, [&](){ rl_rb(&REG.E);}}, //0xCB14
-	{"RL H", 0, [&](){ rl_rb(&REG.H);}}, //0xCB15
-	{"RL L", 0, [&](){ rl_rb(&REG.L);}}, //0xCB16
-	{"RL (HL)", 0, [&](){ rl_atHL();}}, //0xCB17
-	{"RL A", 0, [&](){ rl_rb(&REG.A);}}, //0xCB18
-	{"RR B", 0, [&](){ rr_rb(&REG.B);}}, //0xCB19
-	{"RR C", 0, [&](){ rr_rb(&REG.C);}}, //0xCB1A
-	{"RR D", 0, [&](){ rr_rb(&REG.D);}}, //0xCB1B
-	{"RR E", 0, [&](){ rr_rb(&REG.E);}}, //0xCB1C
-	{"RR H", 0, [&](){ rr_rb(&REG.H);}}, //0xCB1D
-	{"RR L", 0, [&](){ rr_rb(&REG.L);}}, //0xCB1E 
-	{"RR (HL)", 0, [&](){ rr_atHL();}}, //0xCB1F
-	{"RR A", 0, [&](){ rr_rb(&REG.A);}}, //0xCB11
+	{"RL B", 0, [](){ rl_rb(&REG.B); }}, //0xCB11
+	{"RL C", 0, [](){ rl_rb(&REG.C);}}, //0xCB12
+	{"RL D", 0, [](){ rl_rb(&REG.D);}}, //0xCB13
+	{"RL E", 0, [](){ rl_rb(&REG.E);}}, //0xCB14
+	{"RL H", 0, [](){ rl_rb(&REG.H);}}, //0xCB15
+	{"RL L", 0, [](){ rl_rb(&REG.L);}}, //0xCB16
+	{"RL (HL)", 0, [](){ rl_atHL();}}, //0xCB17
+	{"RL A", 0, [](){ rl_rb(&REG.A);}}, //0xCB18
+	{"RR B", 0, [](){ rr_rb(&REG.B);}}, //0xCB19
+	{"RR C", 0, [](){ rr_rb(&REG.C);}}, //0xCB1A
+	{"RR D", 0, [](){ rr_rb(&REG.D);}}, //0xCB1B
+	{"RR E", 0, [](){ rr_rb(&REG.E);}}, //0xCB1C
+	{"RR H", 0, [](){ rr_rb(&REG.H);}}, //0xCB1D
+	{"RR L", 0, [](){ rr_rb(&REG.L);}}, //0xCB1E 
+	{"RR (HL)", 0, [](){ rr_atHL();}}, //0xCB1F
+	{"RR A", 0, [](){ rr_rb(&REG.A);}}, //0xCB11
 
-	{"SLA B", 0, [&](){ sla_rb(&REG.B); }}, //0xCB21
-	{"SLA C", 0, [&](){ sla_rb(&REG.C);}}, //0xCB22
-	{"SLA D", 0, [&](){ sla_rb(&REG.D);}}, //0xCB23
-	{"SLA E", 0, [&](){ sla_rb(&REG.E);}}, //0xCB24
-	{"SLA H", 0, [&](){ sla_rb(&REG.H);}}, //0xCB25
-	{"SLA L", 0, [&](){ sla_rb(&REG.L);}}, //0xCB26
-	{"SLA (HL)", 0, [&](){ sla_atHL();}}, //0xCB27
-	{"SLA A", 0, [&](){ sla_rb(&REG.A);}}, //0xCB28
-	{"SRA B", 0, [&](){ sra_rb(&REG.B);}}, //0xCB29
-	{"SRA C", 0, [&](){ sra_rb(&REG.C);}}, //0xCB2A
-	{"SRA D", 0, [&](){ sra_rb(&REG.D);}}, //0xCB2B
-	{"SRA E", 0, [&](){ sra_rb(&REG.E);}}, //0xCB2C
-	{"SRA H", 0, [&](){ sra_rb(&REG.H);}}, //0xCB2D
-	{"SRA L", 0, [&](){ sra_rb(&REG.L);}}, //0xCB2E 
-	{"SRA (HL)", 0, [&](){ sra_atHL();}}, //0xCB2F
-	{"SRA A", 0, [&](){ sra_rb(&REG.A);}}, //0xCB21
+	{"SLA B", 0, [](){ sla_rb(&REG.B); }}, //0xCB21
+	{"SLA C", 0, [](){ sla_rb(&REG.C);}}, //0xCB22
+	{"SLA D", 0, [](){ sla_rb(&REG.D);}}, //0xCB23
+	{"SLA E", 0, [](){ sla_rb(&REG.E);}}, //0xCB24
+	{"SLA H", 0, [](){ sla_rb(&REG.H);}}, //0xCB25
+	{"SLA L", 0, [](){ sla_rb(&REG.L);}}, //0xCB26
+	{"SLA (HL)", 0, [](){ sla_atHL();}}, //0xCB27
+	{"SLA A", 0, [](){ sla_rb(&REG.A);}}, //0xCB28
+	{"SRA B", 0, [](){ sra_rb(&REG.B);}}, //0xCB29
+	{"SRA C", 0, [](){ sra_rb(&REG.C);}}, //0xCB2A
+	{"SRA D", 0, [](){ sra_rb(&REG.D);}}, //0xCB2B
+	{"SRA E", 0, [](){ sra_rb(&REG.E);}}, //0xCB2C
+	{"SRA H", 0, [](){ sra_rb(&REG.H);}}, //0xCB2D
+	{"SRA L", 0, [](){ sra_rb(&REG.L);}}, //0xCB2E 
+	{"SRA (HL)", 0, [](){ sra_atHL();}}, //0xCB2F
+	{"SRA A", 0, [](){ sra_rb(&REG.A);}}, //0xCB21
 
-	{"SWAP B", 0, [&](){ swap_rb(&REG.B); }}, //0xCB31
-	{"SWAP C", 0, [&](){ swap_rb(&REG.C);}}, //0xCB32
-	{"SWAP D", 0, [&](){ swap_rb(&REG.D);}}, //0xCB33
-	{"SWAP E", 0, [&](){ swap_rb(&REG.E);}}, //0xCB34
-	{"SWAP H", 0, [&](){ swap_rb(&REG.H);}}, //0xCB35
-	{"SWAP L", 0, [&](){ swap_rb(&REG.L);}}, //0xCB36
-	{"SWAP (HL)", 0, [&](){ swap_atHL();}}, //0xCB37
-	{"SWAP A", 0, [&](){ swap_rb(&REG.A);}}, //0xCB38
-	{"SRL B", 0, [&](){ srl_rb(&REG.B);}}, //0xCB39
-	{"SRL C", 0, [&](){ srl_rb(&REG.C);}}, //0xCB3A
-	{"SRL D", 0, [&](){ srl_rb(&REG.D);}}, //0xCB3B
-	{"SRL E", 0, [&](){ srl_rb(&REG.E);}}, //0xCB3C
-	{"SRL H", 0, [&](){ srl_rb(&REG.H);}}, //0xCB3D
-	{"SRL L", 0, [&](){ srl_rb(&REG.L);}}, //0xCB3E 
-	{"SRL (HL)", 0, [&](){ srl_atHL();}}, //0xCB3F
-	{"SRL A", 0, [&](){ srl_rb(&REG.A);}}, //0xCB31
+	{"SWAP B", 0, [](){ swap_rb(&REG.B); }}, //0xCB31
+	{"SWAP C", 0, [](){ swap_rb(&REG.C);}}, //0xCB32
+	{"SWAP D", 0, [](){ swap_rb(&REG.D);}}, //0xCB33
+	{"SWAP E", 0, [](){ swap_rb(&REG.E);}}, //0xCB34
+	{"SWAP H", 0, [](){ swap_rb(&REG.H);}}, //0xCB35
+	{"SWAP L", 0, [](){ swap_rb(&REG.L);}}, //0xCB36
+	{"SWAP (HL)", 0, [](){ swap_atHL();}}, //0xCB37
+	{"SWAP A", 0, [](){ swap_rb(&REG.A);}}, //0xCB38
+	{"SRL B", 0, [](){ srl_rb(&REG.B);}}, //0xCB39
+	{"SRL C", 0, [](){ srl_rb(&REG.C);}}, //0xCB3A
+	{"SRL D", 0, [](){ srl_rb(&REG.D);}}, //0xCB3B
+	{"SRL E", 0, [](){ srl_rb(&REG.E);}}, //0xCB3C
+	{"SRL H", 0, [](){ srl_rb(&REG.H);}}, //0xCB3D
+	{"SRL L", 0, [](){ srl_rb(&REG.L);}}, //0xCB3E 
+	{"SRL (HL)", 0, [](){ srl_atHL();}}, //0xCB3F
+	{"SRL A", 0, [](){ srl_rb(&REG.A);}}, //0xCB31
 
-	{"BIT 0, B", 0, [&](){ bit_i_rb(BIT_0, &REG.B); }}, //0xCB41
-	{"BIT 0, C", 0, [&](){ bit_i_rb(BIT_0, &REG.C);}}, //0xCB42
-	{"BIT 0, D", 0, [&](){ bit_i_rb(BIT_0, &REG.D);}}, //0xCB43
-	{"BIT 0, E", 0, [&](){ bit_i_rb(BIT_0, &REG.E);}}, //0xCB44
-	{"BIT 0, H", 0, [&](){ bit_i_rb(BIT_0, &REG.H);}}, //0xCB45
-	{"BIT 0, L", 0, [&](){ bit_i_rb(BIT_0, &REG.L);}}, //0xCB46
-	{"BIT 0, (HL)", 0, [&](){ bit_i_atHL(BIT_0);}}, //0xCB47
-	{"BIT 0, A", 0, [&](){ bit_i_rb(BIT_0, &REG.A);}}, //0xCB48
-	{"BIT 1, B", 0, [&](){ bit_i_rb(BIT_1, &REG.B);}}, //0xCB49
-	{"BIT 1, C", 0, [&](){ bit_i_rb(BIT_1, &REG.C);}}, //0xCB4A
-	{"BIT 1, D", 0, [&](){ bit_i_rb(BIT_1, &REG.D);}}, //0xCB4B
-	{"BIT 1, E", 0, [&](){ bit_i_rb(BIT_1, &REG.E);}}, //0xCB4C
-	{"BIT 1, H", 0, [&](){ bit_i_rb(BIT_1, &REG.H);}}, //0xCB4D
-	{"BIT 1, L", 0, [&](){ bit_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
-	{"BIT 1, (HL)", 0, [&](){ bit_i_atHL(BIT_1);}}, //0xCB4F
-	{"BIT 1, A", 0, [&](){ bit_i_rb(BIT_1, &REG.A);}}, //0xCB41
-	{"BIT 2, B", 0, [&](){ bit_i_rb(BIT_2, &REG.B); }}, //0xCB51
-	{"BIT 2, C", 0, [&](){ bit_i_rb(BIT_2, &REG.C);}}, //0xCB52
-	{"BIT 2, D", 0, [&](){ bit_i_rb(BIT_2, &REG.D);}}, //0xCB53
-	{"BIT 2, E", 0, [&](){ bit_i_rb(BIT_2, &REG.E);}}, //0xCB54
-	{"BIT 2, H", 0, [&](){ bit_i_rb(BIT_2, &REG.H);}}, //0xCB55
-	{"BIT 2, L", 0, [&](){ bit_i_rb(BIT_2, &REG.L);}}, //0xCB56
-	{"BIT 2, (HL)", 0, [&](){ bit_i_atHL(BIT_2);}}, //0xCB57
-	{"BIT 2, A", 0, [&](){ bit_i_rb(BIT_2, &REG.A);}}, //0xCB58
-	{"BIT 3, B", 0, [&](){ bit_i_rb(BIT_3, &REG.B);}}, //0xCB59
-	{"BIT 3, C", 0, [&](){ bit_i_rb(BIT_3, &REG.C);}}, //0xCB5A
-	{"BIT 3, D", 0, [&](){ bit_i_rb(BIT_3, &REG.D);}}, //0xCB5B
-	{"BIT 3, E", 0, [&](){ bit_i_rb(BIT_3, &REG.E);}}, //0xCB5C
-	{"BIT 3, H", 0, [&](){ bit_i_rb(BIT_3, &REG.H);}}, //0xCB5D
-	{"BIT 3, L", 0, [&](){ bit_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
-	{"BIT 3, (HL)", 0, [&](){ bit_i_atHL(BIT_3);}}, //0xCB5F
-	{"BIT 3, A", 0, [&](){ bit_i_rb(BIT_3, &REG.A);}}, //0xCB51
-	{"BIT 4, B", 0, [&](){ bit_i_rb(BIT_4, &REG.B); }}, //0xCB61
-	{"BIT 4, C", 0, [&](){ bit_i_rb(BIT_4, &REG.C);}}, //0xCB62
-	{"BIT 4, D", 0, [&](){ bit_i_rb(BIT_4, &REG.D);}}, //0xCB63
-	{"BIT 4, E", 0, [&](){ bit_i_rb(BIT_4, &REG.E);}}, //0xCB64
-	{"BIT 4, H", 0, [&](){ bit_i_rb(BIT_4, &REG.H);}}, //0xCB65
-	{"BIT 4, L", 0, [&](){ bit_i_rb(BIT_4, &REG.L);}}, //0xCB66
-	{"BIT 4, (HL)", 0, [&](){ bit_i_atHL(BIT_4);}}, //0xCB67
-	{"BIT 4, A", 0, [&](){ bit_i_rb(BIT_4, &REG.A);}}, //0xCB68
-	{"BIT 5, B", 0, [&](){ bit_i_rb(BIT_5, &REG.B);}}, //0xCB69
-	{"BIT 5, C", 0, [&](){ bit_i_rb(BIT_5, &REG.C);}}, //0xCB6A
-	{"BIT 5, D", 0, [&](){ bit_i_rb(BIT_5, &REG.D);}}, //0xCB6B
-	{"BIT 5, E", 0, [&](){ bit_i_rb(BIT_5, &REG.E);}}, //0xCB6C
-	{"BIT 5, H", 0, [&](){ bit_i_rb(BIT_5, &REG.H);}}, //0xCB6D
-	{"BIT 5, L", 0, [&](){ bit_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
-	{"BIT 5, (HL)", 0, [&](){ bit_i_atHL(BIT_5);}}, //0xCB6F
-	{"BIT 5, A", 0, [&](){ bit_i_rb(BIT_5, &REG.A);}}, //0xCB61
-	{"BIT 6, B", 0, [&](){ bit_i_rb(BIT_6, &REG.B); }}, //0xCB71
-	{"BIT 6, C", 0, [&](){ bit_i_rb(BIT_6, &REG.C);}}, //0xCB72
-	{"BIT 6, D", 0, [&](){ bit_i_rb(BIT_6, &REG.D);}}, //0xCB73
-	{"BIT 6, E", 0, [&](){ bit_i_rb(BIT_6, &REG.E);}}, //0xCB74
-	{"BIT 6, H", 0, [&](){ bit_i_rb(BIT_6, &REG.H);}}, //0xCB75
-	{"BIT 6, L", 0, [&](){ bit_i_rb(BIT_6, &REG.L);}}, //0xCB76
-	{"BIT 6, (HL)", 0, [&](){ bit_i_atHL(BIT_6);}}, //0xCB77
-	{"BIT 6, A", 0, [&](){ bit_i_rb(BIT_6, &REG.A);}}, //0xCB78
-	{"BIT 7, B", 0, [&](){ bit_i_rb(BIT_7, &REG.B);}}, //0xCB79
-	{"BIT 7, C", 0, [&](){ bit_i_rb(BIT_7, &REG.C);}}, //0xCB7A
-	{"BIT 7, D", 0, [&](){ bit_i_rb(BIT_7, &REG.D);}}, //0xCB7B
-	{"BIT 7, E", 0, [&](){ bit_i_rb(BIT_7, &REG.E);}}, //0xCB7C
-	{"BIT 7, H", 0, [&](){ bit_i_rb(BIT_7, &REG.H);}}, //0xCB7D
-	{"BIT 7, L", 0, [&](){ bit_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
-	{"BIT 7, (HL)", 0, [&](){ bit_i_atHL(BIT_7);}}, //0xCB7F
-	{"BIT 7, A", 0, [&](){ bit_i_rb(BIT_7, &REG.A);}}, //0xCB71	
+	{"BIT 0, B", 0, [](){ bit_i_rb(BIT_0, &REG.B); }}, //0xCB41
+	{"BIT 0, C", 0, [](){ bit_i_rb(BIT_0, &REG.C);}}, //0xCB42
+	{"BIT 0, D", 0, [](){ bit_i_rb(BIT_0, &REG.D);}}, //0xCB43
+	{"BIT 0, E", 0, [](){ bit_i_rb(BIT_0, &REG.E);}}, //0xCB44
+	{"BIT 0, H", 0, [](){ bit_i_rb(BIT_0, &REG.H);}}, //0xCB45
+	{"BIT 0, L", 0, [](){ bit_i_rb(BIT_0, &REG.L);}}, //0xCB46
+	{"BIT 0, (HL)", 0, [](){ bit_i_atHL(BIT_0);}}, //0xCB47
+	{"BIT 0, A", 0, [](){ bit_i_rb(BIT_0, &REG.A);}}, //0xCB48
+	{"BIT 1, B", 0, [](){ bit_i_rb(BIT_1, &REG.B);}}, //0xCB49
+	{"BIT 1, C", 0, [](){ bit_i_rb(BIT_1, &REG.C);}}, //0xCB4A
+	{"BIT 1, D", 0, [](){ bit_i_rb(BIT_1, &REG.D);}}, //0xCB4B
+	{"BIT 1, E", 0, [](){ bit_i_rb(BIT_1, &REG.E);}}, //0xCB4C
+	{"BIT 1, H", 0, [](){ bit_i_rb(BIT_1, &REG.H);}}, //0xCB4D
+	{"BIT 1, L", 0, [](){ bit_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
+	{"BIT 1, (HL)", 0, [](){ bit_i_atHL(BIT_1);}}, //0xCB4F
+	{"BIT 1, A", 0, [](){ bit_i_rb(BIT_1, &REG.A);}}, //0xCB41
+	{"BIT 2, B", 0, [](){ bit_i_rb(BIT_2, &REG.B); }}, //0xCB51
+	{"BIT 2, C", 0, [](){ bit_i_rb(BIT_2, &REG.C);}}, //0xCB52
+	{"BIT 2, D", 0, [](){ bit_i_rb(BIT_2, &REG.D);}}, //0xCB53
+	{"BIT 2, E", 0, [](){ bit_i_rb(BIT_2, &REG.E);}}, //0xCB54
+	{"BIT 2, H", 0, [](){ bit_i_rb(BIT_2, &REG.H);}}, //0xCB55
+	{"BIT 2, L", 0, [](){ bit_i_rb(BIT_2, &REG.L);}}, //0xCB56
+	{"BIT 2, (HL)", 0, [](){ bit_i_atHL(BIT_2);}}, //0xCB57
+	{"BIT 2, A", 0, [](){ bit_i_rb(BIT_2, &REG.A);}}, //0xCB58
+	{"BIT 3, B", 0, [](){ bit_i_rb(BIT_3, &REG.B);}}, //0xCB59
+	{"BIT 3, C", 0, [](){ bit_i_rb(BIT_3, &REG.C);}}, //0xCB5A
+	{"BIT 3, D", 0, [](){ bit_i_rb(BIT_3, &REG.D);}}, //0xCB5B
+	{"BIT 3, E", 0, [](){ bit_i_rb(BIT_3, &REG.E);}}, //0xCB5C
+	{"BIT 3, H", 0, [](){ bit_i_rb(BIT_3, &REG.H);}}, //0xCB5D
+	{"BIT 3, L", 0, [](){ bit_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
+	{"BIT 3, (HL)", 0, [](){ bit_i_atHL(BIT_3);}}, //0xCB5F
+	{"BIT 3, A", 0, [](){ bit_i_rb(BIT_3, &REG.A);}}, //0xCB51
+	{"BIT 4, B", 0, [](){ bit_i_rb(BIT_4, &REG.B); }}, //0xCB61
+	{"BIT 4, C", 0, [](){ bit_i_rb(BIT_4, &REG.C);}}, //0xCB62
+	{"BIT 4, D", 0, [](){ bit_i_rb(BIT_4, &REG.D);}}, //0xCB63
+	{"BIT 4, E", 0, [](){ bit_i_rb(BIT_4, &REG.E);}}, //0xCB64
+	{"BIT 4, H", 0, [](){ bit_i_rb(BIT_4, &REG.H);}}, //0xCB65
+	{"BIT 4, L", 0, [](){ bit_i_rb(BIT_4, &REG.L);}}, //0xCB66
+	{"BIT 4, (HL)", 0, [](){ bit_i_atHL(BIT_4);}}, //0xCB67
+	{"BIT 4, A", 0, [](){ bit_i_rb(BIT_4, &REG.A);}}, //0xCB68
+	{"BIT 5, B", 0, [](){ bit_i_rb(BIT_5, &REG.B);}}, //0xCB69
+	{"BIT 5, C", 0, [](){ bit_i_rb(BIT_5, &REG.C);}}, //0xCB6A
+	{"BIT 5, D", 0, [](){ bit_i_rb(BIT_5, &REG.D);}}, //0xCB6B
+	{"BIT 5, E", 0, [](){ bit_i_rb(BIT_5, &REG.E);}}, //0xCB6C
+	{"BIT 5, H", 0, [](){ bit_i_rb(BIT_5, &REG.H);}}, //0xCB6D
+	{"BIT 5, L", 0, [](){ bit_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
+	{"BIT 5, (HL)", 0, [](){ bit_i_atHL(BIT_5);}}, //0xCB6F
+	{"BIT 5, A", 0, [](){ bit_i_rb(BIT_5, &REG.A);}}, //0xCB61
+	{"BIT 6, B", 0, [](){ bit_i_rb(BIT_6, &REG.B); }}, //0xCB71
+	{"BIT 6, C", 0, [](){ bit_i_rb(BIT_6, &REG.C);}}, //0xCB72
+	{"BIT 6, D", 0, [](){ bit_i_rb(BIT_6, &REG.D);}}, //0xCB73
+	{"BIT 6, E", 0, [](){ bit_i_rb(BIT_6, &REG.E);}}, //0xCB74
+	{"BIT 6, H", 0, [](){ bit_i_rb(BIT_6, &REG.H);}}, //0xCB75
+	{"BIT 6, L", 0, [](){ bit_i_rb(BIT_6, &REG.L);}}, //0xCB76
+	{"BIT 6, (HL)", 0, [](){ bit_i_atHL(BIT_6);}}, //0xCB77
+	{"BIT 6, A", 0, [](){ bit_i_rb(BIT_6, &REG.A);}}, //0xCB78
+	{"BIT 7, B", 0, [](){ bit_i_rb(BIT_7, &REG.B);}}, //0xCB79
+	{"BIT 7, C", 0, [](){ bit_i_rb(BIT_7, &REG.C);}}, //0xCB7A
+	{"BIT 7, D", 0, [](){ bit_i_rb(BIT_7, &REG.D);}}, //0xCB7B
+	{"BIT 7, E", 0, [](){ bit_i_rb(BIT_7, &REG.E);}}, //0xCB7C
+	{"BIT 7, H", 0, [](){ bit_i_rb(BIT_7, &REG.H);}}, //0xCB7D
+	{"BIT 7, L", 0, [](){ bit_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
+	{"BIT 7, (HL)", 0, [](){ bit_i_atHL(BIT_7);}}, //0xCB7F
+	{"BIT 7, A", 0, [](){ bit_i_rb(BIT_7, &REG.A);}}, //0xCB71	
 
-	{"RES 0, B", 0, [&](){ res_i_rb(BIT_0, &REG.B); }}, //0xCB41
-	{"RES 0, C", 0, [&](){ res_i_rb(BIT_0, &REG.C);}}, //0xCB42
-	{"RES 0, D", 0, [&](){ res_i_rb(BIT_0, &REG.D);}}, //0xCB43
-	{"RES 0, E", 0, [&](){ res_i_rb(BIT_0, &REG.E);}}, //0xCB44
-	{"RES 0, H", 0, [&](){ res_i_rb(BIT_0, &REG.H);}}, //0xCB45
-	{"RES 0, L", 0, [&](){ res_i_rb(BIT_0, &REG.L);}}, //0xCB46
-	{"RES 0, (HL)", 0, [&](){ res_i_atHL(BIT_0);}}, //0xCB47
-	{"RES 0, A", 0, [&](){ res_i_rb(BIT_0, &REG.A);}}, //0xCB48
-	{"RES 1, B", 0, [&](){ res_i_rb(BIT_1, &REG.B);}}, //0xCB49
-	{"RES 1, C", 0, [&](){ res_i_rb(BIT_1, &REG.C);}}, //0xCB4A
-	{"RES 1, D", 0, [&](){ res_i_rb(BIT_1, &REG.D);}}, //0xCB4B
-	{"RES 1, E", 0, [&](){ res_i_rb(BIT_1, &REG.E);}}, //0xCB4C
-	{"RES 1, H", 0, [&](){ res_i_rb(BIT_1, &REG.H);}}, //0xCB4D
-	{"RES 1, L", 0, [&](){ res_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
-	{"RES 1, (HL)", 0, [&](){ res_i_atHL(BIT_1);}}, //0xCB4F
-	{"RES 1, A", 0, [&](){ res_i_rb(BIT_1, &REG.A);}}, //0xCB41
-	{"RES 2, B", 0, [&](){ res_i_rb(BIT_2, &REG.B); }}, //0xCB51
-	{"RES 2, C", 0, [&](){ res_i_rb(BIT_2, &REG.C);}}, //0xCB52
-	{"RES 2, D", 0, [&](){ res_i_rb(BIT_2, &REG.D);}}, //0xCB53
-	{"RES 2, E", 0, [&](){ res_i_rb(BIT_2, &REG.E);}}, //0xCB54
-	{"RES 2, H", 0, [&](){ res_i_rb(BIT_2, &REG.H);}}, //0xCB55
-	{"RES 2, L", 0, [&](){ res_i_rb(BIT_2, &REG.L);}}, //0xCB56
-	{"RES 2, (HL)", 0, [&](){ res_i_atHL(BIT_2);}}, //0xCB57
-	{"RES 2, A", 0, [&](){ res_i_rb(BIT_2, &REG.A);}}, //0xCB58
-	{"RES 3, B", 0, [&](){ res_i_rb(BIT_3, &REG.B);}}, //0xCB59
-	{"RES 3, C", 0, [&](){ res_i_rb(BIT_3, &REG.C);}}, //0xCB5A
-	{"RES 3, D", 0, [&](){ res_i_rb(BIT_3, &REG.D);}}, //0xCB5B
-	{"RES 3, E", 0, [&](){ res_i_rb(BIT_3, &REG.E);}}, //0xCB5C
-	{"RES 3, H", 0, [&](){ res_i_rb(BIT_3, &REG.H);}}, //0xCB5D
-	{"RES 3, L", 0, [&](){ res_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
-	{"RES 3, (HL)", 0, [&](){ res_i_atHL(BIT_3);}}, //0xCB5F
-	{"RES 3, A", 0, [&](){ res_i_rb(BIT_3, &REG.A);}}, //0xCB51
-	{"RES 4, B", 0, [&](){ res_i_rb(BIT_4, &REG.B); }}, //0xCB61
-	{"RES 4, C", 0, [&](){ res_i_rb(BIT_4, &REG.C);}}, //0xCB62
-	{"RES 4, D", 0, [&](){ res_i_rb(BIT_4, &REG.D);}}, //0xCB63
-	{"RES 4, E", 0, [&](){ res_i_rb(BIT_4, &REG.E);}}, //0xCB64
-	{"RES 4, H", 0, [&](){ res_i_rb(BIT_4, &REG.H);}}, //0xCB65
-	{"RES 4, L", 0, [&](){ res_i_rb(BIT_4, &REG.L);}}, //0xCB66
-	{"RES 4, (HL)", 0, [&](){ res_i_atHL(BIT_4);}}, //0xCB67
-	{"RES 4, A", 0, [&](){ res_i_rb(BIT_4, &REG.A);}}, //0xCB68
-	{"RES 5, B", 0, [&](){ res_i_rb(BIT_5, &REG.B);}}, //0xCB69
-	{"RES 5, C", 0, [&](){ res_i_rb(BIT_5, &REG.C);}}, //0xCB6A
-	{"RES 5, D", 0, [&](){ res_i_rb(BIT_5, &REG.D);}}, //0xCB6B
-	{"RES 5, E", 0, [&](){ res_i_rb(BIT_5, &REG.E);}}, //0xCB6C
-	{"RES 5, H", 0, [&](){ res_i_rb(BIT_5, &REG.H);}}, //0xCB6D
-	{"RES 5, L", 0, [&](){ res_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
-	{"RES 5, (HL)", 0, [&](){ res_i_atHL(BIT_5);}}, //0xCB6F
-	{"RES 5, A", 0, [&](){ res_i_rb(BIT_5, &REG.A);}}, //0xCB61
-	{"RES 6, B", 0, [&](){ res_i_rb(BIT_6, &REG.B); }}, //0xCB71
-	{"RES 6, C", 0, [&](){ res_i_rb(BIT_6, &REG.C);}}, //0xCB72
-	{"RES 6, D", 0, [&](){ res_i_rb(BIT_6, &REG.D);}}, //0xCB73
-	{"RES 6, E", 0, [&](){ res_i_rb(BIT_6, &REG.E);}}, //0xCB74
-	{"RES 6, H", 0, [&](){ res_i_rb(BIT_6, &REG.H);}}, //0xCB75
-	{"RES 6, L", 0, [&](){ res_i_rb(BIT_6, &REG.L);}}, //0xCB76
-	{"RES 6, (HL)", 0, [&](){ res_i_atHL(BIT_6);}}, //0xCB77
-	{"RES 6, A", 0, [&](){ res_i_rb(BIT_6, &REG.A);}}, //0xCB78
-	{"RES 7, B", 0, [&](){ res_i_rb(BIT_7, &REG.B);}}, //0xCB79
-	{"RES 7, C", 0, [&](){ res_i_rb(BIT_7, &REG.C);}}, //0xCB7A
-	{"RES 7, D", 0, [&](){ res_i_rb(BIT_7, &REG.D);}}, //0xCB7B
-	{"RES 7, E", 0, [&](){ res_i_rb(BIT_7, &REG.E);}}, //0xCB7C
-	{"RES 7, H", 0, [&](){ res_i_rb(BIT_7, &REG.H);}}, //0xCB7D
-	{"RES 7, L", 0, [&](){ res_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
-	{"RES 7, (HL)", 0, [&](){ res_i_atHL(BIT_7);}}, //0xCB7F
-	{"RES 7, A", 0, [&](){ res_i_rb(BIT_7, &REG.A);}}, //0xCB71	
+	{"RES 0, B", 0, [](){ res_i_rb(BIT_0, &REG.B); }}, //0xCB41
+	{"RES 0, C", 0, [](){ res_i_rb(BIT_0, &REG.C);}}, //0xCB42
+	{"RES 0, D", 0, [](){ res_i_rb(BIT_0, &REG.D);}}, //0xCB43
+	{"RES 0, E", 0, [](){ res_i_rb(BIT_0, &REG.E);}}, //0xCB44
+	{"RES 0, H", 0, [](){ res_i_rb(BIT_0, &REG.H);}}, //0xCB45
+	{"RES 0, L", 0, [](){ res_i_rb(BIT_0, &REG.L);}}, //0xCB46
+	{"RES 0, (HL)", 0, [](){ res_i_atHL(BIT_0);}}, //0xCB47
+	{"RES 0, A", 0, [](){ res_i_rb(BIT_0, &REG.A);}}, //0xCB48
+	{"RES 1, B", 0, [](){ res_i_rb(BIT_1, &REG.B);}}, //0xCB49
+	{"RES 1, C", 0, [](){ res_i_rb(BIT_1, &REG.C);}}, //0xCB4A
+	{"RES 1, D", 0, [](){ res_i_rb(BIT_1, &REG.D);}}, //0xCB4B
+	{"RES 1, E", 0, [](){ res_i_rb(BIT_1, &REG.E);}}, //0xCB4C
+	{"RES 1, H", 0, [](){ res_i_rb(BIT_1, &REG.H);}}, //0xCB4D
+	{"RES 1, L", 0, [](){ res_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
+	{"RES 1, (HL)", 0, [](){ res_i_atHL(BIT_1);}}, //0xCB4F
+	{"RES 1, A", 0, [](){ res_i_rb(BIT_1, &REG.A);}}, //0xCB41
+	{"RES 2, B", 0, [](){ res_i_rb(BIT_2, &REG.B); }}, //0xCB51
+	{"RES 2, C", 0, [](){ res_i_rb(BIT_2, &REG.C);}}, //0xCB52
+	{"RES 2, D", 0, [](){ res_i_rb(BIT_2, &REG.D);}}, //0xCB53
+	{"RES 2, E", 0, [](){ res_i_rb(BIT_2, &REG.E);}}, //0xCB54
+	{"RES 2, H", 0, [](){ res_i_rb(BIT_2, &REG.H);}}, //0xCB55
+	{"RES 2, L", 0, [](){ res_i_rb(BIT_2, &REG.L);}}, //0xCB56
+	{"RES 2, (HL)", 0, [](){ res_i_atHL(BIT_2);}}, //0xCB57
+	{"RES 2, A", 0, [](){ res_i_rb(BIT_2, &REG.A);}}, //0xCB58
+	{"RES 3, B", 0, [](){ res_i_rb(BIT_3, &REG.B);}}, //0xCB59
+	{"RES 3, C", 0, [](){ res_i_rb(BIT_3, &REG.C);}}, //0xCB5A
+	{"RES 3, D", 0, [](){ res_i_rb(BIT_3, &REG.D);}}, //0xCB5B
+	{"RES 3, E", 0, [](){ res_i_rb(BIT_3, &REG.E);}}, //0xCB5C
+	{"RES 3, H", 0, [](){ res_i_rb(BIT_3, &REG.H);}}, //0xCB5D
+	{"RES 3, L", 0, [](){ res_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
+	{"RES 3, (HL)", 0, [](){ res_i_atHL(BIT_3);}}, //0xCB5F
+	{"RES 3, A", 0, [](){ res_i_rb(BIT_3, &REG.A);}}, //0xCB51
+	{"RES 4, B", 0, [](){ res_i_rb(BIT_4, &REG.B); }}, //0xCB61
+	{"RES 4, C", 0, [](){ res_i_rb(BIT_4, &REG.C);}}, //0xCB62
+	{"RES 4, D", 0, [](){ res_i_rb(BIT_4, &REG.D);}}, //0xCB63
+	{"RES 4, E", 0, [](){ res_i_rb(BIT_4, &REG.E);}}, //0xCB64
+	{"RES 4, H", 0, [](){ res_i_rb(BIT_4, &REG.H);}}, //0xCB65
+	{"RES 4, L", 0, [](){ res_i_rb(BIT_4, &REG.L);}}, //0xCB66
+	{"RES 4, (HL)", 0, [](){ res_i_atHL(BIT_4);}}, //0xCB67
+	{"RES 4, A", 0, [](){ res_i_rb(BIT_4, &REG.A);}}, //0xCB68
+	{"RES 5, B", 0, [](){ res_i_rb(BIT_5, &REG.B);}}, //0xCB69
+	{"RES 5, C", 0, [](){ res_i_rb(BIT_5, &REG.C);}}, //0xCB6A
+	{"RES 5, D", 0, [](){ res_i_rb(BIT_5, &REG.D);}}, //0xCB6B
+	{"RES 5, E", 0, [](){ res_i_rb(BIT_5, &REG.E);}}, //0xCB6C
+	{"RES 5, H", 0, [](){ res_i_rb(BIT_5, &REG.H);}}, //0xCB6D
+	{"RES 5, L", 0, [](){ res_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
+	{"RES 5, (HL)", 0, [](){ res_i_atHL(BIT_5);}}, //0xCB6F
+	{"RES 5, A", 0, [](){ res_i_rb(BIT_5, &REG.A);}}, //0xCB61
+	{"RES 6, B", 0, [](){ res_i_rb(BIT_6, &REG.B); }}, //0xCB71
+	{"RES 6, C", 0, [](){ res_i_rb(BIT_6, &REG.C);}}, //0xCB72
+	{"RES 6, D", 0, [](){ res_i_rb(BIT_6, &REG.D);}}, //0xCB73
+	{"RES 6, E", 0, [](){ res_i_rb(BIT_6, &REG.E);}}, //0xCB74
+	{"RES 6, H", 0, [](){ res_i_rb(BIT_6, &REG.H);}}, //0xCB75
+	{"RES 6, L", 0, [](){ res_i_rb(BIT_6, &REG.L);}}, //0xCB76
+	{"RES 6, (HL)", 0, [](){ res_i_atHL(BIT_6);}}, //0xCB77
+	{"RES 6, A", 0, [](){ res_i_rb(BIT_6, &REG.A);}}, //0xCB78
+	{"RES 7, B", 0, [](){ res_i_rb(BIT_7, &REG.B);}}, //0xCB79
+	{"RES 7, C", 0, [](){ res_i_rb(BIT_7, &REG.C);}}, //0xCB7A
+	{"RES 7, D", 0, [](){ res_i_rb(BIT_7, &REG.D);}}, //0xCB7B
+	{"RES 7, E", 0, [](){ res_i_rb(BIT_7, &REG.E);}}, //0xCB7C
+	{"RES 7, H", 0, [](){ res_i_rb(BIT_7, &REG.H);}}, //0xCB7D
+	{"RES 7, L", 0, [](){ res_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
+	{"RES 7, (HL)", 0, [](){ res_i_atHL(BIT_7);}}, //0xCB7F
+	{"RES 7, A", 0, [](){ res_i_rb(BIT_7, &REG.A);}}, //0xCB71	
 
-	{"SET 0, B", 0, [&](){ set_i_rb(BIT_0, &REG.B); }}, //0xCB41
-	{"SET 0, C", 0, [&](){ set_i_rb(BIT_0, &REG.C);}}, //0xCB42
-	{"SET 0, D", 0, [&](){ set_i_rb(BIT_0, &REG.D);}}, //0xCB43
-	{"SET 0, E", 0, [&](){ set_i_rb(BIT_0, &REG.E);}}, //0xCB44
-	{"SET 0, H", 0, [&](){ set_i_rb(BIT_0, &REG.H);}}, //0xCB45
-	{"SET 0, L", 0, [&](){ set_i_rb(BIT_0, &REG.L);}}, //0xCB46
-	{"SET 0, (HL)", 0, [&](){ set_i_atHL(BIT_0);}}, //0xCB47
-	{"SET 0, A", 0, [&](){ set_i_rb(BIT_0, &REG.A);}}, //0xCB48
-	{"SET 1, B", 0, [&](){ set_i_rb(BIT_1, &REG.B);}}, //0xCB49
-	{"SET 1, C", 0, [&](){ set_i_rb(BIT_1, &REG.C);}}, //0xCB4A
-	{"SET 1, D", 0, [&](){ set_i_rb(BIT_1, &REG.D);}}, //0xCB4B
-	{"SET 1, E", 0, [&](){ set_i_rb(BIT_1, &REG.E);}}, //0xCB4C
-	{"SET 1, H", 0, [&](){ set_i_rb(BIT_1, &REG.H);}}, //0xCB4D
-	{"SET 1, L", 0, [&](){ set_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
-	{"SET 1, (HL)", 0, [&](){ set_i_atHL(BIT_1);}}, //0xCB4F
-	{"SET 1, A", 0, [&](){ set_i_rb(BIT_1, &REG.A);}}, //0xCB41
-	{"SET 2, B", 0, [&](){ set_i_rb(BIT_2, &REG.B); }}, //0xCB51
-	{"SET 2, C", 0, [&](){ set_i_rb(BIT_2, &REG.C);}}, //0xCB52
-	{"SET 2, D", 0, [&](){ set_i_rb(BIT_2, &REG.D);}}, //0xCB53
-	{"SET 2, E", 0, [&](){ set_i_rb(BIT_2, &REG.E);}}, //0xCB54
-	{"SET 2, H", 0, [&](){ set_i_rb(BIT_2, &REG.H);}}, //0xCB55
-	{"SET 2, L", 0, [&](){ set_i_rb(BIT_2, &REG.L);}}, //0xCB56
-	{"SET 2, (HL)", 0, [&](){ set_i_atHL(BIT_2);}}, //0xCB57
-	{"SET 2, A", 0, [&](){ set_i_rb(BIT_2, &REG.A);}}, //0xCB58
-	{"SET 3, B", 0, [&](){ set_i_rb(BIT_3, &REG.B);}}, //0xCB59
-	{"SET 3, C", 0, [&](){ set_i_rb(BIT_3, &REG.C);}}, //0xCB5A
-	{"SET 3, D", 0, [&](){ set_i_rb(BIT_3, &REG.D);}}, //0xCB5B
-	{"SET 3, E", 0, [&](){ set_i_rb(BIT_3, &REG.E);}}, //0xCB5C
-	{"SET 3, H", 0, [&](){ set_i_rb(BIT_3, &REG.H);}}, //0xCB5D
-	{"SET 3, L", 0, [&](){ set_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
-	{"SET 3, (HL)", 0, [&](){ set_i_atHL(BIT_3);}}, //0xCB5F
-	{"SET 3, A", 0, [&](){ set_i_rb(BIT_3, &REG.A);}}, //0xCB51
-	{"SET 4, B", 0, [&](){ set_i_rb(BIT_4, &REG.B); }}, //0xCB61
-	{"SET 4, C", 0, [&](){ set_i_rb(BIT_4, &REG.C);}}, //0xCB62
-	{"SET 4, D", 0, [&](){ set_i_rb(BIT_4, &REG.D);}}, //0xCB63
-	{"SET 4, E", 0, [&](){ set_i_rb(BIT_4, &REG.E);}}, //0xCB64
-	{"SET 4, H", 0, [&](){ set_i_rb(BIT_4, &REG.H);}}, //0xCB65
-	{"SET 4, L", 0, [&](){ set_i_rb(BIT_4, &REG.L);}}, //0xCB66
-	{"SET 4, (HL)", 0, [&](){ set_i_atHL(BIT_4);}}, //0xCB67
-	{"SET 4, A", 0, [&](){ set_i_rb(BIT_4, &REG.A);}}, //0xCB68
-	{"SET 5, B", 0, [&](){ set_i_rb(BIT_5, &REG.B);}}, //0xCB69
-	{"SET 5, C", 0, [&](){ set_i_rb(BIT_5, &REG.C);}}, //0xCB6A
-	{"SET 5, D", 0, [&](){ set_i_rb(BIT_5, &REG.D);}}, //0xCB6B
-	{"SET 5, E", 0, [&](){ set_i_rb(BIT_5, &REG.E);}}, //0xCB6C
-	{"SET 5, H", 0, [&](){ set_i_rb(BIT_5, &REG.H);}}, //0xCB6D
-	{"SET 5, L", 0, [&](){ set_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
-	{"SET 5, (HL)", 0, [&](){ set_i_atHL(BIT_5);}}, //0xCB6F
-	{"SET 5, A", 0, [&](){ set_i_rb(BIT_5, &REG.A);}}, //0xCB61
-	{"SET 6, B", 0, [&](){ set_i_rb(BIT_6, &REG.B); }}, //0xCB71
-	{"SET 6, C", 0, [&](){ set_i_rb(BIT_6, &REG.C);}}, //0xCB72
-	{"SET 6, D", 0, [&](){ set_i_rb(BIT_6, &REG.D);}}, //0xCB73
-	{"SET 6, E", 0, [&](){ set_i_rb(BIT_6, &REG.E);}}, //0xCB74
-	{"SET 6, H", 0, [&](){ set_i_rb(BIT_6, &REG.H);}}, //0xCB75
-	{"SET 6, L", 0, [&](){ set_i_rb(BIT_6, &REG.L);}}, //0xCB76
-	{"SET 6, (HL)", 0, [&](){ set_i_atHL(BIT_6);}}, //0xCB77
-	{"SET 6, A", 0, [&](){ set_i_rb(BIT_6, &REG.A);}}, //0xCB78
-	{"SET 7, B", 0, [&](){ set_i_rb(BIT_7, &REG.B);}}, //0xCB79
-	{"SET 7, C", 0, [&](){ set_i_rb(BIT_7, &REG.C);}}, //0xCB7A
-	{"SET 7, D", 0, [&](){ set_i_rb(BIT_7, &REG.D);}}, //0xCB7B
-	{"SET 7, E", 0, [&](){ set_i_rb(BIT_7, &REG.E);}}, //0xCB7C
-	{"SET 7, H", 0, [&](){ set_i_rb(BIT_7, &REG.H);}}, //0xCB7D
-	{"SET 7, L", 0, [&](){ set_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
-	{"SET 7, (HL)", 0, [&](){ set_i_atHL(BIT_7);}}, //0xCB7F
-	{"SET 7, A", 0, [&](){ set_i_rb(BIT_7, &REG.A);}} //0xCB71	
+	{"SET 0, B", 0, [](){ set_i_rb(BIT_0, &REG.B); }}, //0xCB41
+	{"SET 0, C", 0, [](){ set_i_rb(BIT_0, &REG.C);}}, //0xCB42
+	{"SET 0, D", 0, [](){ set_i_rb(BIT_0, &REG.D);}}, //0xCB43
+	{"SET 0, E", 0, [](){ set_i_rb(BIT_0, &REG.E);}}, //0xCB44
+	{"SET 0, H", 0, [](){ set_i_rb(BIT_0, &REG.H);}}, //0xCB45
+	{"SET 0, L", 0, [](){ set_i_rb(BIT_0, &REG.L);}}, //0xCB46
+	{"SET 0, (HL)", 0, [](){ set_i_atHL(BIT_0);}}, //0xCB47
+	{"SET 0, A", 0, [](){ set_i_rb(BIT_0, &REG.A);}}, //0xCB48
+	{"SET 1, B", 0, [](){ set_i_rb(BIT_1, &REG.B);}}, //0xCB49
+	{"SET 1, C", 0, [](){ set_i_rb(BIT_1, &REG.C);}}, //0xCB4A
+	{"SET 1, D", 0, [](){ set_i_rb(BIT_1, &REG.D);}}, //0xCB4B
+	{"SET 1, E", 0, [](){ set_i_rb(BIT_1, &REG.E);}}, //0xCB4C
+	{"SET 1, H", 0, [](){ set_i_rb(BIT_1, &REG.H);}}, //0xCB4D
+	{"SET 1, L", 0, [](){ set_i_rb(BIT_1, &REG.L);}}, //0xCB4E 
+	{"SET 1, (HL)", 0, [](){ set_i_atHL(BIT_1);}}, //0xCB4F
+	{"SET 1, A", 0, [](){ set_i_rb(BIT_1, &REG.A);}}, //0xCB41
+	{"SET 2, B", 0, [](){ set_i_rb(BIT_2, &REG.B); }}, //0xCB51
+	{"SET 2, C", 0, [](){ set_i_rb(BIT_2, &REG.C);}}, //0xCB52
+	{"SET 2, D", 0, [](){ set_i_rb(BIT_2, &REG.D);}}, //0xCB53
+	{"SET 2, E", 0, [](){ set_i_rb(BIT_2, &REG.E);}}, //0xCB54
+	{"SET 2, H", 0, [](){ set_i_rb(BIT_2, &REG.H);}}, //0xCB55
+	{"SET 2, L", 0, [](){ set_i_rb(BIT_2, &REG.L);}}, //0xCB56
+	{"SET 2, (HL)", 0, [](){ set_i_atHL(BIT_2);}}, //0xCB57
+	{"SET 2, A", 0, [](){ set_i_rb(BIT_2, &REG.A);}}, //0xCB58
+	{"SET 3, B", 0, [](){ set_i_rb(BIT_3, &REG.B);}}, //0xCB59
+	{"SET 3, C", 0, [](){ set_i_rb(BIT_3, &REG.C);}}, //0xCB5A
+	{"SET 3, D", 0, [](){ set_i_rb(BIT_3, &REG.D);}}, //0xCB5B
+	{"SET 3, E", 0, [](){ set_i_rb(BIT_3, &REG.E);}}, //0xCB5C
+	{"SET 3, H", 0, [](){ set_i_rb(BIT_3, &REG.H);}}, //0xCB5D
+	{"SET 3, L", 0, [](){ set_i_rb(BIT_3, &REG.L);}}, //0xCB5E 
+	{"SET 3, (HL)", 0, [](){ set_i_atHL(BIT_3);}}, //0xCB5F
+	{"SET 3, A", 0, [](){ set_i_rb(BIT_3, &REG.A);}}, //0xCB51
+	{"SET 4, B", 0, [](){ set_i_rb(BIT_4, &REG.B); }}, //0xCB61
+	{"SET 4, C", 0, [](){ set_i_rb(BIT_4, &REG.C);}}, //0xCB62
+	{"SET 4, D", 0, [](){ set_i_rb(BIT_4, &REG.D);}}, //0xCB63
+	{"SET 4, E", 0, [](){ set_i_rb(BIT_4, &REG.E);}}, //0xCB64
+	{"SET 4, H", 0, [](){ set_i_rb(BIT_4, &REG.H);}}, //0xCB65
+	{"SET 4, L", 0, [](){ set_i_rb(BIT_4, &REG.L);}}, //0xCB66
+	{"SET 4, (HL)", 0, [](){ set_i_atHL(BIT_4);}}, //0xCB67
+	{"SET 4, A", 0, [](){ set_i_rb(BIT_4, &REG.A);}}, //0xCB68
+	{"SET 5, B", 0, [](){ set_i_rb(BIT_5, &REG.B);}}, //0xCB69
+	{"SET 5, C", 0, [](){ set_i_rb(BIT_5, &REG.C);}}, //0xCB6A
+	{"SET 5, D", 0, [](){ set_i_rb(BIT_5, &REG.D);}}, //0xCB6B
+	{"SET 5, E", 0, [](){ set_i_rb(BIT_5, &REG.E);}}, //0xCB6C
+	{"SET 5, H", 0, [](){ set_i_rb(BIT_5, &REG.H);}}, //0xCB6D
+	{"SET 5, L", 0, [](){ set_i_rb(BIT_5, &REG.L);}}, //0xCB6E 
+	{"SET 5, (HL)", 0, [](){ set_i_atHL(BIT_5);}}, //0xCB6F
+	{"SET 5, A", 0, [](){ set_i_rb(BIT_5, &REG.A);}}, //0xCB61
+	{"SET 6, B", 0, [](){ set_i_rb(BIT_6, &REG.B); }}, //0xCB71
+	{"SET 6, C", 0, [](){ set_i_rb(BIT_6, &REG.C);}}, //0xCB72
+	{"SET 6, D", 0, [](){ set_i_rb(BIT_6, &REG.D);}}, //0xCB73
+	{"SET 6, E", 0, [](){ set_i_rb(BIT_6, &REG.E);}}, //0xCB74
+	{"SET 6, H", 0, [](){ set_i_rb(BIT_6, &REG.H);}}, //0xCB75
+	{"SET 6, L", 0, [](){ set_i_rb(BIT_6, &REG.L);}}, //0xCB76
+	{"SET 6, (HL)", 0, [](){ set_i_atHL(BIT_6);}}, //0xCB77
+	{"SET 6, A", 0, [](){ set_i_rb(BIT_6, &REG.A);}}, //0xCB78
+	{"SET 7, B", 0, [](){ set_i_rb(BIT_7, &REG.B);}}, //0xCB79
+	{"SET 7, C", 0, [](){ set_i_rb(BIT_7, &REG.C);}}, //0xCB7A
+	{"SET 7, D", 0, [](){ set_i_rb(BIT_7, &REG.D);}}, //0xCB7B
+	{"SET 7, E", 0, [](){ set_i_rb(BIT_7, &REG.E);}}, //0xCB7C
+	{"SET 7, H", 0, [](){ set_i_rb(BIT_7, &REG.H);}}, //0xCB7D
+	{"SET 7, L", 0, [](){ set_i_rb(BIT_7, &REG.L);}}, //0xCB7E 
+	{"SET 7, (HL)", 0, [](){ set_i_atHL(BIT_7);}}, //0xCB7F
+	{"SET 7, A", 0, [](){ set_i_rb(BIT_7, &REG.A);}} //0xCB71	
 };
 
 void ext() {
@@ -1199,141 +1199,141 @@ void ext() {
 }
 
 instruction instructions[256] = {
-	{"NOP", 0, [&](){ nop(); }},            // 0x00
-	{"LD BC, 0x%04X", 2, [&](){ ld_rw_nn(&REG.BC); }},  // 0x01
-	{"LD (BC), A", 0, [&](){ ld_atrw_A(&REG.BC); }},     // 0x02
-	{"INC BC", 0, [&](){ inc_rw(&REG.BC); }},         // 0x03
-	{"INC B", 0, [&](){ inc_rb(&REG.B); }},          // 0x04
+	{"NOP", 0, [](){ nop(); }},            // 0x00
+	{"LD BC, 0x%04X", 2, [](){ ld_rw_nn(&REG.BC); }},  // 0x01
+	{"LD (BC), A", 0, [](){ ld_atrw_A(&REG.BC); }},     // 0x02
+	{"INC BC", 0, [](){ inc_rw(&REG.BC); }},         // 0x03
+	{"INC B", 0, [](){ inc_rb(&REG.B); }},          // 0x04
 	{"DEC B", 0, TODO},          // 0x05
-	{"LD B, 0x%02X", 1, [&](){ ld_rb_n(&REG.B); }},   // 0x06
-	{"RLC A", 0, TODO},          // 0x07
-	{"LD (0x%04X), SP", 2, [&](){ ld_atnn_SP(); }},// 0x08
+	{"LD B, 0x%02X", 1, [](){ ld_rb_n(&REG.B); }},   // 0x06
+	{"RLC A", 0, [](){ rlc_rb(&REG.A); }},          // 0x07
+	{"LD (0x%04X), SP", 2, [](){ ld_atnn_SP(); }},// 0x08
 	{"ADD HL, BC", 0, TODO},     // 0x09
-	{"LD A, (BC)", 0, [&](){ ld_A_atrw(&REG.BC); }},     // 0x0A
+	{"LD A, (BC)", 0, [](){ ld_A_atrw(&REG.BC); }},     // 0x0A
 	{"DEC BC", 0, TODO},         // 0x0B
-	{"INC C", 0, [&](){ inc_rb(&REG.C); }},          // 0x0C
+	{"INC C", 0, [](){ inc_rb(&REG.C); }},          // 0x0C
 	{"DEC C", 0, TODO},          // 0x0D
-	{"LD C, 0x%02X", 1, [&](){ ld_rb_n(&REG.C); }},   // 0x0E
-	{"RRC A", 0, TODO},          // 0x0F
+	{"LD C, 0x%02X", 1, [](){ ld_rb_n(&REG.C); }},   // 0x0E
+	{"RRC A", 0, [](){ rrc_rb(&REG.A); }},          // 0x0F
 
 	{"STOP", 0, TODO},           // 0x10
-	{"LD DE, 0x%04X", 2, [&](){ ld_rw_nn(&REG.DE); }},  // 0x11
-	{"LD (DE), A", 0, [&](){ ld_atrw_A(&REG.DE); }},     // 0x12
-	{"INC DE", 0, [&](){ inc_rw(&REG.DE); } },         // 0x13
-	{"INC D", 0, [&](){ inc_rb(&REG.D); }},          // 0x14
+	{"LD DE, 0x%04X", 2, [](){ ld_rw_nn(&REG.DE); }},  // 0x11
+	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x12
+	{"INC DE", 0, [](){ inc_rw(&REG.DE); } },         // 0x13
+	{"INC D", 0, [](){ inc_rb(&REG.D); }},          // 0x14
 	{"DEC D", 0, TODO},          // 0x15
-	{"LD D, 0x%02X", 1, [&](){ ld_rb_n(&REG.D); }},   // 0x16
-	{"RL A", 0, TODO},           // 0x17
+	{"LD D, 0x%02X", 1, [](){ ld_rb_n(&REG.D); }},   // 0x16
+	{"RL A", 0, [](){ rl_rb(&REG.A); }},           // 0x17
 	{"JR 0x%02X", 1, [](){ jr_e(); }},      // 0x18
 	{"ADD HL, DE", 0, TODO},     // 0x19
-	{"LD A, (DE)", 0, [&](){ ld_A_atrw(&REG.DE); }},     // 0x1A
+	{"LD A, (DE)", 0, [](){ ld_A_atrw(&REG.DE); }},     // 0x1A
 	{"DEC DE", 0, TODO},         // 0x1B
-	{"INC E", 0, [&](){ inc_rb(&REG.E); }},          // 0x1C
+	{"INC E", 0, [](){ inc_rb(&REG.E); }},          // 0x1C
 	{"DEC E", 0, TODO},          // 0x1D
-	{"LD E, 0x%02X", 1, [&](){ ld_rb_n(&REG.E); }},   // 0x1E
-	{"RR A", 0, TODO},           // 0x1F
+	{"LD E, 0x%02X", 1, [](){ ld_rb_n(&REG.E); }},   // 0x1E
+	{"RR A", 0, [](){ rr_rb(&REG.A); }},           // 0x1F
 
 	{"JR NZ, 0x%02X", 1, [](){ jr_nf_e(FLAG_Z); }},       // 0x20
-	{"LD HL, 0x%04X", 2, [&](){ ld_rw_nn(&REG.HL); }},  // 0x21
-	{"LD (DE), A", 0, [&](){ ld_atrw_A(&REG.DE); }},     // 0x22
-	{"INC HL", 0, [&](){ inc_rw(&REG.HL); }},         // 0x23
-	{"INC H", 0, [&](){ inc_rb(&REG.H); }},          // 0x24
+	{"LD HL, 0x%04X", 2, [](){ ld_rw_nn(&REG.HL); }},  // 0x21
+	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x22
+	{"INC HL", 0, [](){ inc_rw(&REG.HL); }},         // 0x23
+	{"INC H", 0, [](){ inc_rb(&REG.H); }},          // 0x24
 	{"DEC H", 0, TODO},          // 0x25
-	{"LD H, 0x%02X", 1, [&](){ ld_rb_n(&REG.H); }},   // 0x26
+	{"LD H, 0x%02X", 1, [](){ ld_rb_n(&REG.H); }},   // 0x26
 	{"DAA", 0, TODO},            // 0x27
 	{"JR Z, 0x%02X", 1, [](){ jr_f_e(FLAG_Z); }},   // 0x28
 	{"ADD HL, HL", 0, TODO},     // 0x29
-	{"LDI A, (HL)", 0, [&](){ ldi_A_atHL(); }},    // 0x2A
+	{"LDI A, (HL)", 0, [](){ ldi_A_atHL(); }},    // 0x2A
 	{"DEC HL", 0, TODO},         // 0x2B
-	{"INC L", 0, [&](){ inc_rb(&REG.L); }},          // 0x2C
+	{"INC L", 0, [](){ inc_rb(&REG.L); }},          // 0x2C
 	{"DEC L", 0, TODO},          // 0x2D
-	{"LD L, 0x%02X", 1, [&](){ ld_rb_n(&REG.L); }},   // 0x2E
+	{"LD L, 0x%02X", 1, [](){ ld_rb_n(&REG.L); }},   // 0x2E
 	{"CPL", 0, TODO},            // 0x2F
  
 	{"JR NC, 0x%02X", 1, [](){ jr_nf_e(FLAG_C); }},  // 0x30
-	{"LD SP, 0x%04X", 2, [&](){ ld_rw_nn(&REG.SP); }},  // 0x31
-	{"LDD (HL), A", 0, [&](){ ldd_atHL_A(); }},    // 0x32
-	{"INC SP", 0, [&](){ inc_rw(&REG.SP); }},         // 0x33
-	{"INC (HL)", 0, [&](){ inc_atHL(); }},       // 0x34
+	{"LD SP, 0x%04X", 2, [](){ ld_rw_nn(&REG.SP); }},  // 0x31
+	{"LDD (HL), A", 0, [](){ ldd_atHL_A(); }},    // 0x32
+	{"INC SP", 0, [](){ inc_rw(&REG.SP); }},         // 0x33
+	{"INC (HL)", 0, [](){ inc_atHL(); }},       // 0x34
 	{"DEC (HL)", 0, TODO},       // 0x35
-	{"LD (HL), 0x%02X", 1, [&](){ ld_atHL_n(); }},// 0x36
+	{"LD (HL), 0x%02X", 1, [](){ ld_atHL_n(); }},// 0x36
 	{"SCF", 0, TODO},            // 0x37
 	{"JR C, 0x%02X", 1, [](){ jr_f_e(FLAG_C); }},   // 0x38
 	{"ADD HL, SP", 0, TODO},     // 0x39
-	{"LDD A, (HL)", 0, [&](){ ldd_A_atHL(); }},    // 0x3A
+	{"LDD A, (HL)", 0, [](){ ldd_A_atHL(); }},    // 0x3A
 	{"DEC SP", 0, TODO},         // 0x3B
 	{"INC A", 0, TODO},          // 0x3C
 	{"DEC A", 0, TODO},          // 0x3D
-	{"LD A, 0x%02X", 1, [&](){ ld_rb_n(&REG.A); }},   // 0x3E
+	{"LD A, 0x%02X", 1, [](){ ld_rb_n(&REG.A); }},   // 0x3E
 	{"CCF", 0, TODO},            // 0x3F
 
-	{"LD B, B", 0, [&](){ ld_rb_rb(&REG.B, &REG.B); }},        // 0x40
-	{"LD B, C", 0, [&](){ ld_rb_rb(&REG.B, &REG.C); }},        // 0x41
-	{"LD B, D", 0, [&](){ ld_rb_rb(&REG.B, &REG.D); }},        // 0x42
-	{"LD B, E", 0, [&](){ ld_rb_rb(&REG.B, &REG.E); }},        // 0x43
-	{"LD B, H", 0, [&](){ ld_rb_rb(&REG.B, &REG.H); }},        // 0x44
-	{"LD B, L", 0, [&](){ ld_rb_rb(&REG.B, &REG.L); }},        // 0x45
-	{"LD B, (HL)", 0, [&](){ ld_rb_atHL(&REG.B); }},     // 0x46
-	{"LD B, A", 0, [&](){ ld_rb_rb(&REG.B, &REG.A); }},        // 0x47
-	{"LD C, B", 0, [&](){ ld_rb_rb(&REG.C, &REG.B); }},        // 0x48
-	{"LD C, C", 0, [&](){ ld_rb_rb(&REG.C, &REG.C);}},        // 0x49
-	{"LD C, D", 0, [&](){ ld_rb_rb(&REG.C, &REG.D);}},        // 0x4A
-	{"LD C, E", 0, [&](){ ld_rb_rb(&REG.C, &REG.E);}},        // 0x4B
-	{"LD C, H", 0, [&](){ ld_rb_rb(&REG.C, &REG.H);}},        // 0x4C
-	{"LD C, L", 0, [&](){ ld_rb_rb(&REG.C, &REG.L);}},        // 0x4D
-	{"LD C, (HL)", 0, [&](){ ld_rb_atHL(&REG.C); }},     // 0x4E
-	{"LD C, A", 0, [&](){ ld_rb_rb(&REG.C, &REG.A);}},        // 0x4F
+	{"LD B, B", 0, [](){ ld_rb_rb(&REG.B, &REG.B); }},        // 0x40
+	{"LD B, C", 0, [](){ ld_rb_rb(&REG.B, &REG.C); }},        // 0x41
+	{"LD B, D", 0, [](){ ld_rb_rb(&REG.B, &REG.D); }},        // 0x42
+	{"LD B, E", 0, [](){ ld_rb_rb(&REG.B, &REG.E); }},        // 0x43
+	{"LD B, H", 0, [](){ ld_rb_rb(&REG.B, &REG.H); }},        // 0x44
+	{"LD B, L", 0, [](){ ld_rb_rb(&REG.B, &REG.L); }},        // 0x45
+	{"LD B, (HL)", 0, [](){ ld_rb_atHL(&REG.B); }},     // 0x46
+	{"LD B, A", 0, [](){ ld_rb_rb(&REG.B, &REG.A); }},        // 0x47
+	{"LD C, B", 0, [](){ ld_rb_rb(&REG.C, &REG.B); }},        // 0x48
+	{"LD C, C", 0, [](){ ld_rb_rb(&REG.C, &REG.C);}},        // 0x49
+	{"LD C, D", 0, [](){ ld_rb_rb(&REG.C, &REG.D);}},        // 0x4A
+	{"LD C, E", 0, [](){ ld_rb_rb(&REG.C, &REG.E);}},        // 0x4B
+	{"LD C, H", 0, [](){ ld_rb_rb(&REG.C, &REG.H);}},        // 0x4C
+	{"LD C, L", 0, [](){ ld_rb_rb(&REG.C, &REG.L);}},        // 0x4D
+	{"LD C, (HL)", 0, [](){ ld_rb_atHL(&REG.C); }},     // 0x4E
+	{"LD C, A", 0, [](){ ld_rb_rb(&REG.C, &REG.A);}},        // 0x4F
 
-	{"LD D, B", 0, [&](){ ld_rb_rb(&REG.D, &REG.B);}},        // 0x50
-	{"LD D, C", 0, [&](){ ld_rb_rb(&REG.D, &REG.C);}},        // 0x51
-	{"LD D, D", 0, [&](){ ld_rb_rb(&REG.D, &REG.D);}},        // 0x52
-	{"LD D, E", 0, [&](){ ld_rb_rb(&REG.D, &REG.E);}},        // 0x53
-	{"LD D, H", 0, [&](){ ld_rb_rb(&REG.D, &REG.H);}},        // 0x54
-	{"LD D, L", 0, [&](){ ld_rb_rb(&REG.D, &REG.L);}},        // 0x55
-	{"LD D, (HL)", 0, [&](){ ld_rb_atHL(&REG.D); }},     // 0x56
-	{"LD D, A", 0, [&](){ ld_rb_rb(&REG.D, &REG.A);}},        // 0x57
-	{"LD E, B", 0, [&](){ ld_rb_rb(&REG.E, &REG.B);}},        // 0x58
-	{"LD E, C", 0, [&](){ ld_rb_rb(&REG.E, &REG.C);}},        // 0x59
-	{"LD E, D", 0, [&](){ ld_rb_rb(&REG.E, &REG.D);}},        // 0x5A
-	{"LD E, E", 0, [&](){ ld_rb_rb(&REG.E, &REG.E);}},        // 0x5B
-	{"LD E, H", 0, [&](){ ld_rb_rb(&REG.E, &REG.H);}},        // 0x5C
-	{"LD E, L", 0, [&](){ ld_rb_rb(&REG.E, &REG.L);}},        // 0x5D
-	{"LD E, (HL)", 0, [&](){ ld_rb_atHL(&REG.E); }},     // 0x5E
-	{"LD E, A", 0, [&](){ ld_rb_rb(&REG.E, &REG.D);}},        // 0x5F
+	{"LD D, B", 0, [](){ ld_rb_rb(&REG.D, &REG.B);}},        // 0x50
+	{"LD D, C", 0, [](){ ld_rb_rb(&REG.D, &REG.C);}},        // 0x51
+	{"LD D, D", 0, [](){ ld_rb_rb(&REG.D, &REG.D);}},        // 0x52
+	{"LD D, E", 0, [](){ ld_rb_rb(&REG.D, &REG.E);}},        // 0x53
+	{"LD D, H", 0, [](){ ld_rb_rb(&REG.D, &REG.H);}},        // 0x54
+	{"LD D, L", 0, [](){ ld_rb_rb(&REG.D, &REG.L);}},        // 0x55
+	{"LD D, (HL)", 0, [](){ ld_rb_atHL(&REG.D); }},     // 0x56
+	{"LD D, A", 0, [](){ ld_rb_rb(&REG.D, &REG.A);}},        // 0x57
+	{"LD E, B", 0, [](){ ld_rb_rb(&REG.E, &REG.B);}},        // 0x58
+	{"LD E, C", 0, [](){ ld_rb_rb(&REG.E, &REG.C);}},        // 0x59
+	{"LD E, D", 0, [](){ ld_rb_rb(&REG.E, &REG.D);}},        // 0x5A
+	{"LD E, E", 0, [](){ ld_rb_rb(&REG.E, &REG.E);}},        // 0x5B
+	{"LD E, H", 0, [](){ ld_rb_rb(&REG.E, &REG.H);}},        // 0x5C
+	{"LD E, L", 0, [](){ ld_rb_rb(&REG.E, &REG.L);}},        // 0x5D
+	{"LD E, (HL)", 0, [](){ ld_rb_atHL(&REG.E); }},     // 0x5E
+	{"LD E, A", 0, [](){ ld_rb_rb(&REG.E, &REG.D);}},        // 0x5F
 
-	{"LD H, B", 0, [&](){ ld_rb_rb(&REG.H, &REG.B);}},        // 0x60
-	{"LD H, C", 0, [&](){ ld_rb_rb(&REG.H, &REG.C);}},        // 0x61
-	{"LD H, D", 0, [&](){ ld_rb_rb(&REG.H, &REG.D);}},        // 0x62
-	{"LD H, E", 0, [&](){ ld_rb_rb(&REG.H, &REG.E);}},        // 0x63
-	{"LD H, H", 0, [&](){ ld_rb_rb(&REG.H, &REG.H);}},        // 0x64
-	{"LD H, L", 0, [&](){ ld_rb_rb(&REG.H, &REG.L);}},        // 0x65
-	{"LD H, (HL)", 0, [&](){ ld_rb_atHL(&REG.H); }},     // 0x66
-	{"LD H, A", 0, [&](){ ld_rb_rb(&REG.H, &REG.A);}},        // 0x67
-	{"LD L, B", 0, [&](){ ld_rb_rb(&REG.L, &REG.B);}},        // 0x68
-	{"LD L, C", 0, [&](){ ld_rb_rb(&REG.L, &REG.C);}},        // 0x69
-	{"LD L, D", 0, [&](){ ld_rb_rb(&REG.L, &REG.D);}},        // 0x6A
-	{"LD L, E", 0, [&](){ ld_rb_rb(&REG.L, &REG.E);}},        // 0x6B
-	{"LD L, H", 0, [&](){ ld_rb_rb(&REG.L, &REG.H);}},        // 0x6C
-	{"LD L, L", 0, [&](){ ld_rb_rb(&REG.L, &REG.L);}},        // 0x6D
-	{"LD L, (HL)", 0, [&](){ ld_rb_atHL(&REG.L); }},     // 0x6E
-	{"LD L, A", 0, [&](){ ld_rb_rb(&REG.L, &REG.A);}},        // 0x6F
+	{"LD H, B", 0, [](){ ld_rb_rb(&REG.H, &REG.B);}},        // 0x60
+	{"LD H, C", 0, [](){ ld_rb_rb(&REG.H, &REG.C);}},        // 0x61
+	{"LD H, D", 0, [](){ ld_rb_rb(&REG.H, &REG.D);}},        // 0x62
+	{"LD H, E", 0, [](){ ld_rb_rb(&REG.H, &REG.E);}},        // 0x63
+	{"LD H, H", 0, [](){ ld_rb_rb(&REG.H, &REG.H);}},        // 0x64
+	{"LD H, L", 0, [](){ ld_rb_rb(&REG.H, &REG.L);}},        // 0x65
+	{"LD H, (HL)", 0, [](){ ld_rb_atHL(&REG.H); }},     // 0x66
+	{"LD H, A", 0, [](){ ld_rb_rb(&REG.H, &REG.A);}},        // 0x67
+	{"LD L, B", 0, [](){ ld_rb_rb(&REG.L, &REG.B);}},        // 0x68
+	{"LD L, C", 0, [](){ ld_rb_rb(&REG.L, &REG.C);}},        // 0x69
+	{"LD L, D", 0, [](){ ld_rb_rb(&REG.L, &REG.D);}},        // 0x6A
+	{"LD L, E", 0, [](){ ld_rb_rb(&REG.L, &REG.E);}},        // 0x6B
+	{"LD L, H", 0, [](){ ld_rb_rb(&REG.L, &REG.H);}},        // 0x6C
+	{"LD L, L", 0, [](){ ld_rb_rb(&REG.L, &REG.L);}},        // 0x6D
+	{"LD L, (HL)", 0, [](){ ld_rb_atHL(&REG.L); }},     // 0x6E
+	{"LD L, A", 0, [](){ ld_rb_rb(&REG.L, &REG.A);}},        // 0x6F
 
-	{"LD (HL), B", 0, [&](){ ld_atHL_rb(&REG.B); }},     // 0x70
-	{"LD (HL), C", 0, [&](){ ld_atHL_rb(&REG.C); }},     // 0x71
-	{"LD (HL), D", 0, [&](){ ld_atHL_rb(&REG.D); }},     // 0x72
-	{"LD (HL), E", 0, [&](){ ld_atHL_rb(&REG.E); }},     // 0x73
-	{"LD (HL), H", 0, [&](){ ld_atHL_rb(&REG.H); }},     // 0x74
-	{"LD (HL), L", 0, [&](){ ld_atHL_rb(&REG.L); }},     // 0x75
+	{"LD (HL), B", 0, [](){ ld_atHL_rb(&REG.B); }},     // 0x70
+	{"LD (HL), C", 0, [](){ ld_atHL_rb(&REG.C); }},     // 0x71
+	{"LD (HL), D", 0, [](){ ld_atHL_rb(&REG.D); }},     // 0x72
+	{"LD (HL), E", 0, [](){ ld_atHL_rb(&REG.E); }},     // 0x73
+	{"LD (HL), H", 0, [](){ ld_atHL_rb(&REG.H); }},     // 0x74
+	{"LD (HL), L", 0, [](){ ld_atHL_rb(&REG.L); }},     // 0x75
 	{"HALT", 0, TODO},           // 0x76
-	{"LD (HL), A", 0, [&](){ ld_atHL_rb(&REG.A); }},     // 0x77
-	{"LD A, B", 0, [&](){ ld_rb_rb(&REG.A, &REG.B);}},        // 0x78
-	{"LD A, C", 0, [&](){ ld_rb_rb(&REG.A, &REG.C);}},        // 0x79
-	{"LD A, D", 0, [&](){ ld_rb_rb(&REG.A, &REG.D);}},        // 0x7A
-	{"LD A, E", 0, [&](){ ld_rb_rb(&REG.A, &REG.E);}},        // 0x7B
-	{"LD A, H", 0, [&](){ ld_rb_rb(&REG.A, &REG.H);}},        // 0x7C
-	{"LD A, L", 0, [&](){ ld_rb_rb(&REG.A, &REG.L);}},        // 0x7D
-	{"LD A, (HL)", 0, [&](){ ld_rb_atHL(&REG.L); }},     // 0x7E
-	{"LD A, A", 0, [&](){ ld_rb_rb(&REG.A, &REG.A);}},        // 0x7F
+	{"LD (HL), A", 0, [](){ ld_atHL_rb(&REG.A); }},     // 0x77
+	{"LD A, B", 0, [](){ ld_rb_rb(&REG.A, &REG.B);}},        // 0x78
+	{"LD A, C", 0, [](){ ld_rb_rb(&REG.A, &REG.C);}},        // 0x79
+	{"LD A, D", 0, [](){ ld_rb_rb(&REG.A, &REG.D);}},        // 0x7A
+	{"LD A, E", 0, [](){ ld_rb_rb(&REG.A, &REG.E);}},        // 0x7B
+	{"LD A, H", 0, [](){ ld_rb_rb(&REG.A, &REG.H);}},        // 0x7C
+	{"LD A, L", 0, [](){ ld_rb_rb(&REG.A, &REG.L);}},        // 0x7D
+	{"LD A, (HL)", 0, [](){ ld_rb_atHL(&REG.L); }},     // 0x7E
+	{"LD A, A", 0, [](){ ld_rb_rb(&REG.A, &REG.A);}},        // 0x7F
 
 	{"ADD A, B", 0, TODO},       // 0x80
 	{"ADD A, C", 0, TODO},       // 0x81
@@ -1369,39 +1369,39 @@ instruction instructions[256] = {
 	{"SBC A, (HL)", 0, TODO},    // 0x9E
 	{"SBC A, A", 0, TODO},       // 0x9F
 
-	{"AND B", 0, [&](){ and_rb(&REG.B); }},          // 0xA0
-	{"AND C", 0, [&](){ and_rb(&REG.C); }},          // 0xA1
-	{"AND D", 0, [&](){ and_rb(&REG.D); }},          // 0xA2
-	{"AND E", 0, [&](){ and_rb(&REG.E); }},          // 0xA3
-	{"AND H", 0, [&](){ and_rb(&REG.H); }},          // 0xA4
-	{"AND L", 0, [&](){ and_rb(&REG.L); }},          // 0xA5
-	{"AND (HL)", 0, [&](){ and_atHL(); }},       // 0xA6
-	{"AND A", 0, [&](){ and_rb(&REG.A); }},          // 0xA7
-	{"XOR B", 0, [&](){ xor_rb(&REG.B); }},          // 0xA8
-	{"XOR C", 0, [&](){ xor_rb(&REG.C);}},          // 0xA9
-	{"XOR D", 0, [&](){ xor_rb(&REG.D);}},          // 0xAA
-	{"XOR E", 0, [&](){ xor_rb(&REG.E);}},          // 0xAB
-	{"XOR H", 0, [&](){ xor_rb(&REG.H);}},          // 0xAC
-	{"XOR L", 0, [&](){ xor_rb(&REG.L);}},          // 0xAD
-	{"XOR (HL)", 0, [&](){ xor_atHL();}},       // 0xAE
-	{"XOR A", 0, [&](){ xor_rb(&REG.A);}},          // 0xAF
+	{"AND B", 0, [](){ and_rb(&REG.B); }},          // 0xA0
+	{"AND C", 0, [](){ and_rb(&REG.C); }},          // 0xA1
+	{"AND D", 0, [](){ and_rb(&REG.D); }},          // 0xA2
+	{"AND E", 0, [](){ and_rb(&REG.E); }},          // 0xA3
+	{"AND H", 0, [](){ and_rb(&REG.H); }},          // 0xA4
+	{"AND L", 0, [](){ and_rb(&REG.L); }},          // 0xA5
+	{"AND (HL)", 0, [](){ and_atHL(); }},       // 0xA6
+	{"AND A", 0, [](){ and_rb(&REG.A); }},          // 0xA7
+	{"XOR B", 0, [](){ xor_rb(&REG.B); }},          // 0xA8
+	{"XOR C", 0, [](){ xor_rb(&REG.C);}},          // 0xA9
+	{"XOR D", 0, [](){ xor_rb(&REG.D);}},          // 0xAA
+	{"XOR E", 0, [](){ xor_rb(&REG.E);}},          // 0xAB
+	{"XOR H", 0, [](){ xor_rb(&REG.H);}},          // 0xAC
+	{"XOR L", 0, [](){ xor_rb(&REG.L);}},          // 0xAD
+	{"XOR (HL)", 0, [](){ xor_atHL();}},       // 0xAE
+	{"XOR A", 0, [](){ xor_rb(&REG.A);}},          // 0xAF
 
-	{"OR B", 0, [&](){ or_rb(&REG.B); }},           // 0xB0
-	{"OR C", 0, [&](){ or_rb(&REG.C); }},           // 0xB1
-	{"OR D", 0, [&](){ or_rb(&REG.D); }},           // 0xB2
-	{"OR E", 0, [&](){ or_rb(&REG.E); }},           // 0xB3
-	{"OR H", 0, [&](){ or_rb(&REG.H); }},           // 0xB4
-	{"OR L", 0, [&](){ or_rb(&REG.L); }},           // 0xB5
-	{"OR (HL)", 0, [&](){ or_atHL(); }},        // 0xB6
-	{"OR A", 0, [&](){ or_rb(&REG.A); }},           // 0xB7
-	{"CP B", 0, [&](){ cp_rb(&REG.B); }},           // 0xB8
-	{"CP C", 0, [&](){ cp_rb(&REG.C); }},           // 0xB9
-	{"CP D", 0, [&](){ cp_rb(&REG.D); }},           // 0xBA
-	{"CP E", 0, [&](){ cp_rb(&REG.E); }},           // 0xBB
-	{"CP H", 0, [&](){ cp_rb(&REG.H); }},           // 0xBC
-	{"CP L", 0, [&](){ cp_rb(&REG.L); }},           // 0xBD
-	{"CP (HL)", 0, [&](){ cp_atHL(); }},        // 0xBE
-	{"CP A", 0, [&](){ cp_rb(&REG.A); }},           // 0xBF
+	{"OR B", 0, [](){ or_rb(&REG.B); }},           // 0xB0
+	{"OR C", 0, [](){ or_rb(&REG.C); }},           // 0xB1
+	{"OR D", 0, [](){ or_rb(&REG.D); }},           // 0xB2
+	{"OR E", 0, [](){ or_rb(&REG.E); }},           // 0xB3
+	{"OR H", 0, [](){ or_rb(&REG.H); }},           // 0xB4
+	{"OR L", 0, [](){ or_rb(&REG.L); }},           // 0xB5
+	{"OR (HL)", 0, [](){ or_atHL(); }},        // 0xB6
+	{"OR A", 0, [](){ or_rb(&REG.A); }},           // 0xB7
+	{"CP B", 0, [](){ cp_rb(&REG.B); }},           // 0xB8
+	{"CP C", 0, [](){ cp_rb(&REG.C); }},           // 0xB9
+	{"CP D", 0, [](){ cp_rb(&REG.D); }},           // 0xBA
+	{"CP E", 0, [](){ cp_rb(&REG.E); }},           // 0xBB
+	{"CP H", 0, [](){ cp_rb(&REG.H); }},           // 0xBC
+	{"CP L", 0, [](){ cp_rb(&REG.L); }},           // 0xBD
+	{"CP (HL)", 0, [](){ cp_atHL(); }},        // 0xBE
+	{"CP A", 0, [](){ cp_rb(&REG.A); }},           // 0xBF
 
 	{"RET NZ", 0, TODO},         // 0xC0
 	{"POP BC", 0, [](){ pop_rw(&REG.BC); }},         // 0xC1
@@ -1414,7 +1414,7 @@ instruction instructions[256] = {
 	{"RET Z", 0, TODO},          // 0xC8
 	{"RET", 0, TODO},            // 0xC9
 	{"JP Z, 0x%04X", 2, [](){ jp_f_nn(FLAG_Z); }},   // 0xCA
-	{"Ext Op", 1, [&](){ ext(); }},         // 0xCB
+	{"Ext Op", 1, [](){ ext(); }},         // 0xCB
 	{"CALL Z, 0x%04X", 2, [](){ call_f_nn(FLAG_Z); }}, // 0xCC
 	{"CALL 0x%04X", 2, [](){ call_nn(); }},    // 0xCD
 	{"ADC A, 0x%02X", 1, TODO},  // 0xCE
@@ -1437,13 +1437,13 @@ instruction instructions[256] = {
 	{"SBC A, 0x%02X", 1, TODO},  // 0xDE
 	{"RST 18", 0, [](){ rst(18); }},          // 0xDF
 
-	{"LDH (0x%02X), A", 1, [&](){ ldh_atn_A(); }},         // 0xE0
+	{"LDH (0x%02X), A", 1, [](){ ldh_atn_A(); }},         // 0xE0
 	{"POP HL", 0, [](){ pop_rw(&REG.HL); }},         // 0xE1
-	{"LDH (C), A", 0, [&](){ ldh_atC_A(); } },  // 0xE2
+	{"LDH (C), A", 0, [](){ ldh_atC_A(); } },  // 0xE2
 	{"XX", 0, TODO},      // 0xE3
 	{"XX", 0, TODO},// 0xE4
 	{"PUSH HL", 0, [](){ push_rw(&REG.HL); }},        // 0xE5
-	{"AND n", 1, [&](){ and_n(); }},  // 0xE6
+	{"AND n", 1, [](){ and_n(); }},  // 0xE6
 	{"RST 20", 0, [](){ rst(20); }},          // 0xE7
 	{"ADD SP, d", 0, TODO},          // 0xE8
 	{"JP (HL)", 0, [](){ jp_atHL(); }},            // 0xE9
@@ -1451,23 +1451,23 @@ instruction instructions[256] = {
 	{"XX", 0, TODO},         // 0xEB
 	{"XX", 0, TODO}, // 0xEC
 	{"XX", 0, TODO},    // 0xED
-	{"XOR n", 1, [&](){ xor_n(); }},  // 0xEE
+	{"XOR n", 1, [](){ xor_n(); }},  // 0xEE
 	{"RST 28", 0, [](){ rst(28); }},          // 0xEF
 
-	{"LDH A, (0x%02X)", 1, [&](){ ldh_A_atn(); }},         // 0xF0
+	{"LDH A, (0x%02X)", 1, [](){ ldh_A_atn(); }},         // 0xF0
 	{"POP AF", 0, [](){ pop_rw(&REG.AF); }},         // 0xF1
 	{"XX", 0, TODO},  // 0xF2
 	{"DI", 0, [](){ di(); }},      // 0xF3
 	{"XX", 0, TODO},// 0xF4
 	{"PUSH AF", 0, [](){ push_rw(&REG.AF); }},        // 0xF5
-	{"OR n", 1, [&](){ or_n(); }},  // 0xF6
+	{"OR n", 1, [](){ or_n(); }},  // 0xF6
 	{"RST 30", 0, [](){ rst(30); }},          // 0xF7
 	{"LDHL SP, d", 0, TODO},          // 0xF8
-	{"LD SP, HL", 0, [&](){ ld_SP_HL(); }},            // 0xF9
+	{"LD SP, HL", 0, [](){ ld_SP_HL(); }},            // 0xF9
 	{"LD A, (0x%04X)", 2, TODO},   // 0xFA
 	{"EI", 0, [](){ di(); }},         // 0xFB
 	{"XX", 0, TODO}, // 0xFC
 	{"XX", 0, TODO},    // 0xFD
-	{"CP n", 1, [&](){ cp_n(); }},  // 0xFE
+	{"CP n", 1, [](){ cp_n(); }},  // 0xFE
 	{"RST 38", 0, [](){ rst(38); }}          // 0xFF
 };
