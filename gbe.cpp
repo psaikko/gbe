@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string>
 #include "gbe.h"
+#include "gpu.h"
 
 void readROMFile(const char * filename) {
 	FILE* romfile; 
@@ -34,7 +35,11 @@ int main(int argc, char ** argv) {
 
 	bool log_register_bytes = false, 
 			 log_register_words = false, 
-			 log_flags = false;
+			 log_flags = false,
+			 log_mem = false,
+			 log_gpu = false;
+
+  uint16_t log_mem_addr = 0;
 
 	printf("%d\n", argc);
 	for (int i = 1; i < argc; ++i) {
@@ -42,6 +47,11 @@ int main(int argc, char ** argv) {
 		if (flag == "-rb") log_register_bytes = true;
 		if (flag == "-rw") log_register_words = true;
 		if (flag == "-f") log_flags = true;
+		if (flag == "-g") log_gpu = true;
+		if (flag.find("-m") == 0) {
+			log_mem = true;
+			log_mem_addr = 0xff44;
+		}
 	}
 
 	while (1) {
@@ -56,6 +66,13 @@ int main(int argc, char ** argv) {
 		if (log_flags)
 		printf("Z %1d N %1d H %1d C %1d\n",
 						get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
+		if (log_mem) {
+			printf("0x%02X\n", MEM.readByte(log_mem_addr));
+		}
+		if (log_gpu) {
+			printf("GPU CLK: 0x%04X  MODE: %d  LINE: 0x%02X\n", 
+						  GPU.clk, GPU.mode, *MEM.SCAN_LN);
+		}
 		printf("Instruction 0x%02X at 0x%04X: ", opcode, REG.PC);
 		if (instr.argw == 0)
 			printf(instr.name);
@@ -73,5 +90,11 @@ int main(int argc, char ** argv) {
 		}
 
 		instr.fn();
+		GPU.update();
+
+		if (REG.IME && (*MEM.IE & *MEM.IF)) {
+
+			// TODO: handle interrupt
+		}
 	}
 }

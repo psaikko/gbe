@@ -708,13 +708,13 @@ void jr_nf_e(uint8_t mask) {
 // interrupts
 
 void ei() {
-	REG.IE = 1;
+	REG.IME = 1;
 	REG.TCLK = 4;
 	REG.PC += 1;
 }
 
 void di() {
-	REG.IE = 0;
+	REG.IME = 0;
 	REG.TCLK = 4;
 	REG.PC += 1;
 }
@@ -802,7 +802,7 @@ void reti() {
 	REG.PC = MEM.readWord(REG.SP);
 	REG.SP += 2;
 	REG.TCLK = 16;
-	REG.IE = 1;
+	REG.IME = 1;
 }
 
 typedef struct {
@@ -1133,7 +1133,7 @@ instruction instructions[256] = {
 
 	{"JR NZ, 0x%02X", 1, [](){ jr_nf_e(FLAG_Z); }},       // 0x20
 	{"LD HL, 0x%04X", 2, [](){ ld_rw_nn(&REG.HL); }},  // 0x21
-	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x22
+	{"LDI (HL), A", 0, [](){ ldi_atHL_A(); }},     // 0x22
 	{"INC HL", 0, [](){ inc_rw(&REG.HL); }},         // 0x23
 	{"INC H", 0, [](){ inc_rb(&REG.H); }},          // 0x24
 	{"DEC H", 0, [](){ dec_rb(&REG.H); }},          // 0x25
@@ -1366,6 +1366,6 @@ instruction instructions[256] = {
 	{"EI", 0, [](){ di(); }},         // 0xFB
 	{"XX", 0, TODO}, // 0xFC
 	{"XX", 0, TODO},    // 0xFD
-	{"CP n", 1, [](){ cp_n(); }},  // 0xFE
+	{"CP 0x%02X", 1, [](){ cp_n(); }},  // 0xFE
 	{"RST 38", 0, [](){ rst(38); }}          // 0xFF
 };

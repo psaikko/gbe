@@ -58,7 +58,7 @@ typedef struct {
 	uint16_t SP;
 	uint16_t PC;
 	uint64_t TCLK;
-	bool IE;
+	bool IME;
 } registers;
 
 registers REG;
