@@ -200,6 +200,71 @@ void cp_atHL() {
 	REG.PC += 1;
 }
 
+void add_A_rb(uint8_t * ptr) {
+	set_flag_cond(FLAG_C, 0xFF - REG.A > *ptr);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (*ptr & 0x0F));
+	REG.A += *ptr;
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 1;
+	REG.TCLK = 4;
+}
+
+void add_A_n() {
+	uint8_t val = ARGBYTE;
+	set_flag_cond(FLAG_C, 0xFF - REG.A > val);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (val & 0x0F));
+	REG.A += val;
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 2;
+	REG.TCLK = 8;
+}
+
+void add_A_atHL() {
+	uint8_t val = MEM.readByte(REG.HL);
+	set_flag_cond(FLAG_C, 0xFF - REG.A > val);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (val & 0x0F));
+	REG.A += val;
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 1;
+	REG.TCLK = 8;
+}
+
+void adc_A_rb(uint8_t * ptr) {
+	set_flag_cond(FLAG_C, 0xFF - REG.A > *ptr);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (*ptr & 0x0F));
+	REG.A += *ptr + get_flag(FLAG_C);
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 1;
+	REG.TCLK = 4;
+}
+
+void adc_A_n() {
+	uint8_t val = ARGBYTE;
+	set_flag_cond(FLAG_C, 0xFF - REG.A > val);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (val & 0x0F));
+	REG.A += val + get_flag(FLAG_C);
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 2;
+	REG.TCLK = 8;
+}
+
+void adc_A_atHL() {
+	uint8_t val = MEM.readByte(REG.HL);
+	set_flag_cond(FLAG_C, 0xFF - REG.A > val);
+	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (val & 0x0F));
+	REG.A += val + get_flag(FLAG_C);
+	unset_flag(FLAG_N)
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.PC += 1;
+	REG.TCLK = 8;
+}
+
+
 // 16-bit arithmetic
 
 void inc_rw(uint16_t * ptr) {
@@ -1233,22 +1298,22 @@ instruction instructions[256] = {
 	{"LD A, (HL)", 0, [](){ ld_rb_atHL(&REG.L); }},     // 0x7E
 	{"LD A, A", 0, [](){ ld_rb_rb(&REG.A, &REG.A);}},        // 0x7F
 
-	{"ADD A, B", 0, TODO},       // 0x80
-	{"ADD A, C", 0, TODO},       // 0x81
-	{"ADD A, D", 0, TODO},       // 0x82
-	{"ADD A, E", 0, TODO},       // 0x83
-	{"ADD A, H", 0, TODO},       // 0x84
-	{"ADD A, L", 0, TODO},       // 0x85
-	{"ADD A, (HL)", 0, TODO},    // 0x86
-	{"ADD A, A", 0, TODO},       // 0x87
-	{"ADC A, B", 0, TODO},       // 0x88
-	{"ADC A, C", 0, TODO},       // 0x89
-	{"ADC A, D", 0, TODO},       // 0x8A
-	{"ADC A, E", 0, TODO},       // 0x8B
-	{"ADC A, H", 0, TODO},       // 0x8C
-	{"ADC A, L", 0, TODO},       // 0x8D
-	{"ADC A, (HL)", 0, TODO},    // 0x8E
-	{"ADC A, A", 0, TODO},       // 0x8F
+	{"ADD A, B", 0, [](){ add_A_rb(&REG.B); }},       // 0x80
+	{"ADD A, C", 0, [](){ add_A_rb(&REG.C); }},       // 0x81
+	{"ADD A, D", 0, [](){ add_A_rb(&REG.D); }},       // 0x82
+	{"ADD A, E", 0, [](){ add_A_rb(&REG.E); }},       // 0x83
+	{"ADD A, H", 0, [](){ add_A_rb(&REG.H); }},       // 0x84
+	{"ADD A, L", 0, [](){ add_A_rb(&REG.L); }},       // 0x85
+	{"ADD A, (HL)", 0, [](){ add_A_atHL(); }},    // 0x86
+	{"ADD A, A", 0, [](){ add_A_rb(&REG.A); }},       // 0x87
+	{"ADC A, B", 0, [](){ adc_A_rb(&REG.B); }},       // 0x88
+	{"ADC A, C", 0, [](){ adc_A_rb(&REG.C); }},       // 0x89
+	{"ADC A, D", 0, [](){ adc_A_rb(&REG.D); }},       // 0x8A
+	{"ADC A, E", 0, [](){ adc_A_rb(&REG.E); }},       // 0x8B
+	{"ADC A, H", 0, [](){ adc_A_rb(&REG.H); }},       // 0x8C
+	{"ADC A, L", 0, [](){ adc_A_rb(&REG.L); }},       // 0x8D
+	{"ADC A, (HL)", 0, [](){ adc_A_atHL(); }},    // 0x8E
+	{"ADC A, A", 0, [](){ adc_A_rb(&REG.A); }},       // 0x8F
 
 	{"SUB A, B", 0, TODO},       // 0x90
 	{"SUB A, C", 0, TODO},       // 0x91
