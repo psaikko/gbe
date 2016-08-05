@@ -57,6 +57,7 @@ typedef struct {
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 153) {
 						mode = MODE_OAM;
+						*MEM.SCAN_LN = 0;
 					}
 				}
 				break;
