@@ -17,6 +17,11 @@
 #define FLAG_GPU_WIN_TM 0x40
 #define FLAG_GPU_DISP   0x80
 
+#define BG_PLT_COLOR0 0x03
+#define BG_PLT_COLOR1 0x0C
+#define BG_PLT_COLOR2 0x30
+#define BG_PLT_COLOR3 0xC0
+
 typedef struct {
 	uint8_t RAW[65536]; // TODO
 	uint8_t *ROM0   = &RAW[0x0000];
@@ -28,15 +33,6 @@ typedef struct {
 	uint8_t *SPR    = &RAW[0xFE00];
 	uint8_t *IO     = &RAW[0xFF00];
 	uint8_t *ZERO   = &RAW[0xFF80];
-	/*uint8_t ROM0[16384];  // [0000-3FFF] 
-	uint8_t ROM1[16384];  // [4000-7FFF]
-	uint8_t grRAM[8192];  // [8000-9FFF] 
-	uint8_t extRAM[8192]; // [A000-BFFF]
-	uint8_t RAM[8192];    // [C000-DFFF]
-	uint8_t _RAM[7680];   // [E000-FDFF]
-	uint8_t SPR[255];     // [FE00-FE9F] // 160 bytes
-	uint8_t IO[128];      // [FF00-FF7F] 
-	uint8_t ZERO[128];    // [FF80-FFFF]*/
 
 	uint8_t BIOS[256];
 	bool bios = true;
@@ -49,16 +45,19 @@ typedef struct {
 	uint8_t *SCRL_X   = &RAW[0xFF43];
 	uint8_t *SCAN_LN  = &RAW[0xFF44]; // TODO: readonly
 	uint8_t *BG_PLT   = &RAW[0xFF47]; // TODO: writeonly
+	uint8_t *BIOS_OFF  = &RAW[0xFF60];
+
+	uint8_t *TILESET1 = &RAW[0x8000];
+	uint8_t *TILESET0 = &RAW[0x8800];
+	uint8_t *TILEMAP0 = &RAW[0x9800];
+	uint8_t *TILEMAP1 = &RAW[0x9C00];
 
 	uint8_t* getPtr(uint16_t addr) {
 		// switch by 8192 byte segments
 		switch(addr >> 13) {
 			case 0:
-				if (bios) {
-					if (REG.PC < 0x100) 
-						return &BIOS[addr];
-					else
-						bios = false;
+				if ( ! *BIOS_OFF && addr < 0x0100) {
+					return &BIOS[addr];
 				}
 			case 1: // ROM0
 				return &RAW[addr];
@@ -72,6 +71,7 @@ typedef struct {
 			case 6: // RAM
 				return &RAW[addr];
 			case 7: 
+			default:
 				switch (addr & 0xFF80) {
 					case 0xFE00: // SPR
 					case 0xFE80: 

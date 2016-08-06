@@ -16,8 +16,8 @@ void inc_rb(uint8_t * ptr) {
 	(*ptr)++;
 
 	unset_flag(FLAG_N);
-	set_flag_cond(FLAG_H, (*ptr) & 0x0F == 0);
-	set_flag_cond(FLAG_Z, (*ptr) == 0);
+	set_flag_cond(FLAG_H, (*ptr & 0x0F) == 0);
+	set_flag_cond(FLAG_Z, *ptr == 0);
 	REG.TCLK = 4;
 	REG.PC += 1;
 }
@@ -27,7 +27,7 @@ void inc_atHL() {
 	MEM.writeByte(REG.HL, val + 1);
 
 	unset_flag(FLAG_N);
-	set_flag_cond(FLAG_H, val & 0x0F == 0x0F);
+	set_flag_cond(FLAG_H, (val & 0x0F) == 0x0F);
 	set_flag_cond(FLAG_Z, (val + 1) == 0);
 
 	REG.TCLK = 12;
@@ -38,8 +38,8 @@ void dec_rb(uint8_t * ptr) {
 	(*ptr)--;
 
 	set_flag(FLAG_N);
-	set_flag_cond(FLAG_H, (*ptr) & 0x0F == 0x0F);
-	set_flag_cond(FLAG_Z, (*ptr) == 0);
+	set_flag_cond(FLAG_H, (*ptr & 0x0F) == 0x0F);
+	set_flag_cond(FLAG_Z, *ptr == 0);
 	REG.TCLK = 4;
 	REG.PC += 1;
 }
@@ -49,7 +49,7 @@ void dec_atHL() {
 	MEM.writeByte(REG.HL, val - 1);
 
 	set_flag(FLAG_N);
-	set_flag_cond(FLAG_H, val & 0x0F == 0x00);
+	set_flag_cond(FLAG_H, (val & 0x0F) == 0x00);
 	set_flag_cond(FLAG_Z, (val - 1) == 0);
 
 	REG.TCLK = 12;
@@ -189,8 +189,8 @@ void cp_n() {
 
 void cp_atHL() {
 
-	uint8_t e = MEM.readByte(MEM.readWord(REG.HL));
-	
+	uint8_t e = MEM.readByte(REG.HL);
+
 	set_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, e == REG.A);
 	set_flag_cond(FLAG_C, e > REG.A);
@@ -720,6 +720,14 @@ void swap_atHL() {
 	REG.PC += 1;
 }
 
+void cpl() {
+	REG.A = ~REG.A;
+	set_flag(FLAG_N | FLAG_H);
+
+	REG.TCLK = 4;	
+	REG.PC += 1;	
+}
+
 void bit_i_rb(const uint8_t mask, uint8_t *from) {
 	unset_flag(FLAG_N);
 	unset_flag(FLAG_H);
@@ -965,8 +973,9 @@ void TODO(void){
 	for (uint16_t i = REG.PC + 1; i < end; ++i)
 		printf("%02X ", MEM.readByte(i));
 	printf("\n");
+
 	exit(1);
-};
+}
 
 instruction ext_instructions[256] = {
 	{"RLC B", 0, [](){ rlc_rb(&REG.B); }}, //0xCB01
@@ -1290,7 +1299,7 @@ instruction instructions[256] = {
 	{"INC L", 0, [](){ inc_rb(&REG.L); }},          // 0x2C
 	{"DEC L", 0, [](){ dec_rb(&REG.L); }},          // 0x2D
 	{"LD L, 0x%02X", 1, [](){ ld_rb_n(&REG.L); }},   // 0x2E
-	{"CPL", 0, TODO},            // 0x2F
+	{"CPL", 0, [](){ cpl(); }},            // 0x2F
  
 	{"JR NC, 0x%02X", 1, [](){ jr_nf_e(FLAG_C); }},  // 0x30
 	{"LD SP, 0x%04X", 2, [](){ ld_rw_nn(&REG.SP); }},  // 0x31

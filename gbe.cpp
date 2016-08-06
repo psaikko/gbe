@@ -4,6 +4,7 @@
 #include <string>
 #include "gbe.h"
 #include "gpu.h"
+#include "window.h"
 
 void readROMFile(const char * filename) {
 	FILE* romfile; 
@@ -53,6 +54,8 @@ int main(int argc, char ** argv) {
 			log_mem_addr = 0xff44;
 		}
 	}
+
+	WINDOW.init();
 
 	while (1) {
 		uint8_t opcode = MEM.readByte(REG.PC);

@@ -2,6 +2,7 @@
 
 #include "reg.h"
 #include "mem.h"
+#include "window.h"
 
 #define MODE_OAM 2
 #define MODE_VRAM 3
@@ -36,7 +37,7 @@ typedef struct {
 				if (clk >= 172) {
 					clk = 0;
 					mode = MODE_HBLANK;
-					render_buffer_line();
+					WINDOW.render_buffer_line();
 				}
 				break;
 			case (MODE_HBLANK):
@@ -45,7 +46,7 @@ typedef struct {
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 143) {
 						mode = MODE_VBLANK;
-						draw_buffer();
+						WINDOW.draw_buffer();
 					} else {
 						mode = MODE_OAM;
 					}
