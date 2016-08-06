@@ -45,7 +45,7 @@ typedef struct {
 	uint8_t *SCRL_X   = &RAW[0xFF43];
 	uint8_t *SCAN_LN  = &RAW[0xFF44]; // TODO: readonly
 	uint8_t *BG_PLT   = &RAW[0xFF47]; // TODO: writeonly
-	uint8_t *BIOS_OFF  = &RAW[0xFF60];
+	uint8_t *BIOS_OFF  = &RAW[0xFF50];
 
 	uint8_t *TILESET1 = &RAW[0x8000];
 	uint8_t *TILESET0 = &RAW[0x8800];
@@ -56,7 +56,7 @@ typedef struct {
 		// switch by 8192 byte segments
 		switch(addr >> 13) {
 			case 0:
-				if ( ! *BIOS_OFF && addr < 0x0100) {
+				if ( ( ! *BIOS_OFF ) && addr < 0x0100) {
 					return &BIOS[addr];
 				}
 			case 1: // ROM0
