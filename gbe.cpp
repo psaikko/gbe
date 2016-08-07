@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <getopt.h>
 #include <string>
 #include "gbe.h"
 #include "gpu.h"
@@ -34,32 +35,88 @@ int main(int argc, char ** argv) {
 	readBIOSFile("rom.bin");
 	readROMFile("tetris.gb");
 
-	bool log_register_bytes = false, 
-			 log_register_words = false, 
-			 log_flags = false,
-			 log_mem = false,
-			 log_gpu = false,
-			 silent = false;
+	int log_register_bytes = false, 
+			log_register_words = false, 
+			log_flags = false,
+			log_mem = false,
+			log_gpu = false,
+			silent = false,
+			breakpoint = false,
+			stepping = false;
 
   uint16_t log_mem_addr = 0;
+  uint16_t breakpoint_addr = 0;
 
-	printf("%d\n", argc);
-	for (int i = 1; i < argc; ++i) {
-		std::string flag(argv[i]);
-		if (flag == "-rb") log_register_bytes = true;
-		if (flag == "-rw") log_register_words = true;
-		if (flag == "-f") log_flags = true;
-		if (flag == "-g") log_gpu = true;
-		if (flag == "-s") silent = true;
-		if (flag.find("-m") == 0) {
-			log_mem = true;
-			log_mem_addr = 0xff50;
-		}
-	}
+  int c;
+
+  while (1)
+    {
+      static struct option long_options[] =
+        {
+          {"silent", no_argument, &silent, 1},
+          {"rw",     no_argument, &log_register_words, 1},
+          {"rb",     no_argument, &log_register_bytes, 1},
+          {"gpu",    no_argument, &log_gpu, 1},
+          {"flags",  no_argument, &log_flags, 1},
+
+          {"breakpoint",  required_argument, 0, 'b'},
+          {"step",  required_argument, 0, 's'},
+          {"memory",      required_argument, 0, 'm'},
+          {0, 0, 0, 0}
+        };
+
+      int option_index = 0;
+      c = getopt_long (argc, argv, "s:b:m:", long_options, &option_index);
+
+      /* Detect the end of the options. */
+      if (c == -1) break;
+
+      switch (c) {
+        case 0:
+          /* If this option set a flag, do nothing else now. */
+          if (long_options[option_index].flag != 0) break;
+          printf ("option %s", long_options[option_index].name);
+          if (optarg) printf (" with arg %s", optarg);
+          printf ("\n");
+          break;
+
+        case 'b':
+          printf ("option -b with value `%s'\n", optarg);
+          breakpoint_addr = std::stoi(optarg,0,0);
+          break;
+
+        case 'm':
+          printf ("option -m with value `%s'\n", optarg);
+          log_mem_addr = std::stoi(optarg,0,0);
+          break;
+
+        case '?':
+          /* getopt_long already printed an error message. */
+          break;
+
+        default:
+          abort ();
+       }
+    }
+
+  if (optind < argc)
+  {
+    fprintf(stderr, "[warning]: Unhandled args");
+    while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
+    fprintf(stderr, "\n");
+  }
 
 	WINDOW.init();
 
 	while (1) {
+
+		if (stepping || (breakpoint && REG.PC == breakpoint_addr)) {
+			exit(1);
+			char opt = getchar();
+			if (opt == 'r') stepping = false;
+			if (opt == 's') stepping = true;
+		}
+		
 		uint8_t opcode = MEM.readByte(REG.PC);
 		instruction instr = instructions[opcode];
 

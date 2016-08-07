@@ -52,7 +52,7 @@ typedef struct {
 	uint8_t *TILEMAP0 = &RAW[0x9800];
 	uint8_t *TILEMAP1 = &RAW[0x9C00];
 
-	uint8_t* getPtr(uint16_t addr) {
+	uint8_t* getReadPtr(uint16_t addr) {
 		// switch by 8192 byte segments
 		switch(addr >> 13) {
 			case 0:
@@ -89,32 +89,75 @@ typedef struct {
 		}
 	}
 
+	uint8_t* getWritePtr(uint16_t addr) {
+		// switch by 8192 byte segments
+		switch(addr >> 13) {
+			case 0:
+			case 1: // ROM0
+			case 2: // ROM1
+			case 3: 
+				return nullptr;
+			case 4: // grRAM
+				return &RAW[addr];
+			case 5: // extRAM
+				return &RAW[addr];
+			case 6: // RAM
+				return &RAW[addr];
+			case 7: 
+			default:
+				switch (addr & 0xFF80) {
+					case 0xFE00: // SPR
+					case 0xFE80: 
+						if (addr < 0xFEA0)
+							return &RAW[addr];
+						else 
+							return nullptr;
+					case 0xFF00: // IO
+						return &RAW[addr];
+					case 0xFF80: // ZERO
+						return &RAW[addr];
+					default: // ZERO-PAGE
+						return &RAM[addr];
+				}
+		}
+	}
+
 	uint8_t readByte(uint16_t addr) {
-		uint8_t *ptr = getPtr(addr);
+		uint8_t *ptr = getReadPtr(addr);
 		if (ptr != nullptr)
 			return *ptr;
-		else
+		else {
+			fprintf(stderr, "[Warning] Attempting read from address 0x%04X\n", addr);
 			return 0;
+		}
 	}
 
 	uint16_t readWord(uint16_t addr) {
-		uint8_t *ptr = getPtr(addr);
+		uint8_t *ptr = getReadPtr(addr);
 		if (ptr != nullptr)
 			return *reinterpret_cast<uint16_t*>(ptr); 
-		else
+		else {
+			fprintf(stderr, "[Warning] Attempting read from address 0x%04X\n", addr);
 			return 0;
+		}
 	}
 
 	void writeByte(uint16_t addr, uint8_t val) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr == nullptr) return;
+		uint8_t *ptr = getWritePtr(addr);
+		if (ptr == nullptr) {
+			fprintf(stderr, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+			return;
+		}
 		*ptr = val;
 	}
 
 	void writeWord(uint16_t addr, uint16_t val) {
-		uint8_t *ptr = getPtr(addr);
-		if (ptr == nullptr) return;
-		uint16_t *wptr = reinterpret_cast<uint16_t*>(getPtr(addr)); 
+		uint8_t *ptr = getWritePtr(addr);
+		if (ptr == nullptr) {
+			fprintf(stderr, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+			return;
+		}
+		uint16_t *wptr = reinterpret_cast<uint16_t*>(ptr); 
 		*wptr = val;
 	}
 } memory;
