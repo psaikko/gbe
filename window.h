@@ -128,6 +128,7 @@ typedef struct {
   }
 
   void draw_buffer() {
+  	static long frame = 0;
   	glfwMakeContextCurrent(game_window);
 
   	glClear( GL_COLOR_BUFFER_BIT );
@@ -139,7 +140,7 @@ typedef struct {
     draw_tileset();
     render_tilemap();
     draw_tilemap();
-    printf("asdf\n");
+    printf("Frame #%ld\n", frame++);
   }
 
   void draw_tilemap() {
