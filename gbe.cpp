@@ -59,7 +59,6 @@ int main(int argc, char ** argv) {
 	int log_register_bytes = false, 
 			log_register_words = false, 
 			log_flags = false,
-			log_mem = false,
 			log_gpu = false,
 			log_instructions = false,
 			breakpoint = false,
@@ -89,13 +88,12 @@ int main(int argc, char ** argv) {
           {"rom", required_argument, 0, 'R'},
           {"breakpoint", required_argument, 0, 'b'},
           {"step",       required_argument, 0, 's'},
-          {"memory",     required_argument, 0, 'm'},
           {"memory-breakpoint",     required_argument, 0, 'M'},
           {0, 0, 0, 0}
         };
 
       int option_index = 0;
-      c = getopt_long (argc, argv, "s:b:m:iB:R:M:", long_options, &option_index);
+      c = getopt_long (argc, argv, "s:b:iB:R:M:", long_options, &option_index);
 
       /* Detect the end of the options. */
       if (c == -1) break;
@@ -123,12 +121,6 @@ int main(int argc, char ** argv) {
         	breakpoint = true;
           printf ("option -b with value `%s'\n", optarg);
           breakpoint_addr = std::stoi(optarg,0,0);
-          break;
-
-        case 'm1':
-          printf ("option -m with value `%s'\n", optarg);
-          log_mem = true;
-          mem_log_addr = std::stoi(optarg,0,0);
           break;
 
         case 'M':
@@ -195,9 +187,6 @@ int main(int argc, char ** argv) {
 							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
 			printf("GPU_CTRL %02X SCAL_LN %02X PLT %02X BIOS_OFF %1X\n",
 							*MEM.GPU_CTRL, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
-		}
-		if (log_mem) {
-			printf("0x%02X\n", MEM.readByte(mem_log_addr));
 		}
 		if (log_gpu) {
 			printf("GPU CLK: 0x%04X  MODE: %d  LINE: 0x%02X\n", 
@@ -267,13 +256,7 @@ int main(int argc, char ** argv) {
 				}
 			}
 		}
-		
-		// DEBUG
-		for (int i = 0; i < WINDOW_H * WINDOW_W * 3; i += WINDOW_W * 3) {
-			assert(WINDOW.game_buffer[i] == 0);
-		}
-		
-
+	
 		instr.fn();
 		GPU.update();
 

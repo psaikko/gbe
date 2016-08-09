@@ -15,15 +15,6 @@ typedef struct {
 	//uint8_t line;
 	uint8_t mode : 2;
 
-	void render_buffer_line() {
-		// TODO
-		*MEM.IE |= FLAG_IF_VBLANK;
-	}
-
-	void draw_buffer() {
-		// TODO
-	}
-
 	void update() {
 		clk += REG.TCLK;
 		switch (mode) {
@@ -55,6 +46,7 @@ typedef struct {
 			case (MODE_VBLANK):
 				if (clk >= 456) {
 					clk = 0;
+					*MEM.IE |= FLAG_IF_VBLANK;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 153) {
 						mode = MODE_OAM;

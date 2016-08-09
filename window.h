@@ -39,59 +39,94 @@ typedef struct {
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 
   void draw_pixel(uint8_t *addr, uint8_t color_id) {
-  	// TODO: palette
-  	uint8_t color;
+  	assert(color_id <= 3);
   	switch (color_id) {
   		case 0:
-  			color = 255;
+  			memset(addr, 255, 3);
   			break;
   		case 1:
-  			color = 192;
+  			memset(addr, 192, 3);
   			break;
   		case 2:
-  			color = 96;
+  			memset(addr, 96, 3);
   			break;
   		case 3:
-  		default:
-  			color = 0;
+  			memset(addr, 0, 3);
   			break;
   	}
-  	addr[0] = color;
-  	addr[1] = color;
-  	addr[2] = color;
   }
 
   void render_buffer_line() {
+  	uint8_t *MAP = (*MEM.GPU_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
+  	uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
 
+  	uint8_t scrl_x = *MEM.SCRL_X;
+  	uint8_t scrl_y = *MEM.SCRL_Y;
+
+  	uint8_t window_y    = *MEM.SCAN_LN;
+  	uint8_t map_pixel_y = window_y + scrl_y;
+  	uint8_t map_tile_y  = map_pixel_y / TILE_H;
+  	uint8_t tile_y      = map_pixel_y % TILE_H;
+  	for (uint8_t window_x = 0; window_x < WINDOW_W; ++window_x) {
+  		uint8_t map_pixel_x = window_x + scrl_x;
+  		uint8_t map_tile_x  = map_pixel_x / TILE_W;
+  		uint8_t tile_x      = map_pixel_x % TILE_W;
+
+  		// get pixel (tile_x, tile_y) from map tile (map_tile_x, map_tile_y)
+  		// and draw it to (window_x, window_y)
+  		uint8_t tile_id = MAP[map_tile_x + map_tile_y * TILEMAP_H];
+  		uint8_t *tile = &SET[tile_id * 16];
+
+  		uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
+  		color_id = apply_palette(color_id);
+
+  		unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
+  		draw_pixel(&game_buffer[i], color_id);
+  	}
+  }
+
+  uint8_t apply_palette(uint8_t color_id) {
+  	assert(color_id <= 3);
+  	switch (color_id) {
+  		case 0:
+  			return (*MEM.BG_PLT & BG_PLT_COLOR0);
+  		case 1:
+  			return (*MEM.BG_PLT & BG_PLT_COLOR1) >> 2;
+  		case 2:
+  			return (*MEM.BG_PLT & BG_PLT_COLOR2) >> 4;
+  		case 3:
+  			return (*MEM.BG_PLT & BG_PLT_COLOR3) >> 6;
+  	}
+  }
+
+  uint8_t get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
+
+  	assert(x <= 7);
+  	assert(y <= 7);
+
+  	uint8_t *row_y    = tile + 2*y; // tiles have 2 bytes per row
+  	uint8_t bitmask_x = 0x80 >> x;
+
+  	bool bit0 = row_y[0] & bitmask_x;
+		bool bit1 = row_y[1] & bitmask_x;
+		uint8_t color_id = bit0 + bit1 * 2;  
+		return color_id;
+  }
+
+  unsigned rgb_buffer_index(unsigned x, unsigned y, unsigned w, unsigned h) {
+  	return x*3 + (h - 1 - y)*w*3;
   }
 
   void render_tile(uint8_t *buffer, uint8_t *tile, uint8_t window_x, uint8_t window_y, uint16_t buffer_w, uint16_t buffer_h) {
   	for (uint8_t yoff = 0; yoff < TILE_H; yoff++) {
-			uint8_t bitmask = 0x80;
 			for (uint8_t xoff = 0; xoff < TILE_W; xoff++) {
-				bool bit0 = tile[0] & bitmask;
-				bool bit1 = tile[1] & bitmask;
-				uint8_t color_id; 
-				if (bit0 && bit1)   {
-					color_id = 3; //(*MEM.BG_PLT & BG_PLT_COLOR3) >> 6;  
-				}
-				if (bit0 && !bit1)  {
-					color_id = 2; //(*MEM.BG_PLT & BG_PLT_COLOR1) >> 2;
-				}
-				if (!bit0 && bit1)  {
-					color_id = 1; //(*MEM.BG_PLT & BG_PLT_COLOR2) >> 4;
-				}
-				if (!bit0 && !bit1) {
-					color_id = 0; //*MEM.BG_PLT & BG_PLT_COLOR0;
-				}
+				uint8_t color_id = get_tile_pixel(tile, xoff, yoff);
 
-				uint8_t *buffer_addr = 
-					&buffer[(window_x + xoff)*3 + (buffer_h - 1 - (window_y + yoff)) * buffer_w * 3];
+				//color_id = apply_palette(color_id);
 
-				draw_pixel(buffer_addr, color_id);
-				bitmask >>= 1;
+				unsigned i = rgb_buffer_index(window_x + xoff, window_y + yoff, buffer_w, buffer_h);
+				draw_pixel(&buffer[i], color_id);
 			}
-			tile += 2;
 		}
   }
 
@@ -112,8 +147,7 @@ typedef struct {
   	}
   }
 
-  void render_tileset() {
-  	//uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
+  void render_tileset() { 
   	uint8_t *SET = &MEM.RAW[0x8000];
 
   	uint16_t tile_id = 0;
