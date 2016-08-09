@@ -34,9 +34,7 @@ typedef struct {
 	uint8_t *IO     = &RAW[0xFF00];
 	uint8_t *ZERO   = &RAW[0xFF80];
 
-	uint8_t BIOS[256];
-	bool bios = true;
-	 
+	uint8_t BIOS[256];	 
 
 	uint8_t *IE       = &RAW[0xFFFF];
 	uint8_t *IF       = &RAW[0xFF0F];
@@ -51,6 +49,9 @@ typedef struct {
 	uint8_t *TILESET0 = &RAW[0x8800];
 	uint8_t *TILEMAP0 = &RAW[0x9800];
 	uint8_t *TILEMAP1 = &RAW[0x9C00];
+
+	uint16_t break_addr = 0;
+	bool at_breakpoint = false;
 
 	uint8_t* getReadPtr(uint16_t addr) {
 		// switch by 8192 byte segments
@@ -72,19 +73,25 @@ typedef struct {
 				return &RAW[addr];
 			case 7: 
 			default:
-				switch (addr & 0xFF80) {
-					case 0xFE00: // SPR
-					case 0xFE80: 
-						if (addr < 0xFEA0)
+				if (addr < 0xE000) // RAM
+					return &RAW[addr];
+				else if (addr < 0xFE00) // shadow RAM
+					return &RAW[addr & 0xDFFF];
+				else {
+					switch (addr & 0xFF80) {
+						case 0xFE00: // SPR
+						case 0xFE80: 
+							if (addr < 0xFEA0)
+								return &RAW[addr];
+							else 
+								return nullptr;
+						case 0xFF00: // IO
 							return &RAW[addr];
-						else 
-							return nullptr;
-					case 0xFF00: // IO
-						return &RAW[addr];
-					case 0xFF80: // ZERO
-						return &RAW[addr];
-					default: // ZERO-PAGE
-						return &RAM[addr];
+						default:
+							assert(false);
+						case 0xFF80: // ZERO
+							return &RAW[addr];
+					}
 				}
 		}
 	}
@@ -105,56 +112,75 @@ typedef struct {
 				return &RAW[addr];
 			case 7: 
 			default:
-				switch (addr & 0xFF80) {
-					case 0xFE00: // SPR
-					case 0xFE80: 
-						if (addr < 0xFEA0)
+				if (addr < 0xE000) // RAM
+					return &RAW[addr];
+				else if (addr < 0xFE00) // shadow RAM
+					return &RAW[addr & 0xDFFF];
+				else {
+					switch (addr & 0xFF80) {
+						case 0xFE00: // SPR
+						case 0xFE80: 
+							if (addr < 0xFEA0)
+								return &RAW[addr];
+							else 
+								return nullptr;
+						case 0xFF00: // IO
+							if (addr == 0xFF50 && *BIOS_OFF) {
+								return nullptr;
+							}
 							return &RAW[addr];
-						else 
-							return nullptr;
-					case 0xFF00: // IO
-						return &RAW[addr];
-					case 0xFF80: // ZERO
-						return &RAW[addr];
-					default: // ZERO-PAGE
-						return &RAM[addr];
-				}
+						default:
+							assert(false);
+						case 0xFF80: // ZERO
+							return &RAW[addr];
+					}
+				} 
 		}
 	}
 
 	uint8_t readByte(uint16_t addr) {
+		if (break_addr == addr) at_breakpoint = true;
 		uint8_t *ptr = getReadPtr(addr);
 		if (ptr != nullptr)
 			return *ptr;
 		else {
-			fprintf(stderr, "[Warning] Attempting read from address 0x%04X\n", addr);
+			fprintf(stdout, "[Warning] Attempting read from address 0x%04X\n", addr);
 			return 0;
 		}
 	}
 
 	uint16_t readWord(uint16_t addr) {
+		if (break_addr == addr) at_breakpoint = true;
 		uint8_t *ptr = getReadPtr(addr);
 		if (ptr != nullptr)
 			return *reinterpret_cast<uint16_t*>(ptr); 
 		else {
-			fprintf(stderr, "[Warning] Attempting read from address 0x%04X\n", addr);
+			fprintf(stdout, "[Warning] Attempting read from address 0x%04X\n", addr);
 			return 0;
 		}
 	}
 
 	void writeByte(uint16_t addr, uint8_t val) {
+		if (break_addr == addr) at_breakpoint = true;
 		uint8_t *ptr = getWritePtr(addr);
+
+		//printf("writeByte %04X <- %02X (%X)\n", addr, val, (int)(ptr - RAW));
+
 		if (ptr == nullptr) {
-			fprintf(stderr, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+			fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
 			return;
 		}
 		*ptr = val;
 	}
 
 	void writeWord(uint16_t addr, uint16_t val) {
+		if (break_addr == addr) at_breakpoint = true;
 		uint8_t *ptr = getWritePtr(addr);
+
+		//printf("writeByte %04X <- %04X (%X)\n", addr, val, (int)(ptr - RAW));
+
 		if (ptr == nullptr) {
-			fprintf(stderr, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+			fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
 			return;
 		}
 		uint16_t *wptr = reinterpret_cast<uint16_t*>(ptr); 

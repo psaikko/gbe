@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string.h>
+
 // Include GLEW
 #include <GL/glew.h>
 
@@ -69,18 +71,18 @@ typedef struct {
 			for (uint8_t xoff = 0; xoff < TILE_W; xoff++) {
 				bool bit0 = tile[0] & bitmask;
 				bool bit1 = tile[1] & bitmask;
-				uint8_t color_id;
+				uint8_t color_id; 
 				if (bit0 && bit1)   {
-					color_id = (*MEM.BG_PLT & BG_PLT_COLOR3) >> 6;  
+					color_id = 3; //(*MEM.BG_PLT & BG_PLT_COLOR3) >> 6;  
 				}
 				if (bit0 && !bit1)  {
-					color_id = (*MEM.BG_PLT & BG_PLT_COLOR1) >> 2;
+					color_id = 2; //(*MEM.BG_PLT & BG_PLT_COLOR1) >> 2;
 				}
 				if (!bit0 && bit1)  {
-					color_id = (*MEM.BG_PLT & BG_PLT_COLOR2) >> 4;
+					color_id = 1; //(*MEM.BG_PLT & BG_PLT_COLOR2) >> 4;
 				}
 				if (!bit0 && !bit1) {
-					color_id = *MEM.BG_PLT & BG_PLT_COLOR0;
+					color_id = 0; //*MEM.BG_PLT & BG_PLT_COLOR0;
 				}
 
 				uint8_t *buffer_addr = 
@@ -111,7 +113,8 @@ typedef struct {
   }
 
   void render_tileset() {
-  	uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
+  	//uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
+  	uint8_t *SET = &MEM.RAW[0x8000];
 
   	uint16_t tile_id = 0;
   	for (uint8_t yoff = 0; yoff < 24; ++yoff) {
@@ -136,11 +139,15 @@ typedef struct {
     glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
     glfwSwapBuffers(game_window);
 
-    render_tileset();
+    refresh_debug();
+    printf("Frame #%ld\n", frame++);
+  }
+
+  void refresh_debug() {
+  	render_tileset();
     draw_tileset();
     render_tilemap();
     draw_tilemap();
-    printf("Frame #%ld\n", frame++);
   }
 
   void draw_tilemap() {
@@ -162,6 +169,10 @@ typedef struct {
   }
 
   void init() {
+
+  	memset(game_buffer, 0, WINDOW_H * WINDOW_W * 3);
+		memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * TILEMAP_WINDOW_W * 3);
+  	memset(tileset_buffer, 0, TILESET_WINDOW_H * TILESET_WINDOW_W * 3);
 
     if (!glfwInit()) {
       printf("Failed to initialize GLFW\n");

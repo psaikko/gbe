@@ -3,9 +3,13 @@
 #include <assert.h>
 #include <getopt.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include "gbe.h"
 #include "gpu.h"
 #include "window.h"
+
+using namespace std;
 
 void printRegisters(bool words) {
 	if (!words) {
@@ -37,33 +41,20 @@ void printInstruction() {
 	}
 }
 
-void readROMFile(const char * filename) {
-	FILE* romfile; 
-	romfile = fopen(filename, "rb");
-
-	fread(MEM.ROM0,0x3fff,1,romfile);
-	fread(MEM.ROM1,0x3fff,1,romfile);
-	fclose(romfile);
+void readROMFile(const string filename) {
+	ifstream romfile(filename, ios::binary);
+	romfile.read((char *)MEM.ROM0, 0x4000);
+	romfile.read((char *)MEM.ROM1, 0x4000);
+	romfile.close();
 }
 
-void readBIOSFile(const char * filename) {
-	FILE* biosfile; 
-	biosfile = fopen(filename, "rb");
-
-	assert(biosfile);
-
-	fseek(biosfile, 0, SEEK_END);
-	size_t n = ftell(biosfile);
-	assert(n == 256);
-	fseek(biosfile, 0, SEEK_SET);
-	fread(MEM.BIOS,n,1,biosfile);
-
-	fclose(biosfile);
+void readBIOSFile(const string filename) {
+	ifstream biosfile(filename, ios::binary);
+	biosfile.read((char *)MEM.BIOS, 256);
+	biosfile.close();
 }
 
 int main(int argc, char ** argv) {
-	readBIOSFile("rom.bin");
-	readROMFile("tetris.gb");
 
 	int log_register_bytes = false, 
 			log_register_words = false, 
@@ -72,9 +63,14 @@ int main(int argc, char ** argv) {
 			log_gpu = false,
 			log_instructions = false,
 			breakpoint = false,
-			stepping = false;
+			mem_breakpoint = false,
+			stepping = false,
+			load_bios = false,
+			load_rom = false;
 
-  uint16_t log_mem_addr = 0;
+	string romfile, biosfile;
+
+  uint16_t mem_log_addr = 0;
   uint16_t breakpoint_addr = 0;
 
   int c;
@@ -89,14 +85,17 @@ int main(int argc, char ** argv) {
           {"flags",  no_argument, &log_flags, 1},
 
           {"instructions", no_argument, 0, 'i'},
+          {"bios", required_argument, 0, 'B'},
+          {"rom", required_argument, 0, 'R'},
           {"breakpoint", required_argument, 0, 'b'},
           {"step",       required_argument, 0, 's'},
           {"memory",     required_argument, 0, 'm'},
+          {"memory-breakpoint",     required_argument, 0, 'M'},
           {0, 0, 0, 0}
         };
 
       int option_index = 0;
-      c = getopt_long (argc, argv, "s:b:m:", long_options, &option_index);
+      c = getopt_long (argc, argv, "s:b:m:iB:R:M:", long_options, &option_index);
 
       /* Detect the end of the options. */
       if (c == -1) break;
@@ -110,17 +109,36 @@ int main(int argc, char ** argv) {
           printf ("\n");
           break;
 
+        case 'B':
+        	load_bios = true;
+        	biosfile = string(optarg);
+        	break;
+
+        case 'R':
+        	load_rom = true;
+        	romfile = string(optarg);
+        	break;
+
         case 'b':
         	breakpoint = true;
           printf ("option -b with value `%s'\n", optarg);
           breakpoint_addr = std::stoi(optarg,0,0);
           break;
 
-        case 'm':
+        case 'm1':
           printf ("option -m with value `%s'\n", optarg);
           log_mem = true;
-          log_mem_addr = std::stoi(optarg,0,0);
+          mem_log_addr = std::stoi(optarg,0,0);
           break;
+
+        case 'M':
+        	printf ("option -M with value `%s'\n", optarg);
+          mem_breakpoint = true;
+          MEM.break_addr = std::stoi(optarg,0,0);
+          break;	
+
+        case 'l':
+        	break;
 
         case 'i':
         	log_instructions = true;
@@ -135,29 +153,51 @@ int main(int argc, char ** argv) {
        }
     }
 
-  if (optind < argc)
-  {
+  if (optind < argc) {
     fprintf(stderr, "[warning]: Unhandled args");
     while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
     fprintf(stderr, "\n");
+  }
+
+  if (load_bios) {
+  	readBIOSFile(biosfile);
+  } else {
+  	REG.AF = 0x01B0;
+  	REG.BC = 0x0013;
+  	REG.DE = 0x00D8;
+  	REG.HL = 0x014D;
+  	REG.SP = 0xFFFE;
+  	REG.PC = 0x0100;
+  }
+
+  if (load_rom) {
+  	readROMFile(romfile);
+  } else if (!load_bios) {
+  	printf("No rom (-R) or bios (-B) loaded. Exiting.\n");
+  	exit(0);
   }
 
 	WINDOW.init();
 
 	while (1) {
 
-		bool is_breakpoint = breakpoint && (REG.PC == breakpoint_addr);
+		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
+												 (mem_breakpoint && (MEM.at_breakpoint));
+		MEM.at_breakpoint = false;
 		
 		uint8_t opcode = MEM.readByte(REG.PC);
 		instruction instr = instructions[opcode];
 
 		if (log_register_bytes) printRegisters(false);
 		if (log_register_words) printRegisters(true);
-		if (log_flags)
-		printf("Z %1d N %1d H %1d C %1d\n",
-						get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
+		if (log_flags) {
+			printf("Z %1d N %1d H %1d C %1d\n",
+							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
+			printf("GPU_CTRL %02X SCAL_LN %02X PLT %02X BIOS_OFF %1X\n",
+							*MEM.GPU_CTRL, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
+		}
 		if (log_mem) {
-			printf("0x%02X\n", MEM.readByte(log_mem_addr));
+			printf("0x%02X\n", MEM.readByte(mem_log_addr));
 		}
 		if (log_gpu) {
 			printf("GPU CLK: 0x%04X  MODE: %d  LINE: 0x%02X\n", 
@@ -167,6 +207,7 @@ int main(int argc, char ** argv) {
 		if (log_instructions) printInstruction();
 
 		if (stepping || is_breakpoint) {
+			WINDOW.refresh_debug();
 			stepping = true;
 			bool parsing = true;
 			bool more = false;
@@ -200,6 +241,21 @@ int main(int argc, char ** argv) {
 						breakpoint = true;
 						scanf("%hX", &breakpoint_addr);
 						break;
+					case 'M':
+						stepping = false;
+						mem_breakpoint = true;
+						scanf("%hX", &MEM.break_addr);
+						break;
+					case 'd':
+						uint16_t addr;
+						uint16_t len;
+						scanf("%hX %hX", &addr, &len);
+						for (uint16_t i = 0; i < len; ++i) {
+							printf("%02X ", MEM.RAW[addr+i]);
+							if ((i + 1) % 8 == 0) printf("\n");
+						}
+						more = true;
+						break;
 					case 'f':
 						log_flags = !log_flags;
 						break;
@@ -211,6 +267,12 @@ int main(int argc, char ** argv) {
 				}
 			}
 		}
+		
+		// DEBUG
+		for (int i = 0; i < WINDOW_H * WINDOW_W * 3; i += WINDOW_W * 3) {
+			assert(WINDOW.game_buffer[i] == 0);
+		}
+		
 
 		instr.fn();
 		GPU.update();

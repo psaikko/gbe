@@ -1517,7 +1517,7 @@ instruction instructions[256] = {
 	{"RST 30", 0, [](){ rst(30); }},          // 0xF7
 	{"LDHL SP, d", 0, TODO},          // 0xF8
 	{"LD SP, HL", 0, [](){ ld_SP_HL(); }},            // 0xF9
-	{"LD A, (0x%04X)", 2, TODO},   // 0xFA
+	{"LD A, (0x%04X)", 2, [](){ ld_A_atnn(); }},   // 0xFA
 	{"EI", 0, [](){ di(); }},         // 0xFB
 	{"XX", 0, TODO}, // 0xFC
 	{"XX", 0, TODO},    // 0xFD
