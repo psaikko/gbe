@@ -50,6 +50,7 @@ typedef struct {
   		case 2:
   			memset(addr, 96, 3);
   			break;
+  		default:
   		case 3:
   			memset(addr, 0, 3);
   			break;
@@ -94,6 +95,7 @@ typedef struct {
   			return (*MEM.BG_PLT & BG_PLT_COLOR1) >> 2;
   		case 2:
   			return (*MEM.BG_PLT & BG_PLT_COLOR2) >> 4;
+  		default:
   		case 3:
   			return (*MEM.BG_PLT & BG_PLT_COLOR3) >> 6;
   	}

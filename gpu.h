@@ -3,6 +3,7 @@
 #include "reg.h"
 #include "mem.h"
 #include "window.h"
+#include "interrupts.h"
 
 #define MODE_OAM 2
 #define MODE_VRAM 3

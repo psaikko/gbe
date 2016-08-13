@@ -2,12 +2,6 @@
 
 #include "reg.h"
 
-#define FLAG_IF_VBLANK 0x01
-#define FLAG_IF_LCD    0x02
-#define FLAG_IF_TIMER  0x04
-#define FLAG_IF_SERIAL 0x08
-#define FLAG_IF_JOYPAD 0x10
-
 #define FLAG_GPU_BG     0x01
 #define FLAG_GPU_SPR    0x02
 #define FLAG_GPU_SPR_SZ 0x04

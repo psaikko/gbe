@@ -918,6 +918,7 @@ void rst(uint8_t addr) {
 	MEM.writeWord(REG.SP - 2, REG.PC);
 	REG.SP -= 2;
 	REG.PC = addr;
+	REG.TCLK = 12;
 }
 
 // ret

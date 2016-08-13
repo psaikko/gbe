@@ -5,9 +5,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+
 #include "gbe.h"
 #include "gpu.h"
 #include "window.h"
+#include "interrupts.h"
 
 using namespace std;
 
@@ -69,7 +71,6 @@ int main(int argc, char ** argv) {
 
 	string romfile, biosfile;
 
-  uint16_t mem_log_addr = 0;
   uint16_t breakpoint_addr = 0;
 
   int c;
@@ -260,10 +261,7 @@ int main(int argc, char ** argv) {
 		instr.fn();
 		GPU.update();
 
-		if (REG.IME && (*MEM.IE & *MEM.IF)) {
-
-			// TODO: handle interrupt
-		}
+		//handle_interrupts();
 
 	}
 }
