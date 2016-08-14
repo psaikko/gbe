@@ -348,6 +348,15 @@ void dec_rw(uint16_t * ptr) {
 	REG.PC += 1;
 }
 
+void add_hl_rw(uint16_t * ptr) {
+	set_flag_cond(FLAG_C, 0xFFFF - REG.HL < *ptr);
+	set_flag_cond(FLAG_H, (0x00FF - (REG.HL & 0x00FF))  > (*ptr & 0x00FF));
+	REG.A += *ptr;
+	unset_flag(FLAG_N);
+	REG.PC += 1;
+	REG.TCLK = 8;
+}
+
 // 8-bit loads
 
 void ld_rb_rb(uint8_t *to, uint8_t *from) {
@@ -1262,7 +1271,7 @@ instruction instructions[256] = {
 	{"LD B, 0x%02X", 1, [](){ ld_rb_n(&REG.B); }},   // 0x06
 	{"RLC A", 0, [](){ rlc_rb(&REG.A); }},          // 0x07
 	{"LD (0x%04X), SP", 2, [](){ ld_atnn_SP(); }},// 0x08
-	{"ADD HL, BC", 0, TODO},     // 0x09
+	{"ADD HL, BC", 0, [](){ add_hl_rw(&REG.BC); }},     // 0x09
 	{"LD A, (BC)", 0, [](){ ld_A_atrw(&REG.BC); }},     // 0x0A
 	{"DEC BC", 0, [](){ dec_rw(&REG.BC); }},         // 0x0B
 	{"INC C", 0, [](){ inc_rb(&REG.C); }},          // 0x0C
@@ -1279,7 +1288,7 @@ instruction instructions[256] = {
 	{"LD D, 0x%02X", 1, [](){ ld_rb_n(&REG.D); }},   // 0x16
 	{"RL A", 0, [](){ rl_rb(&REG.A); }},           // 0x17
 	{"JR 0x%02X", 1, [](){ jr_e(); }},      // 0x18
-	{"ADD HL, DE", 0, TODO},     // 0x19
+	{"ADD HL, DE", 0, [](){ add_hl_rw(&REG.DE); }},     // 0x19
 	{"LD A, (DE)", 0, [](){ ld_A_atrw(&REG.DE); }},     // 0x1A
 	{"DEC DE", 0, [](){ dec_rw(&REG.DE); }},         // 0x1B
 	{"INC E", 0, [](){ inc_rb(&REG.E); }},          // 0x1C
@@ -1296,7 +1305,7 @@ instruction instructions[256] = {
 	{"LD H, 0x%02X", 1, [](){ ld_rb_n(&REG.H); }},   // 0x26
 	{"DAA", 0, TODO},            // 0x27
 	{"JR Z, 0x%02X", 1, [](){ jr_f_e(FLAG_Z); }},   // 0x28
-	{"ADD HL, HL", 0, TODO},     // 0x29
+	{"ADD HL, HL", 0, [](){ add_hl_rw(&REG.HL); }},     // 0x29
 	{"LDI A, (HL)", 0, [](){ ldi_A_atHL(); }},    // 0x2A
 	{"DEC HL", 0, [](){ dec_rw(&REG.HL); }},         // 0x2B
 	{"INC L", 0, [](){ inc_rb(&REG.L); }},          // 0x2C
@@ -1313,7 +1322,7 @@ instruction instructions[256] = {
 	{"LD (HL), 0x%02X", 1, [](){ ld_atHL_n(); }},// 0x36
 	{"SCF", 0, TODO},            // 0x37
 	{"JR C, 0x%02X", 1, [](){ jr_f_e(FLAG_C); }},   // 0x38
-	{"ADD HL, SP", 0, TODO},     // 0x39
+	{"ADD HL, SP", 0, [](){ add_hl_rw(&REG.SP); }},     // 0x39
 	{"LDD A, (HL)", 0, [](){ ldd_A_atHL(); }},    // 0x3A
 	{"DEC SP", 0, [](){ dec_rw(&REG.SP); }},         // 0x3B
 	{"INC A", 0, [](){ inc_rb(&REG.B); }},          // 0x3C
