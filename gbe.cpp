@@ -161,6 +161,7 @@ int main(int argc, char ** argv) {
   	REG.HL = 0x014D;
   	REG.SP = 0xFFFE;
   	REG.PC = 0x0100;
+  	*MEM.BIOS_OFF = 1;
   }
 
   if (load_rom) {
@@ -188,6 +189,7 @@ int main(int argc, char ** argv) {
 							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
 			printf("GPU_CTRL %02X SCAL_LN %02X PLT %02X BIOS_OFF %1X\n",
 							*MEM.GPU_CTRL, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
+			printf("IME %X IE %02X IF %02X\n", REG.IME, *MEM.IE, *MEM.IF);
 		}
 		if (log_gpu) {
 			printf("GPU CLK: 0x%04X  MODE: %d  LINE: 0x%02X\n", 
@@ -226,6 +228,11 @@ int main(int argc, char ** argv) {
 						break;
 					case 'q':
 						exit(1);
+					case 'n':
+						stepping = false;
+						breakpoint = true;
+						breakpoint_addr += (1 + instr.argw);
+						break;
 					case 'b':
 						stepping = false;
 						breakpoint = true;

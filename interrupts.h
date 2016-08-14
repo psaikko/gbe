@@ -17,6 +17,8 @@
 void handle_interrupts() {
 	uint8_t trigger = *MEM.IE & *MEM.IF;
 	if (REG.IME && trigger) {
+		printf("triggered\n");
+		exit(1);
 		REG.IME = 0;
 		if (trigger & FLAG_IF_VBLANK) {
 			*MEM.IE ^= FLAG_IF_VBLANK;
