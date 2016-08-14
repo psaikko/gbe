@@ -351,7 +351,7 @@ void dec_rw(uint16_t * ptr) {
 void add_hl_rw(uint16_t * ptr) {
 	set_flag_cond(FLAG_C, 0xFFFF - REG.HL < *ptr);
 	set_flag_cond(FLAG_H, (0x00FF - (REG.HL & 0x00FF))  > (*ptr & 0x00FF));
-	REG.A += *ptr;
+	REG.HL += *ptr;
 	unset_flag(FLAG_N);
 	REG.PC += 1;
 	REG.TCLK = 8;
@@ -924,6 +924,7 @@ void call_nf_nn(uint8_t mask) {
 // reset
 
 void rst(uint8_t addr) {
+	REG.PC += 1;
 	MEM.writeWord(REG.SP - 2, REG.PC);
 	REG.SP -= 2;
 	REG.PC = addr;
@@ -1362,7 +1363,7 @@ instruction instructions[256] = {
 	{"LD E, H", 0, [](){ ld_rb_rb(&REG.E, &REG.H);}},        // 0x5C
 	{"LD E, L", 0, [](){ ld_rb_rb(&REG.E, &REG.L);}},        // 0x5D
 	{"LD E, (HL)", 0, [](){ ld_rb_atHL(&REG.E); }},     // 0x5E
-	{"LD E, A", 0, [](){ ld_rb_rb(&REG.E, &REG.D);}},        // 0x5F
+	{"LD E, A", 0, [](){ ld_rb_rb(&REG.E, &REG.A);}},        // 0x5F
 
 	{"LD H, B", 0, [](){ ld_rb_rb(&REG.H, &REG.B);}},        // 0x60
 	{"LD H, C", 0, [](){ ld_rb_rb(&REG.H, &REG.C);}},        // 0x61

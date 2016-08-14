@@ -231,7 +231,7 @@ int main(int argc, char ** argv) {
 					case 'n':
 						stepping = false;
 						breakpoint = true;
-						breakpoint_addr += (1 + instr.argw);
+						breakpoint_addr = REG.PC + (1 + instr.argw);
 						break;
 					case 'b':
 						stepping = false;
