@@ -970,6 +970,52 @@ void reti() {
 	REG.IME = 1;
 }
 
+void halt() {
+	REG.HALT = 1;
+	REG.TCLK = 16;
+}
+
+void daa() {
+	uint8_t corr = 0;
+	if (REG.A > 0x99 || get_flag(FLAG_C)) {
+		corr |= 0x60;
+		set_flag(FLAG_C);
+	} else {
+		corr |= 0x00;
+		unset_flag(FLAG_C);
+	}
+
+	if (((REG.A & 0x0F) > 0x09) || get_flag(FLAG_H)) {
+		corr |= 0x06;
+	} else {
+		corr |= 0x00;
+	}
+
+	uint8_t old = REG.A;
+
+	if (get_flag(FLAG_N)) {
+		REG.A += corr;
+	} else {
+		REG.A -= corr;
+	}
+
+	set_flag_cond(FLAG_H, (old ^ REG.A) & 0x10);
+	set_flag_cond(FLAG_Z, REG.A == 0);
+	REG.TCLK = 4;
+}
+
+void scf() {
+	set_flag(FLAG_C);
+	unset_flag(FLAG_H | FLAG_N);
+	REG.TCLK = 4;
+}
+
+void ccf() {
+	set_flag_cond(FLAG_C, !get_flag(FLAG_C));
+	unset_flag(FLAG_H | FLAG_N);
+	REG.TCLK = 4;
+}
+
 typedef struct {
 	char name[16];
 	uint8_t argw;
@@ -1280,7 +1326,7 @@ instruction instructions[256] = {
 	{"LD C, 0x%02X", 1, [](){ ld_rb_n(&REG.C); }},   // 0x0E
 	{"RRC A", 0, [](){ rrc_rb(&REG.A); }},          // 0x0F
 
-	{"STOP", 0, TODO},           // 0x10
+	{"STOP", 0, TODO },           // 0x10
 	{"LD DE, 0x%04X", 2, [](){ ld_rw_nn(&REG.DE); }},  // 0x11
 	{"LD (DE), A", 0, [](){ ld_atrw_A(&REG.DE); }},     // 0x12
 	{"INC DE", 0, [](){ inc_rw(&REG.DE); } },         // 0x13
@@ -1304,7 +1350,7 @@ instruction instructions[256] = {
 	{"INC H", 0, [](){ inc_rb(&REG.H); }},          // 0x24
 	{"DEC H", 0, [](){ dec_rb(&REG.H); }},          // 0x25
 	{"LD H, 0x%02X", 1, [](){ ld_rb_n(&REG.H); }},   // 0x26
-	{"DAA", 0, TODO},            // 0x27
+	{"DAA", 0, [](){ daa(); }},            // 0x27
 	{"JR Z, 0x%02X", 1, [](){ jr_f_e(FLAG_Z); }},   // 0x28
 	{"ADD HL, HL", 0, [](){ add_hl_rw(&REG.HL); }},     // 0x29
 	{"LDI A, (HL)", 0, [](){ ldi_A_atHL(); }},    // 0x2A
@@ -1321,15 +1367,15 @@ instruction instructions[256] = {
 	{"INC (HL)", 0, [](){ inc_atHL(); }},       // 0x34
 	{"DEC (HL)", 0, [](){ dec_atHL(); }},       // 0x35
 	{"LD (HL), 0x%02X", 1, [](){ ld_atHL_n(); }},// 0x36
-	{"SCF", 0, TODO},            // 0x37
+	{"SCF", 0, [](){ scf(); }},            // 0x37
 	{"JR C, 0x%02X", 1, [](){ jr_f_e(FLAG_C); }},   // 0x38
 	{"ADD HL, SP", 0, [](){ add_hl_rw(&REG.SP); }},     // 0x39
 	{"LDD A, (HL)", 0, [](){ ldd_A_atHL(); }},    // 0x3A
 	{"DEC SP", 0, [](){ dec_rw(&REG.SP); }},         // 0x3B
-	{"INC A", 0, [](){ inc_rb(&REG.B); }},          // 0x3C
+	{"INC A", 0, [](){ inc_rb(&REG.A); }},          // 0x3C
 	{"DEC A", 0, [](){ dec_rb(&REG.A); }},          // 0x3D
 	{"LD A, 0x%02X", 1, [](){ ld_rb_n(&REG.A); }},   // 0x3E
-	{"CCF", 0, TODO},            // 0x3F
+	{"CCF", 0, [](){ ccf(); }},            // 0x3F
 
 	{"LD B, B", 0, [](){ ld_rb_rb(&REG.B, &REG.B); }},        // 0x40
 	{"LD B, C", 0, [](){ ld_rb_rb(&REG.B, &REG.C); }},        // 0x41
@@ -1388,7 +1434,7 @@ instruction instructions[256] = {
 	{"LD (HL), E", 0, [](){ ld_atHL_rb(&REG.E); }},     // 0x73
 	{"LD (HL), H", 0, [](){ ld_atHL_rb(&REG.H); }},     // 0x74
 	{"LD (HL), L", 0, [](){ ld_atHL_rb(&REG.L); }},     // 0x75
-	{"HALT", 0, TODO},           // 0x76
+	{"HALT", 0, [](){ halt(); }},           // 0x76
 	{"LD (HL), A", 0, [](){ ld_atHL_rb(&REG.A); }},     // 0x77
 	{"LD A, B", 0, [](){ ld_rb_rb(&REG.A, &REG.B);}},        // 0x78
 	{"LD A, C", 0, [](){ ld_rb_rb(&REG.A, &REG.C);}},        // 0x79

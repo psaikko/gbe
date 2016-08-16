@@ -265,10 +265,9 @@ int main(int argc, char ** argv) {
 			}
 		}
 	
-		instr.fn();
+		if (!REG.HALT) instr.fn();
 		GPU.update();
-
-		//handle_interrupts();
+		handle_interrupts();
 
 	}
 }

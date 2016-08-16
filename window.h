@@ -59,7 +59,6 @@ typedef struct {
 
   void render_buffer_line() {
   	uint8_t *MAP = (*MEM.GPU_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
-  	uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
 
   	uint8_t scrl_x = *MEM.SCRL_X;
   	uint8_t scrl_y = *MEM.SCRL_Y;
@@ -76,7 +75,13 @@ typedef struct {
   		// get pixel (tile_x, tile_y) from map tile (map_tile_x, map_tile_y)
   		// and draw it to (window_x, window_y)
   		uint8_t tile_id = MAP[map_tile_x + map_tile_y * TILEMAP_H];
-  		uint8_t *tile = &SET[tile_id * 16];
+
+  		uint8_t *tile;
+			if (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) {
+				tile = &MEM.TILESET1[tile_id * 16];
+			} else {
+				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+			}
 
   		uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
   		color_id = apply_palette(color_id);
@@ -134,13 +139,17 @@ typedef struct {
 
   void render_tilemap() {
   	uint8_t *MAP = (*MEM.GPU_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
-  	uint8_t *SET = (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) ? MEM.TILESET1 : MEM.TILESET0;
 
   	for (uint8_t xoff = 0; xoff < TILEMAP_W; ++xoff) {
   		for (uint8_t yoff = 0; yoff < TILEMAP_H; ++yoff) {
   			uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
 
-  			uint8_t *tile = &SET[tile_id * 16];
+  			uint8_t *tile;
+  			if (*MEM.GPU_CTRL & FLAG_GPU_BG_TS) {
+  				tile = &MEM.TILESET1[tile_id * 16];
+  			} else {
+  				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+  			}
   			uint8_t window_x = xoff * TILE_W;
   			uint8_t window_y = yoff * TILE_H;
 

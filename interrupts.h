@@ -17,23 +17,23 @@
 void handle_interrupts() {
 	uint8_t trigger = *MEM.IE & *MEM.IF;
 	if (REG.IME && trigger) {
-		printf("triggered\n");
-		exit(1);
+		REG.HALT = 0;
+		
 		REG.IME = 0;
 		if (trigger & FLAG_IF_VBLANK) {
-			*MEM.IE ^= FLAG_IF_VBLANK;
+			*MEM.IF ^= FLAG_IF_VBLANK;
 			rst(ISR_VBLANK);
 		} else if (trigger & FLAG_IF_LCD) {
-			*MEM.IE ^= FLAG_IF_LCD;
+			*MEM.IF ^= FLAG_IF_LCD;
 			rst(ISR_LCD);
 		} else if (trigger & FLAG_IF_TIMER) {
-			*MEM.IE ^= FLAG_IF_TIMER;
+			*MEM.IF ^= FLAG_IF_TIMER;
 			rst(ISR_TIMER);
 		} else if (trigger & FLAG_IF_JOYPAD) {
-			*MEM.IE ^= FLAG_IF_JOYPAD;
+			*MEM.IF ^= FLAG_IF_JOYPAD;
 			rst(ISR_JOYPAD);
 		} else { // if (trigger & FLAG_IF_SERIAL)
-			*MEM.IE ^= FLAG_IF_SERIAL;
+			*MEM.IF ^= FLAG_IF_SERIAL;
 			rst(ISR_SERIAL);
 		}
 	}

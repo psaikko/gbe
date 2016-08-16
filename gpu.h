@@ -47,7 +47,8 @@ typedef struct {
 			case (MODE_VBLANK):
 				if (clk >= 456) {
 					clk = 0;
-					*MEM.IE |= FLAG_IF_VBLANK;
+					if (*MEM.SCAN_LN == 143)
+						*MEM.IF |= FLAG_IF_VBLANK;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 153) {
 						mode = MODE_OAM;
