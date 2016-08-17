@@ -18,23 +18,22 @@ void handle_interrupts() {
 	uint8_t trigger = *MEM.IE & *MEM.IF;
 	if (REG.IME && trigger) {
 		REG.HALT = 0;
-		
 		REG.IME = 0;
 		if (trigger & FLAG_IF_VBLANK) {
 			*MEM.IF ^= FLAG_IF_VBLANK;
-			rst(ISR_VBLANK);
+			rsti(ISR_VBLANK);
 		} else if (trigger & FLAG_IF_LCD) {
 			*MEM.IF ^= FLAG_IF_LCD;
-			rst(ISR_LCD);
+			rsti(ISR_LCD);
 		} else if (trigger & FLAG_IF_TIMER) {
 			*MEM.IF ^= FLAG_IF_TIMER;
-			rst(ISR_TIMER);
+			rsti(ISR_TIMER);
 		} else if (trigger & FLAG_IF_JOYPAD) {
 			*MEM.IF ^= FLAG_IF_JOYPAD;
-			rst(ISR_JOYPAD);
+			rsti(ISR_JOYPAD);
 		} else { // if (trigger & FLAG_IF_SERIAL)
 			*MEM.IF ^= FLAG_IF_SERIAL;
-			rst(ISR_SERIAL);
+			rsti(ISR_SERIAL);
 		}
 	}
 }

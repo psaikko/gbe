@@ -496,7 +496,7 @@ void ld_HL_SP_e() {
 	set_flag_cond(FLAG_C, 0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
 	unset_flag(FLAG_Z | FLAG_N);
 
-	REG.PC += 12;
+	REG.PC += 2;
 }
 
 void push_rw(uint16_t *at) {
@@ -931,6 +931,12 @@ void rst(uint8_t addr) {
 	REG.TCLK = 12;
 }
 
+void rsti(uint8_t addr) {
+	MEM.writeWord(REG.SP - 2, REG.PC);
+	REG.SP -= 2;
+	REG.PC = addr;
+}
+
 // ret
 
 void ret() {
@@ -973,6 +979,7 @@ void reti() {
 void halt() {
 	REG.HALT = 1;
 	REG.TCLK = 16;
+	REG.PC += 1;
 }
 
 void daa() {
@@ -1002,18 +1009,21 @@ void daa() {
 	set_flag_cond(FLAG_H, (old ^ REG.A) & 0x10);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.TCLK = 4;
+	REG.PC += 1;
 }
 
 void scf() {
 	set_flag(FLAG_C);
 	unset_flag(FLAG_H | FLAG_N);
 	REG.TCLK = 4;
+	REG.PC += 1;
 }
 
 void ccf() {
 	set_flag_cond(FLAG_C, !get_flag(FLAG_C));
 	unset_flag(FLAG_H | FLAG_N);
 	REG.TCLK = 4;
+	REG.PC += 1;
 }
 
 typedef struct {
