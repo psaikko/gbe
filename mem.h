@@ -134,7 +134,13 @@ typedef struct {
 
 	uint8_t readByte(uint16_t addr) {
 		if (break_addr == addr) at_breakpoint = true;
+
 		uint8_t *ptr = getReadPtr(addr);
+
+		if (addr == 0xFF00) { // JOYPAD
+			return ~(*ptr);
+		}
+
 		if (ptr != nullptr)
 			return *ptr;
 		else {
@@ -156,9 +162,28 @@ typedef struct {
 
 	void writeByte(uint16_t addr, uint8_t val) {
 		if (break_addr == addr) at_breakpoint = true;
+
 		uint8_t *ptr = getWritePtr(addr);
 
-		//printf("writeByte %04X <- %02X (%X)\n", addr, val, (int)(ptr - RAW));
+		if (addr == 0xFF00) { // JOYPAD
+			*ptr &= 0x0F;
+			if (val == 0x10) {
+				*ptr |= 0x20; 
+				*ptr &= 0xF0;
+				// TODO: Load A, B, Select, Start bits
+			} else if (val == 0x20) {
+				*ptr |= 0x10;
+				*ptr &= 0xF0;
+				// TODO: Load Right, Left, Up, Down bits
+			} else if (val == 0x30) {
+				// TODO: should we reset lower 4 bits here?
+				*ptr &= 0xF0;
+			} else {
+				fprintf(stdout, "[Warning] Bad write (0x%02X) to JOYP (0x%04X)\n", val, addr);
+			}
+			
+			return;
+		}
 
 		if (ptr == nullptr) {
 			fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
@@ -170,8 +195,6 @@ typedef struct {
 	void writeWord(uint16_t addr, uint16_t val) {
 		if (break_addr == addr) at_breakpoint = true;
 		uint8_t *ptr = getWritePtr(addr);
-
-		//printf("writeByte %04X <- %04X (%X)\n", addr, val, (int)(ptr - RAW));
 
 		if (ptr == nullptr) {
 			fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
