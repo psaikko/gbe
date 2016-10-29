@@ -82,9 +82,9 @@ int main(int argc, char ** argv) {
           {"rw",     no_argument, &log_register_words, 1},
           {"rb",     no_argument, &log_register_bytes, 1},
           {"gpu",    no_argument, &log_gpu, 1},
-          {"flags",  no_argument, &log_flags, 1},
 
           {"instructions", no_argument, 0, 'i'},
+          {"flags", no_argument, 0, 'f'},
           {"bios", required_argument, 0, 'B'},
           {"rom", required_argument, 0, 'R'},
           {"breakpoint", required_argument, 0, 'b'},
@@ -94,7 +94,7 @@ int main(int argc, char ** argv) {
         };
 
       int option_index = 0;
-      c = getopt_long (argc, argv, "s:b:iB:R:M:", long_options, &option_index);
+      c = getopt_long (argc, argv, "s:b:ifB:R:M:", long_options, &option_index);
 
       /* Detect the end of the options. */
       if (c == -1) break;
@@ -130,7 +130,8 @@ int main(int argc, char ** argv) {
           MEM.break_addr = std::stoi(optarg,0,0);
           break;	
 
-        case 'l':
+        case 'f':
+        	log_flags = true;
         	break;
 
         case 'i':
@@ -187,13 +188,13 @@ int main(int argc, char ** argv) {
 		if (log_flags) {
 			printf("Z %1d N %1d H %1d C %1d\n",
 							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
-			printf("GPU_CTRL %02X SCAL_LN %02X PLT %02X BIOS_OFF %1X\n",
-							*MEM.GPU_CTRL, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
+			printf("LCD_CTRL %02X LCD_STAT %02x SCAN_LNLN %02X PLT %02X BIOS_OFF %1X\n",
+							*MEM.LCD_CTRL, *MEM.LCD_STAT, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
 			printf("IME %X IE %02X IF %02X\n", REG.IME, *MEM.IE, *MEM.IF);
 		}
 		if (log_gpu) {
-			printf("GPU CLK: 0x%04X  MODE: %d  LINE: 0x%02X\n", 
-						  GPU.clk, GPU.mode, *MEM.SCAN_LN);
+			printf("GPU CLK: 0x%04X LINE: 0x%02X\n", 
+						  GPU.clk, *MEM.SCAN_LN);
 		}
 
 		if (log_instructions) printInstruction();
@@ -207,43 +208,54 @@ int main(int argc, char ** argv) {
 			while (parsing) {
 				switch (getchar()) {
 					case 'R':
+						// toggle register word logging
 						log_register_words = !log_register_words;
 						break;
 					case 'r':
+						// toggle register byte logging
 						log_register_bytes = !log_register_bytes;
 						break;
 					case 'i':
+						// toggle instruction logging
 						log_instructions = !log_instructions;
 						break;
 					case 'I':
+						// display current state
 						printRegisters(true);
 						printInstruction();
 						more = true;
 						break;
 					case 's':
+						// turn on stepping
 						stepping = true;
 						break;
 					case 'c':
+						// turn off stepping
 						stepping = false;
 						break;
 					case 'q':
+						// quit
 						exit(1);
 					case 'n':
+						// skip to instruction at PC+1
 						stepping = false;
 						breakpoint = true;
 						breakpoint_addr = REG.PC + (1 + instr.argw);
 						break;
 					case 'b':
+						// set breakpoint
 						stepping = false;
 						breakpoint = true;
 						scanf("%hX", &breakpoint_addr);
 						break;
 					case 'M':
+						// set memory breakpoint
 						stepping = false;
 						mem_breakpoint = true;
 						scanf("%hX", &MEM.break_addr);
 						break;
 					case 'd':
+						// dump memory range
 						uint16_t addr;
 						uint16_t len;
 						scanf("%hX %hX", &addr, &len);
@@ -254,6 +266,7 @@ int main(int argc, char ** argv) {
 						more = true;
 						break;
 					case 'f':
+						// toggle flag logging
 						log_flags = !log_flags;
 						break;
 					case '\n':

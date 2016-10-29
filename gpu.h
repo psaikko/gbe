@@ -10,25 +10,30 @@
 #define MODE_HBLANK 0
 #define MODE_VBLANK 1
 
+#define MODE_MASK 0x03
+
+void update_lcd_status(uint8_t mode) {
+	*MEM.LCD_STAT &= ~MODE_MASK;
+	*MEM.LCD_STAT |= mode;
+}
+
 typedef struct {
 
 	uint16_t clk;
-	//uint8_t line;
-	uint8_t mode : 2;
 
 	void update() {
 		clk += REG.TCLK;
-		switch (mode) {
+		switch (*MEM.LCD_STAT & MODE_MASK) {
 			case (MODE_OAM):
 				if (clk >= 80) {
 					clk = 0;
-					mode = MODE_VRAM;
+					update_lcd_status(MODE_VRAM);
 				}
 				break;
 			case (MODE_VRAM):
 				if (clk >= 172) {
 					clk = 0;
-					mode = MODE_HBLANK;
+					update_lcd_status(MODE_HBLANK);
 					WINDOW.render_buffer_line();
 				}
 				break;
@@ -37,10 +42,10 @@ typedef struct {
 					clk = 0;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 143) {
-						mode = MODE_VBLANK;
+						update_lcd_status(MODE_VBLANK);
 						WINDOW.draw_buffer();
 					} else {
-						mode = MODE_OAM;
+						update_lcd_status(MODE_OAM);
 					}
 				}
 				break;
@@ -51,7 +56,7 @@ typedef struct {
 						*MEM.IF |= FLAG_IF_VBLANK;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 153) {
-						mode = MODE_OAM;
+						update_lcd_status(MODE_OAM);
 						*MEM.SCAN_LN = 0;
 					}
 				}

@@ -11,10 +11,30 @@
 #define FLAG_GPU_WIN_TM 0x40
 #define FLAG_GPU_DISP   0x80
 
-#define BG_PLT_COLOR0 0x03
-#define BG_PLT_COLOR1 0x0C
-#define BG_PLT_COLOR2 0x30
-#define BG_PLT_COLOR3 0xC0
+#define PLT_COLOR0 0x03
+#define PLT_COLOR1 0x0C
+#define PLT_COLOR2 0x30
+#define PLT_COLOR3 0xC0
+
+#define OAM_DMA 0xFF46
+
+typedef struct {
+	uint8_t y;
+	uint8_t x;
+	uint8_t tile_id;
+	struct {
+		union {
+			uint8_t flags;
+			struct {
+				uint8_t priority : 1;
+				uint8_t xflip : 1;
+				uint8_t yflip : 1;
+				uint8_t palette : 1;
+				uint8_t _ : 4;
+			};
+		};
+	};
+} oam_entry;
 
 typedef struct {
 	uint8_t RAW[65536]; // TODO
@@ -24,7 +44,8 @@ typedef struct {
 	uint8_t *extRAM = &RAW[0xA000];
 	uint8_t *RAM    = &RAW[0xC000];
 	uint8_t *_RAM   = &RAW[0xE000];
-	uint8_t *SPR    = &RAW[0xFE00];
+	//uint8_t *OAM    = &RAW[0xFE00]; // sprite attribute table
+	oam_entry *OAM  = (oam_entry*)(&RAW[0xFE00]);
 	uint8_t *IO     = &RAW[0xFF00];
 	uint8_t *ZERO   = &RAW[0xFF80];
 
@@ -32,11 +53,14 @@ typedef struct {
 
 	uint8_t *IE       = &RAW[0xFFFF];
 	uint8_t *IF       = &RAW[0xFF0F];
-	uint8_t *GPU_CTRL = &RAW[0xFF40];
+	uint8_t *LCD_CTRL = &RAW[0xFF40];
+	uint8_t *LCD_STAT = &RAW[0xFF41];
 	uint8_t *SCRL_Y   = &RAW[0xFF42];
 	uint8_t *SCRL_X   = &RAW[0xFF43];
 	uint8_t *SCAN_LN  = &RAW[0xFF44]; // TODO: readonly
 	uint8_t *BG_PLT   = &RAW[0xFF47]; // TODO: writeonly
+	uint8_t *OBJ0_PLT = &RAW[0xFF48]; // TODO: writeonly
+	uint8_t *OBJ1_PLT = &RAW[0xFF49]; // TODO: writeonly
 	uint8_t *BIOS_OFF = &RAW[0xFF50];
 
 	uint8_t *TILESET1 = &RAW[0x8000];
@@ -183,6 +207,11 @@ typedef struct {
 			}
 			
 			return;
+		} else if (addr == OAM_DMA) {
+			assert(val <= 0xF1);
+			for (uint8_t low = 0x00; low <= 0xF9; ++low) {
+				RAW[0xFE00 + low] = RAW[(((uint16_t)val) << 8) + low];
+			}
 		}
 
 		if (ptr == nullptr) {
