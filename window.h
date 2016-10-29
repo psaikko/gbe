@@ -41,7 +41,7 @@ typedef struct {
   GLFWwindow* tileset_window;
 
   uint8_t game_buffer[WINDOW_H * WINDOW_W * 3];
-  uint8_t tilemap_buffer[TILEMAP_WINDOW_H * TILEMAP_WINDOW_W * 3];
+  uint8_t tilemap_buffer[TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3];
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 
   void debug_pixel(uint8_t *addr) {
@@ -209,7 +209,7 @@ typedef struct {
   	return x*3 + (h - 1 - y)*w*3;
   }
 
-  void render_tile(uint8_t *buffer, uint8_t *tile, uint8_t window_x, uint8_t window_y, uint16_t buffer_w, uint16_t buffer_h) {
+  void render_tile(uint8_t *buffer, uint8_t *tile, unsigned window_x, unsigned window_y, unsigned buffer_w, unsigned buffer_h) {
   	for (uint8_t yoff = 0; yoff < TILE_H; yoff++) {
 			for (uint8_t xoff = 0; xoff < TILE_W; xoff++) {
 				uint8_t color_id = get_tile_pixel(tile, xoff, yoff);
@@ -235,12 +235,31 @@ typedef struct {
   			} else {
   				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
   			}
-  			uint8_t window_x = xoff * TILE_W;
-  			uint8_t window_y = yoff * TILE_H;
+  			unsigned window_x = xoff * TILE_W;
+  			unsigned window_y = yoff * TILE_H;
 
-  			render_tile(tilemap_buffer, tile, window_x, window_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H);	
+  			render_tile(tilemap_buffer, tile, window_x, window_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
   		}	
   	}
+
+    MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP0 : MEM.TILEMAP1;
+
+    for (uint8_t xoff = 0; xoff < TILEMAP_W; ++xoff) {
+      for (uint8_t yoff = 0; yoff < TILEMAP_H; ++yoff) {
+        uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
+
+        uint8_t *tile;
+        if (*MEM.LCD_CTRL & FLAG_GPU_BG_TS) {
+          tile = &MEM.TILESET1[tile_id * 16];
+        } else {
+          tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+        }
+        unsigned window_x = xoff * TILE_W;
+        uint8_t window_y = yoff * TILE_H;
+
+        render_tile(tilemap_buffer, tile, window_x, window_y + TILEMAP_WINDOW_H, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);  
+      } 
+    }
   }
 
   void render_tileset() { 
@@ -285,7 +304,7 @@ typedef struct {
 
   	glClear( GL_COLOR_BUFFER_BIT );
     glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
-    glDrawPixels(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, tilemap_buffer);
+    glDrawPixels(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, GL_RGB, GL_UNSIGNED_BYTE, tilemap_buffer);
     glfwSwapBuffers(tilemap_window);  	
   }
 
@@ -301,7 +320,7 @@ typedef struct {
   void init() {
 
   	memset(game_buffer, 0, WINDOW_H * WINDOW_W * 3);
-		memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * TILEMAP_WINDOW_W * 3);
+		memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3);
   	memset(tileset_buffer, 0, TILESET_WINDOW_H * TILESET_WINDOW_W * 3);
 
     if (!glfwInit()) {
@@ -314,7 +333,7 @@ typedef struct {
 
     // Open a window and create its OpenGL context
     game_window = glfwCreateWindow(WINDOW_W, WINDOW_H, "gbe buffer", NULL, NULL);
-    tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H, "gbe tilemap", NULL, NULL);
+    tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, "gbe tilemap", NULL, NULL);
     tileset_window = glfwCreateWindow(TILESET_WINDOW_W, TILESET_WINDOW_H, "gbe tileset", NULL, NULL);
 
     glfwSetInputMode(game_window, GLFW_STICKY_KEYS, GL_TRUE);
