@@ -235,9 +235,10 @@ void add_A_atHL() {
 }
 
 void adc_A_rb(uint8_t * ptr) {
+	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
-	REG.A += *ptr + get_flag(FLAG_C);
+	REG.A += *ptr + carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
@@ -246,9 +247,10 @@ void adc_A_rb(uint8_t * ptr) {
 
 void adc_A_n() {
 	uint8_t val = ARGBYTE;
+	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
-	REG.A += val + get_flag(FLAG_C);
+	REG.A += val + carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 2;
@@ -257,9 +259,10 @@ void adc_A_n() {
 
 void adc_A_atHL() {
 	uint8_t val = MEM.readByte(REG.HL);
+	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
-	REG.A += val + get_flag(FLAG_C);
+	REG.A += val + carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
