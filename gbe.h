@@ -203,7 +203,7 @@ void cp_atHL() {
 
 void add_A_rb(uint8_t * ptr) {
 	set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (*ptr & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
 	REG.A += *ptr;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
@@ -214,7 +214,7 @@ void add_A_rb(uint8_t * ptr) {
 void add_A_n() {
 	uint8_t val = ARGBYTE;
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F))  > (val & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 	REG.A += val;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
@@ -226,7 +226,7 @@ void add_A_atHL() {
 	uint8_t val = MEM.readByte(REG.HL);
 
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F)) < (val & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 	REG.A += val;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
@@ -236,7 +236,7 @@ void add_A_atHL() {
 
 void adc_A_rb(uint8_t * ptr) {
 	set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F)) < (*ptr & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
 	REG.A += *ptr + get_flag(FLAG_C);
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
@@ -247,7 +247,7 @@ void adc_A_rb(uint8_t * ptr) {
 void adc_A_n() {
 	uint8_t val = ARGBYTE;
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F)) < (val & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 	REG.A += val + get_flag(FLAG_C);
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
@@ -258,7 +258,7 @@ void adc_A_n() {
 void adc_A_atHL() {
 	uint8_t val = MEM.readByte(REG.HL);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-	set_flag_cond(FLAG_H, (0x0F - (REG.A & 0x0F)) < (val & 0x0F));
+	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 	REG.A += val + get_flag(FLAG_C);
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
