@@ -711,7 +711,7 @@ void srl_atHL() {
 void swap_rb(uint8_t * at) {
 	uint8_t tmp = *at & 0x0F;
 	*at >>= 4;
-	*at &= (tmp << 4);
+	*at |= (tmp << 4);
 
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
 	set_flag_cond(FLAG_Z, *at == 0);
