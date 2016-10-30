@@ -10,6 +10,7 @@
 #include "gpu.h"
 #include "window.h"
 #include "interrupts.h"
+#include "timer.h"
 
 using namespace std;
 
@@ -313,6 +314,9 @@ int main(int argc, char ** argv) {
 	
 		if (!REG.HALT) instr.fn();
 		GPU.update();
+
+		TIMER.update();
+
 		handle_interrupts();
 
 	}

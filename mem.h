@@ -224,6 +224,9 @@ typedef struct {
 			for (uint8_t low = 0x00; low <= 0xF9; ++low) {
 				RAW[0xFE00 + low] = RAW[(((uint16_t)val) << 8) + low];
 			}
+		} else if (addr == 0xFF04) {
+			// divider register reset on write
+			*ptr = 0;
 		}
 
 		if (ptr == nullptr) {
