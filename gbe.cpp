@@ -176,6 +176,39 @@ int main(int argc, char ** argv) {
 
 	while (1) {
 
+		glfwPollEvents();
+		key_state = 0;
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      key_state |= KEY_LEFT;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      key_state |= KEY_RIGHT;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_UP) == GLFW_PRESS) {
+      key_state |= KEY_UP;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+      key_state |= KEY_DOWN;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_Z) == GLFW_PRESS) {
+    	key_state |= KEY_A;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_X) == GLFW_PRESS) {
+    	key_state |= KEY_B;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_C) == GLFW_PRESS) {
+    	key_state |= KEY_START;
+    }
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_V) == GLFW_PRESS) {
+    	key_state |= KEY_SELECT;
+    }
+
+    // Check if the ESC key was pressed or the window was closed
+    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
+        glfwWindowShouldClose(WINDOW.game_window) == 1) {
+    	break;
+    }
+
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
 												 (mem_breakpoint && (MEM.at_breakpoint));
 		MEM.at_breakpoint = false;

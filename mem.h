@@ -18,6 +18,16 @@
 
 #define OAM_DMA 0xFF46
 
+uint8_t key_state;
+#define KEY_RIGHT  0x01
+#define KEY_LEFT   0x02
+#define KEY_UP     0x04
+#define KEY_DOWN   0x08
+#define KEY_A      0x10
+#define KEY_B      0x20
+#define KEY_START  0x40
+#define KEY_SELECT 0x80
+
 typedef struct {
 	uint8_t y;
 	uint8_t x;
@@ -194,11 +204,13 @@ typedef struct {
 			if (val == 0x10) {
 				*ptr |= 0x20; 
 				*ptr &= 0xF0;
-				// TODO: Load A, B, Select, Start bits
+				// Load A, B, Select, Start bits
+				*ptr |= (key_state >> 4);
 			} else if (val == 0x20) {
 				*ptr |= 0x10;
 				*ptr &= 0xF0;
-				// TODO: Load Right, Left, Up, Down bits
+				// Load Right, Left, Up, Down bits
+				*ptr |= (key_state & 0x0F);
 			} else if (val == 0x30) {
 				// TODO: should we reset lower 4 bits here?
 				*ptr &= 0xF0;
