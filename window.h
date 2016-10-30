@@ -146,14 +146,13 @@ typedef struct {
           if (window_x >= WINDOW_W) break;
 
           uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
+          if (color_id == COLOR_WHITE) continue;
           color_id = apply_spr_palette(color_id, sprite.palette);
 
-          // white is transparent for sprites
-          if (color_id != COLOR_WHITE) {
-            // TODO: sprite.priority
-            unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
-            draw_pixel(&game_buffer[i], color_id);
-          }
+          if (sprite.priority) 
+            std::cerr << "TODO: sprite priority" << std::endl;
+          unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
+          draw_pixel(&game_buffer[i], color_id);
 
         }
       }
