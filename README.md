@@ -1,6 +1,6 @@
 # gbe : Game Boy Emulator
 
-Work in progress .. correctly executes BIOS but not much else 
+Work in progress .. simple games like tetris playable
 ````
 make
 ./gbe [-B path_to_bios] -R path_to_rom
@@ -12,11 +12,16 @@ Currently implemented
 - Tile rendering
 - Tilemap & tileset display
 - Some interactive debugging
+- Most interrupts
+- Timers
+- Basic sprite handling
 
 TODOs
 ---
-- Interrupts
-- Sprites
+- Some interrupts
+- Sprite rotation & priority
 - Sound
+- Savestates
+- Usable UI
 - Memory mappers
 - ... and more
