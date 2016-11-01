@@ -1003,7 +1003,7 @@ void daa() {
 
 	uint8_t old = REG.A;
 
-	if (get_flag(FLAG_N)) {
+	if (!get_flag(FLAG_N)) {
 		REG.A += corr;
 	} else {
 		REG.A -= corr;
