@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 #include "gbe.h"
 #include "gpu.h"
@@ -168,6 +169,86 @@ int main(int argc, char ** argv) {
 
   if (load_rom) {
   	readROMFile(romfile);
+
+  	// cart data reference http://www.devrs.com/gb/files/gbspec.txt
+
+  	char rom_name[16];
+  	memcpy(rom_name, &MEM.RAW[0x0134], 16);
+  	printf("NAME:\t%s\n", rom_name);
+  	if (MEM.RAW[0x0143] == 0x80) printf("GBC\n");
+  	if (MEM.RAW[0x0146] == 0x00) printf("GB\n");
+  	if (MEM.RAW[0x0146] == 0x03) printf("SGB\n");
+
+  	map<uint8_t, string> rom_types;
+		rom_types[0x00] = "ROM ONLY";
+		rom_types[0x01] = "ROM+MBC1";
+		rom_types[0x02] = "ROM+MBC1+RAM";
+		rom_types[0x03] = "ROM+MBC1+RAM+BATT";
+		rom_types[0x05] = "ROM+MBC2";
+		rom_types[0x06] = "ROM+MBC2+BATTERY";
+		rom_types[0x08] = "ROM+RAM";
+		rom_types[0x09] = "ROM+RAM+BATTERY";
+		rom_types[0x0B] = "ROM+MMM01";
+		rom_types[0x0C] = "ROM+MMM01+SRAM";
+		rom_types[0x0D] = "ROM+MMM01+SRAM+BATT";
+		rom_types[0x0F] = "ROM+MBC3+TIMER+BATT";
+		rom_types[0x10] = "ROM+MBC3+TIMER+RAM+BATT";
+		rom_types[0x11] = "ROM+MBC3";
+		rom_types[0x12] = "ROM+MBC3+RAM";
+		rom_types[0x13] = "ROM+MBC3+RAM+BATT";
+		rom_types[0x19] = "ROM+MBC5";
+		rom_types[0x1A] = "ROM+MBC5+RAM";
+		rom_types[0x1B] = "ROM+MBC5+RAM+BATT";
+		rom_types[0x1C] = "ROM+MBC5+RUMBLE";
+		rom_types[0x1D] = "ROM+MBC5+RUMBLE+SRAM";
+		rom_types[0x1E] = "ROM+MBC5+RUMBLE+SRAM+BATT";
+		rom_types[0x1F] = "Pocket Camera";
+		rom_types[0xFD] = "Bandai TAMA5";
+		rom_types[0xFE] = "Hudson HuC-3";
+		rom_types[0xFF] = "Hudson HuC-1";
+
+		uint8_t type = MEM.RAW[0x0147];
+		if (rom_types.count(type)) {
+			printf("TYPE:\t%s\n", rom_types[type].c_str());
+		} else {
+			printf("Unknown type 0x%02X\n", type);
+		}
+
+		map<uint8_t, string> rom_sizes;
+		rom_sizes[0x00] = "32KB / 2 banks";
+		rom_sizes[0x01] = "64KB / 4 banks";
+		rom_sizes[0x02] = "128KB / 8 banks";
+		rom_sizes[0x03] = "256KB / 16 banks";
+		rom_sizes[0x04] = "512KB / 32 banks";
+		rom_sizes[0x05] = "1MB / 64 banks";
+		rom_sizes[0x06] = "2MB / 128 banks";
+		rom_sizes[0x52] = "1.1MB / 72 banks";
+		rom_sizes[0x53] = "1.2MB / 80 banks";
+		rom_sizes[0x54] = "1.5MB / 96 banks";
+
+		uint8_t rom = MEM.RAW[0x0148];
+		if (rom_sizes.count(rom)) {
+			printf("ROM:\t%s\n", rom_sizes[rom].c_str());
+		} else {
+			printf("Unknown rom size 0x%02X\n", type);
+		}
+
+		map<uint8_t, string> ram_sizes;
+		ram_sizes[0x00] = "None";
+	  ram_sizes[0x01] = "2KB / 1 bank";
+	  ram_sizes[0x02] = "8KB / 1 bank";
+	  ram_sizes[0x03] = "32KB / 4 banks";
+	  ram_sizes[0x04] = "128KB / 16 banks";
+
+	  uint8_t ram = MEM.RAW[0x0149];
+		if (ram_sizes.count(ram)) {
+			printf("RAM:\t%s\n", ram_sizes[ram].c_str());
+		} else {
+			printf("Unknown ram size 0x%02X\n", type);
+		}
+
+		printf("CPL:\t0x%02X\n", MEM.RAW[0x014D]);
+		printf("CHK:\t0x%02X 0x%02X\n", MEM.RAW[0x014E], MEM.RAW[0x014F]);
   } else if (!load_bios) {
   	printf("No rom (-R) or bios (-B) loaded. Exiting.\n");
   	exit(0);
