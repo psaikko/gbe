@@ -131,19 +131,15 @@ typedef struct {
         // not onscreen in x direction
         if (sprite_x == -sprite_w) continue;
 
-        // TODO: sprite.xflip, sprite.yflip
-        if (sprite.xflip)
-          std::cerr << "TODO: xflip" << std::endl;
-        if (sprite.yflip)
-          std::cerr << "TODO: yflip" << std::endl;
-
-
         uint8_t *tile = &MEM.TILESET1[sprite.tile_id * 16];
         uint8_t tile_y = window_y - sprite_y;
         for (uint8_t tile_x = 0; tile_x < 8; ++tile_x) {
           int window_x = sprite_x + tile_x;
           if (window_x < 0) continue;
           if (window_x >= WINDOW_W) break;
+
+          if (sprite.xflip) tile_x = 7 - tile_x;
+          if (sprite.yflip) tile_y = 7 - tile_y;
 
           uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
           if (color_id == COLOR_WHITE) continue;
