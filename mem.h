@@ -53,28 +53,14 @@ typedef struct {
 	char RAM_BANKS[131072];  // Max RAM size 128 KB
 	int rom_size;
 
-	void loadROMBank(int bank) {
-		// Load 32K ROM bank
-		printf("Selecting ROM bank %d\n", bank);
-		memcpy(ROM1, &ROM_BANKS[0x4000 * bank], 0x4000);
-	}
-
-	void loadRAMBank(int new_bank) {
-		// Store current RAM bank
-		printf("Selecting RAM bank %d\n", new_bank);
-		memcpy(&RAM_BANKS[0x2000 * ram_bank], RAM, 0x2000);
-		// Load new 8K RAM bank
-		memcpy(RAM, &RAM_BANKS[0x2000 * new_bank], 0x2000); 
-		ram_bank = new_bank;
-	}
-
 	uint8_t RAW[65536]; // TODO
 	uint8_t *ROM0   = &RAW[0x0000];
+
+	int rom_bank;
 	uint8_t *ROM1   = &RAW[0x4000];
 	uint8_t *grRAM  = &RAW[0x8000];
-	uint8_t *extRAM = &RAW[0xA000];
-
 	int ram_bank;
+	uint8_t *extRAM = &RAW[0xA000];
 	uint8_t *RAM    = &RAW[0xC000];
 	uint8_t *_RAM   = &RAW[0xE000];
 	//uint8_t *OAM    = &RAW[0xFE00]; // sprite attribute table
@@ -103,6 +89,22 @@ typedef struct {
 
 	uint16_t break_addr = 0;
 	bool at_breakpoint = false;
+
+	void loadROMBank(int new_bank) {
+		// Load 32K ROM bank
+		printf("Selecting ROM bank %d\n", new_bank);
+		memcpy(ROM1, &ROM_BANKS[0x4000 * new_bank], 0x4000);
+		rom_bank = new_bank;
+	}
+
+	void loadRAMBank(int new_bank) {
+		// Store current RAM bank
+		printf("Selecting RAM bank %d\n", new_bank);
+		memcpy(&RAM_BANKS[0x2000 * ram_bank], extRAM, 0x2000);
+		// Load new 8K RAM bank
+		memcpy(extRAM, &RAM_BANKS[0x2000 * new_bank], 0x2000);
+		ram_bank = new_bank;
+	}
 
 	enum mbc_type { NONE, MBC1, MBC2, MBC3, MBC5 };
 	mbc_type bank_controller;
@@ -259,6 +261,10 @@ typedef struct {
 			case mbc_type::NONE:
 				break;
 			case mbc_type::MBC3:
+				if (0x1000 <= addr && addr <= 0x1FFF) {
+					printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
+					return;
+				}
 				if (0x2000 <= addr && addr <= 0x3FFF) {
 					printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 					val &= 0x7F;

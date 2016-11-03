@@ -218,7 +218,7 @@ int main(int argc, char ** argv) {
 							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
 			printf("LCD_CTRL %02X LCD_STAT %02x SCAN_LN %02X PLT %02X BIOS_OFF %1X\n",
 							*MEM.LCD_CTRL, *MEM.LCD_STAT, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
-			printf("IME %X IE %02X IF %02X\n", REG.IME, *MEM.IE, *MEM.IF);
+			printf("IME %X IE %02X IF %02X ROM%d RAM%d\n", REG.IME, *MEM.IE, *MEM.IF, MEM.rom_bank, MEM.ram_bank);
 		}
 		if (log_gpu) {
 			printf("GPU CLK: 0x%04X LINE: 0x%02X\n", 
