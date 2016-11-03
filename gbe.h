@@ -234,6 +234,20 @@ void add_A_atHL() {
 	REG.TCLK = 8;
 }
 
+void add_SP_e() {
+	uint8_t n = ARGBYTE;
+	int8_t e = *reinterpret_cast<uint8_t*>(&n);
+
+	REG.SP += e;
+
+	// TODO: fix H, C flags
+	set_flag_cond(FLAG_H, 0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
+	set_flag_cond(FLAG_C, 0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
+	unset_flag(FLAG_Z | FLAG_N);
+
+	REG.PC += 2;
+}
+
 void adc_A_rb(uint8_t * ptr) {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
@@ -490,11 +504,13 @@ void ld_SP_HL() {
 }
 
 void ld_HL_SP_e() {
+
 	uint8_t n = ARGBYTE;
 	int8_t e = *reinterpret_cast<uint8_t*>(&n);
 
-	REG.HL = MEM.readWord(REG.SP + e);
+	REG.HL = REG.SP + e;
 
+	// TODO: fix H, C flags
 	set_flag_cond(FLAG_H, 0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
 	set_flag_cond(FLAG_C, 0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
 	unset_flag(FLAG_Z | FLAG_N);
@@ -1568,7 +1584,7 @@ instruction instructions[256] = {
 	{"PUSH HL", 0, [](){ push_rw(&REG.HL); }},        // 0xE5
 	{"AND 0x%02X", 1, [](){ and_n(); }},  // 0xE6
 	{"RST 20", 0, [](){ rst(0x20); }},          // 0xE7
-	{"ADD SP, d", 0, TODO},          // 0xE8
+	{"ADD SP, 0x%02X", 0, [](){ add_SP_e(); }},          // 0xE8
 	{"JP (HL)", 0, [](){ jp_atHL(); }},            // 0xE9
 	{"LD (0x%04X), A", 2, [](){ ld_atnn_A(); }},   // 0xEA
 	{"XX", 0, TODO},         // 0xEB
@@ -1585,7 +1601,7 @@ instruction instructions[256] = {
 	{"PUSH AF", 0, [](){ push_rw(&REG.AF); }},        // 0xF5
 	{"OR 0x%02X", 1, [](){ or_n(); }},  // 0xF6
 	{"RST 30", 0, [](){ rst(0x30); }},          // 0xF7
-	{"LDHL SP, d", 0, TODO},          // 0xF8
+	{"LDHL SP, 0x%02X", 0, [](){ ld_HL_SP_e(); }},          // 0xF8
 	{"LD SP, HL", 0, [](){ ld_SP_HL(); }},            // 0xF9
 	{"LD A, (0x%04X)", 2, [](){ ld_A_atnn(); }},   // 0xFA
 	{"EI", 0, [](){ ei(); }},         // 0xFB
