@@ -28,12 +28,12 @@ void handle_interrupts() {
 		} else if (trigger & FLAG_IF_TIMER) {
 			*MEM.IF ^= FLAG_IF_TIMER;
 			rsti(ISR_TIMER);
-		} else if (trigger & FLAG_IF_JOYPAD) {
-			*MEM.IF ^= FLAG_IF_JOYPAD;
-			rsti(ISR_JOYPAD);
-		} else { // if (trigger & FLAG_IF_SERIAL)
+		} else if (trigger & FLAG_IF_SERIAL) {
 			*MEM.IF ^= FLAG_IF_SERIAL;
 			rsti(ISR_SERIAL);
-		}
+		} else { // if (trigger & FLAG_IF_JOYPAD) {
+			*MEM.IF ^= FLAG_IF_JOYPAD;
+			rsti(ISR_JOYPAD);
+		} 
 	}
 }

@@ -228,7 +228,7 @@ int main(int argc, char ** argv) {
 		if (log_instructions) printInstruction();
 
 		if (stepping || is_breakpoint) {
-			WINDOW.refresh_debug();
+			WINDOW.draw_buffer();
 			stepping = true;
 			bool parsing = true;
 			bool more = false;

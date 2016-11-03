@@ -77,6 +77,7 @@ typedef struct {
 	uint8_t *SCRL_Y   = &RAW[0xFF42];
 	uint8_t *SCRL_X   = &RAW[0xFF43];
 	uint8_t *SCAN_LN  = &RAW[0xFF44]; // TODO: readonly
+	uint8_t *LN_CMP   = &RAW[0xFF45];
 	uint8_t *BG_PLT   = &RAW[0xFF47]; // TODO: writeonly
 	uint8_t *OBJ0_PLT = &RAW[0xFF48]; // TODO: writeonly
 	uint8_t *OBJ1_PLT = &RAW[0xFF49]; // TODO: writeonly

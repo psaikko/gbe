@@ -10,7 +10,14 @@
 #define MODE_HBLANK 0
 #define MODE_VBLANK 1
 
+#define INT_HBLANK 0x04
+#define INT_VBLANK 0x10
+#define INT_OAM    0x20
+#define INT_LYC    0x40
+
 #define MODE_MASK 0x03
+
+#define STAT_LYC 0x04
 
 void update_lcd_status(uint8_t mode) {
 	*MEM.LCD_STAT &= ~MODE_MASK;
@@ -61,6 +68,20 @@ typedef struct {
 					}
 				}
 				break;
+		}
+
+		if (*MEM.SCAN_LN == *MEM.LN_CMP) {
+			*MEM.LCD_STAT |= STAT_LYC;
+		}	else {
+			*MEM.LCD_STAT &= ~STAT_LYC;
+		}
+
+		// Trigger LCD interrupt
+		if (((*MEM.LCD_STAT & STAT_LYC) && (*MEM.LCD_STAT & INT_LYC)) ||
+			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_OAM) && (*MEM.LCD_STAT & INT_OAM)) ||
+			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_VBLANK) && (*MEM.LCD_STAT & INT_VBLANK)) ||
+			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_HBLANK) && (*MEM.LCD_STAT & INT_HBLANK))) {
+			*MEM.IF |= FLAG_IF_LCD;
 		}
 	}
 } gpu;
