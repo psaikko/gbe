@@ -80,8 +80,7 @@ void xor_n() {
 }
 
 void xor_atHL() {
-	uint16_t addr = MEM.readWord(REG.HL); 
-	REG.A ^= MEM.readByte(addr);
+	REG.A ^= MEM.readByte(REG.HL);
 	
 	unset_flag(FLAG_H | FLAG_N | FLAG_C);
 	if (REG.A == 0) set_flag(FLAG_Z);
@@ -114,8 +113,7 @@ void or_n() {
 }
 
 void or_atHL() {
-	uint16_t addr = MEM.readWord(REG.HL);
-	REG.A |= MEM.readByte(addr);
+	REG.A |= MEM.readByte(REG.HL);
 	
 	unset_flag(FLAG_H | FLAG_N | FLAG_C);
 	if (REG.A == 0) set_flag(FLAG_Z);
@@ -150,8 +148,7 @@ void and_n() {
 }
 
 void and_atHL() {
-	uint16_t addr = MEM.readWord(REG.HL);
-	REG.A &= MEM.readByte(addr);
+	REG.A &= MEM.readByte(REG.HL);
 	
 	unset_flag(FLAG_N | FLAG_C);
 	set_flag(FLAG_H);
