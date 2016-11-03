@@ -108,7 +108,7 @@ typedef struct {
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_WIN) {
-      std::cerr << "TODO: Window display" << std::endl;
+      //std::cerr << "TODO: Window display" << std::endl;
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
@@ -138,17 +138,20 @@ typedef struct {
           if (window_x < 0) continue;
           if (window_x >= WINDOW_W) break;
 
-          if (sprite.xflip) tile_x = 7 - tile_x;
-          if (sprite.yflip) tile_y = 7 - tile_y;
+          if (sprite.xflip) {
+            tile_x = 7 - tile_x;
+          }
+          if (sprite.yflip) {
+            tile_y = 7 - tile_y;
+          }
 
           uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
           if (color_id == COLOR_WHITE) continue;
           color_id = apply_spr_palette(color_id, sprite.palette);
 
-          if (sprite.priority) 
-            std::cerr << "TODO: sprite priority" << std::endl;
           unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
-          draw_pixel(&game_buffer[i], color_id);
+          if (sprite.priority || game_buffer[i] == 255)
+            draw_pixel(&game_buffer[i], color_id);
 
         }
       }
@@ -284,7 +287,7 @@ typedef struct {
     glfwSwapBuffers(game_window);
 
     refresh_debug();
-    printf("Frame #%ld\n", frame++);
+    //printf("Frame #%ld\n", frame++);
   }
 
   void refresh_debug() {
