@@ -7,7 +7,7 @@
 #define FLAG_GPU_SPR    0x02
 #define FLAG_GPU_SPR_SZ 0x04
 #define FLAG_GPU_BG_TM  0x08
-#define FLAG_GPU_BG_TS  0x10
+#define FLAG_GPU_BG_WIN_TS  0x10
 #define FLAG_GPU_WIN    0x20
 #define FLAG_GPU_WIN_TM 0x40
 #define FLAG_GPU_DISP   0x80
@@ -264,18 +264,18 @@ typedef struct {
 			case mbc_type::NONE:
 				break;
 			case mbc_type::MBC3:
-				if (0x1000 <= addr && addr <= 0x1FFF) {
-					printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
+				if (addr <= 0x1FFF) {
+					//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
 					return;
 				}
 				if (0x2000 <= addr && addr <= 0x3FFF) {
-					printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
+					//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 					val &= 0x7F;
 					loadROMBank(val);
 					return;
 				}
 				if (0x4000 <= addr && addr <= 0x5FFF) {
-					printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
+					//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
 					val &= 0x1F;
 					loadRAMBank(val);
 					return;

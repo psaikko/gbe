@@ -73,53 +73,77 @@ typedef struct {
 
     if (! (*MEM.LCD_CTRL & FLAG_GPU_DISP) ) return;
 
+    uint8_t lcd_y = *MEM.SCAN_LN;
+
     if (*MEM.LCD_CTRL & FLAG_GPU_BG) {
-    	uint8_t *MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
+    	uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 
     	uint8_t scrl_x = *MEM.SCRL_X;
     	uint8_t scrl_y = *MEM.SCRL_Y;
 
-    	uint8_t window_y    = *MEM.SCAN_LN;
-    	uint8_t map_pixel_y = window_y + scrl_y;
+    	uint8_t map_pixel_y = lcd_y + scrl_y;
     	uint8_t map_tile_y  = map_pixel_y / TILE_H;
-    	uint8_t tile_y      = map_pixel_y % TILE_H;
-    	for (uint8_t window_x = 0; window_x < WINDOW_W; ++window_x) {
-    		uint8_t map_pixel_x = window_x + scrl_x;
+    	uint8_t bg_tile_y   = map_pixel_y % TILE_H;
+    	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
+    		uint8_t map_pixel_x = lcd_x + scrl_x;
     		uint8_t map_tile_x  = map_pixel_x / TILE_W;
-    		uint8_t tile_x      = map_pixel_x % TILE_W;
+    		uint8_t bg_tile_x   = map_pixel_x % TILE_W;
 
     		// get pixel (tile_x, tile_y) from map tile (map_tile_x, map_tile_y)
-    		// and draw it to (window_x, window_y)
-    		uint8_t tile_id = MAP[map_tile_x + map_tile_y * TILEMAP_H];
+    		// and draw it to (lcd_x, lcd_y)
+    		uint8_t tile_id = BG_MAP[map_tile_x + map_tile_y * TILEMAP_H];
 
-    		uint8_t *tile;
-  			if (*MEM.LCD_CTRL & FLAG_GPU_BG_TS) {
-  				tile = &MEM.TILESET1[tile_id * 16];
+    		uint8_t *bg_tile;
+  			if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
+  				bg_tile = &MEM.TILESET1[tile_id * 16];
   			} else {
-  				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+  				bg_tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
   			}
 
-    		uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
-    		color_id = apply_bg_palette(color_id);
-
-    		unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
-    		draw_pixel(&game_buffer[i], color_id);
+    		uint8_t bg_color_id = get_tile_pixel(bg_tile, bg_tile_x, bg_tile_y);
+    		unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
+    		draw_pixel(&game_buffer[i], apply_bg_palette(bg_color_id));
     	}
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_WIN) {
-      //std::cerr << "TODO: Window display" << std::endl;
-      //std::cerr << "WX " << (int)*MEM.WIN_X << "  WY " << (int)*MEM.WIN_Y << std::endl;
+      uint8_t *WIN_MAP = (*MEM.LCD_CTRL & FLAG_GPU_WIN_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 
+      int window_x = *MEM.WIN_X - 7;
+      int window_y = *MEM.WIN_Y;
 
+      int map_pixel_y = lcd_y - window_y;
+      int map_tile_y  = map_pixel_y / TILE_H;
+      int win_tile_y  = map_pixel_y % TILE_H;
+
+      if (map_pixel_y > 0) {
+        for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; lcd_x++) {
+          int map_pixel_x = lcd_x - window_x;
+          int map_tile_x  = map_pixel_x / TILE_W;
+          int win_tile_x  = map_pixel_x % TILE_H;
+
+          if (map_pixel_x > 0) {
+            uint8_t tile_id = WIN_MAP[map_tile_x + map_tile_y * TILEMAP_H];
+
+            uint8_t *win_tile;
+            if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
+              win_tile = &MEM.TILESET1[tile_id * 16];
+            } else {
+              win_tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+            }
+
+            uint8_t win_color_id = get_tile_pixel(win_tile, win_tile_x, win_tile_y);
+            unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
+            draw_pixel(&game_buffer[i], apply_bg_palette(win_color_id));
+          }
+        }
+      }
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
 
       if (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) 
         std::cerr << "TODO: 16x8 sprite" << std::endl;
-
-      uint8_t window_y = *MEM.SCAN_LN;
 
       for (int spr_id = 0; spr_id < 40; ++spr_id) {
         oam_entry sprite = MEM.OAM[spr_id];
@@ -129,22 +153,22 @@ typedef struct {
         int sprite_y = ((int)sprite.y) - 16;
         int sprite_x = ((int)sprite.x) - 8;
 
-        // does not intersect current scanline (window_y)
-        if (window_y < sprite_y || window_y >= sprite_y + sprite_h) continue; 
+        // does not intersect current scanline (lcd_y)
+        if (lcd_y < sprite_y || lcd_y >= sprite_y + sprite_h) continue; 
         // not onscreen in x direction
         if (sprite_x == -sprite_w) continue;
 
         uint8_t *tile = &MEM.TILESET1[sprite.tile_id * 16];
-        uint8_t tile_y = window_y - sprite_y;
+        uint8_t tile_y = lcd_y - sprite_y;
         if (sprite.yflip) {
           tile_y = 7 - tile_y;
         }
 
         for (uint8_t x = 0; x < 8; ++x) {
           uint8_t tile_x = x;
-          int window_x = sprite_x + tile_x;
-          if (window_x < 0) continue;
-          if (window_x >= WINDOW_W) break;
+          int lcd_x = sprite_x + tile_x;
+          if (lcd_x < 0) continue;
+          if (lcd_x >= WINDOW_W) break;
 
           if (sprite.xflip) {
             tile_x = 7 - tile_x;
@@ -154,7 +178,7 @@ typedef struct {
           if (color_id == COLOR_WHITE) continue;
           color_id = apply_spr_palette(color_id, sprite.palette);
 
-          unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
+          unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
           if (!sprite.priority || game_buffer[i] == 255)
             draw_pixel(&game_buffer[i], color_id);
 
@@ -212,14 +236,14 @@ typedef struct {
   	return x*3 + (h - 1 - y)*w*3;
   }
 
-  void render_tile(uint8_t *buffer, uint8_t *tile, unsigned window_x, unsigned window_y, unsigned buffer_w, unsigned buffer_h) {
+  void render_tile(uint8_t *buffer, uint8_t *tile, unsigned lcd_x, unsigned lcd_y, unsigned buffer_w, unsigned buffer_h) {
   	for (uint8_t yoff = 0; yoff < TILE_H; yoff++) {
 			for (uint8_t xoff = 0; xoff < TILE_W; xoff++) {
 				uint8_t color_id = get_tile_pixel(tile, xoff, yoff);
 
 				//color_id = apply_bg_palette(color_id);
 
-				unsigned i = rgb_buffer_index(window_x + xoff, window_y + yoff, buffer_w, buffer_h);
+				unsigned i = rgb_buffer_index(lcd_x + xoff, lcd_y + yoff, buffer_w, buffer_h);
 				draw_pixel(&buffer[i], color_id);
 			}
 		}
@@ -233,15 +257,15 @@ typedef struct {
   			uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
 
   			uint8_t *tile;
-  			if (*MEM.LCD_CTRL & FLAG_GPU_BG_TS) {
+  			if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
   				tile = &MEM.TILESET1[tile_id * 16];
   			} else {
   				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
   			}
-  			unsigned window_x = xoff * TILE_W;
-  			unsigned window_y = yoff * TILE_H;
+  			unsigned lcd_x = xoff * TILE_W;
+  			unsigned lcd_y = yoff * TILE_H;
 
-  			render_tile(tilemap_buffer, tile, window_x, window_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
+  			render_tile(tilemap_buffer, tile, lcd_x, lcd_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
   		}	
   	}
 
@@ -252,15 +276,15 @@ typedef struct {
         uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
 
         uint8_t *tile;
-        if (*MEM.LCD_CTRL & FLAG_GPU_BG_TS) {
+        if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
           tile = &MEM.TILESET1[tile_id * 16];
         } else {
           tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
         }
-        unsigned window_x = xoff * TILE_W;
-        uint8_t window_y = yoff * TILE_H;
+        unsigned lcd_x = xoff * TILE_W;
+        uint8_t lcd_y = yoff * TILE_H;
 
-        render_tile(tilemap_buffer, tile, window_x, window_y + TILEMAP_WINDOW_H, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);  
+        render_tile(tilemap_buffer, tile, lcd_x, lcd_y + TILEMAP_WINDOW_H, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);  
       } 
     }
   }
@@ -274,10 +298,10 @@ typedef struct {
   		
   			uint8_t *tile = &SET[tile_id * 16];
   			tile_id++;
-  			uint8_t window_x = xoff * TILE_W;
-  			uint8_t window_y = yoff * TILE_H;
+  			uint8_t lcd_x = xoff * TILE_W;
+  			uint8_t lcd_y = yoff * TILE_H;
 
-  			render_tile(tileset_buffer, tile, window_x, window_y, TILESET_WINDOW_W, TILESET_WINDOW_H);	
+  			render_tile(tileset_buffer, tile, lcd_x, lcd_y, TILESET_WINDOW_W, TILESET_WINDOW_H);	
   		}	
   	}	
   }
