@@ -17,8 +17,6 @@
 #define PLT_COLOR2 0x30
 #define PLT_COLOR3 0xC0
 
-#define OAM_DMA 0xFF46
-
 uint8_t key_state;
 #define KEY_RIGHT  0x01
 #define KEY_LEFT   0x02
@@ -37,11 +35,11 @@ typedef struct {
 		union {
 			uint8_t flags;
 			struct {
-				uint8_t priority : 1;
+				uint8_t _ : 4;
+				uint8_t palette : 1;
 				uint8_t xflip : 1;
 				uint8_t yflip : 1;
-				uint8_t palette : 1;
-				uint8_t _ : 4;
+				uint8_t priority : 1;
 			};
 		};
 	};
@@ -78,9 +76,12 @@ typedef struct {
 	uint8_t *SCRL_X   = &RAW[0xFF43];
 	uint8_t *SCAN_LN  = &RAW[0xFF44]; // TODO: readonly
 	uint8_t *LN_CMP   = &RAW[0xFF45];
+	uint8_t *OAM_DMA  = &RAW[0xFF46]; // TODO: writeonly
 	uint8_t *BG_PLT   = &RAW[0xFF47]; // TODO: writeonly
 	uint8_t *OBJ0_PLT = &RAW[0xFF48]; // TODO: writeonly
 	uint8_t *OBJ1_PLT = &RAW[0xFF49]; // TODO: writeonly
+	uint8_t *WIN_Y    = &RAW[0xFF4A];
+	uint8_t *WIN_X    = &RAW[0xFF4B];
 	uint8_t *BIOS_OFF = &RAW[0xFF50];
 
 	uint8_t *TILESET1 = &RAW[0x8000];
@@ -93,14 +94,14 @@ typedef struct {
 
 	void loadROMBank(int new_bank) {
 		// Load 32K ROM bank
-		printf("Selecting ROM bank %d\n", new_bank);
+		// printf("Selecting ROM bank %d\n", new_bank);
 		memcpy(ROM1, &ROM_BANKS[0x4000 * new_bank], 0x4000);
 		rom_bank = new_bank;
 	}
 
 	void loadRAMBank(int new_bank) {
 		// Store current RAM bank
-		printf("Selecting RAM bank %d\n", new_bank);
+		// printf("Selecting RAM bank %d\n", new_bank);
 		memcpy(&RAM_BANKS[0x2000 * ram_bank], extRAM, 0x2000);
 		// Load new 8K RAM bank
 		memcpy(extRAM, &RAM_BANKS[0x2000 * new_bank], 0x2000);
@@ -248,7 +249,8 @@ typedef struct {
 			}
 			
 			return;
-		} else if (addr == OAM_DMA) {
+		} else if (ptr == OAM_DMA) {
+			// TODO: block memory access
 			assert(val <= 0xF1);
 			for (uint8_t low = 0x00; low <= 0xF9; ++low) {
 				RAW[0xFE00 + low] = RAW[(((uint16_t)val) << 8) + low];

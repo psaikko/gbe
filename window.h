@@ -109,6 +109,9 @@ typedef struct {
 
     if (*MEM.LCD_CTRL & FLAG_GPU_WIN) {
       //std::cerr << "TODO: Window display" << std::endl;
+      //std::cerr << "WX " << (int)*MEM.WIN_X << "  WY " << (int)*MEM.WIN_Y << std::endl;
+
+
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
@@ -133,7 +136,12 @@ typedef struct {
 
         uint8_t *tile = &MEM.TILESET1[sprite.tile_id * 16];
         uint8_t tile_y = window_y - sprite_y;
-        for (uint8_t tile_x = 0; tile_x < 8; ++tile_x) {
+        if (sprite.yflip) {
+          tile_y = 7 - tile_y;
+        }
+
+        for (uint8_t x = 0; x < 8; ++x) {
+          uint8_t tile_x = x;
           int window_x = sprite_x + tile_x;
           if (window_x < 0) continue;
           if (window_x >= WINDOW_W) break;
@@ -141,16 +149,13 @@ typedef struct {
           if (sprite.xflip) {
             tile_x = 7 - tile_x;
           }
-          if (sprite.yflip) {
-            tile_y = 7 - tile_y;
-          }
 
           uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
           if (color_id == COLOR_WHITE) continue;
           color_id = apply_spr_palette(color_id, sprite.palette);
 
           unsigned i = rgb_buffer_index(window_x, window_y, WINDOW_W, WINDOW_H);
-          if (sprite.priority || game_buffer[i] == 255)
+          if (!sprite.priority || game_buffer[i] == 255)
             draw_pixel(&game_buffer[i], color_id);
 
         }
@@ -278,7 +283,7 @@ typedef struct {
   }
 
   void draw_buffer() {
-  	static long frame = 0;
+  	//static long frame = 0;
   	glfwMakeContextCurrent(game_window);
 
   	glClear( GL_COLOR_BUFFER_BIT );
