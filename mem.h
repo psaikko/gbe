@@ -111,6 +111,10 @@ typedef struct {
 	enum mbc_type { NONE, MBC1, MBC2, MBC3, MBC5 };
 	mbc_type bank_controller;
 
+	enum controller_mode { ROM_banking, RAM_banking }; // MBC1 mode switch
+	controller_mode mbc_mode;
+
+
 	uint8_t* getReadPtr(uint16_t addr) {
 		// switch by 8192 byte segments
 		switch(addr >> 13) {
@@ -263,6 +267,36 @@ typedef struct {
 		switch (bank_controller) {
 			case mbc_type::NONE:
 				break;
+			case mbc_type::MBC1:
+				if (addr <= 0x1FFF) {
+					//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
+					return;
+				}
+				else if (0x2000 <= addr && addr <= 0x3FFF) {
+					//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
+					val &= 0x1F;
+					if (val == 0) val = 1;
+					loadROMBank(val);
+					return;
+				}
+				else if (0x4000 <= addr && addr <= 0x5FFF) {
+					//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
+					val &= 0x03;
+					if (mbc_mode == controller_mode::RAM_banking) {
+						loadRAMBank(val);
+					} else {
+						loadROMBank((rom_bank & 0x1F) | (val << 5));
+					}
+					return;
+				}
+				else if (0x6000 <= addr && addr <= 0x7FFF) {
+					if (val == 1) {
+						mbc_mode = controller_mode::RAM_banking;
+					} else {
+						mbc_mode = controller_mode::ROM_banking;
+					}
+				}
+				break;
 			case mbc_type::MBC3:
 				if (addr <= 0x1FFF) {
 					//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
@@ -271,6 +305,7 @@ typedef struct {
 				if (0x2000 <= addr && addr <= 0x3FFF) {
 					//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 					val &= 0x7F;
+					if (val == 0) val = 1;
 					loadROMBank(val);
 					return;
 				}
@@ -281,7 +316,6 @@ typedef struct {
 					return;
 				}
 				break;
-			case mbc_type::MBC1:
 			default:
 				printf("Unimplemented memory bank controller type.");
 				exit(1);

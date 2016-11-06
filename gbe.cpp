@@ -167,6 +167,7 @@ int main(int argc, char ** argv) {
   	exit(0);
   }
 
+  MEM.mbc_mode = memory::controller_mode::ROM_banking;
 	WINDOW.init();
 
 	while (1) {
@@ -207,7 +208,7 @@ int main(int argc, char ** argv) {
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
 												 (mem_breakpoint && (MEM.at_breakpoint)) ||
 												 (glfwGetKey(WINDOW.game_window, GLFW_KEY_B) == GLFW_PRESS);
-												 
+
 		MEM.at_breakpoint = false;
 		
 		uint8_t opcode = MEM.readByte(REG.PC);
