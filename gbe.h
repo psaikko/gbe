@@ -516,8 +516,8 @@ void ld_HL_SP_e() {
 }
 
 void push_rw(uint16_t *at) {
-	MEM.writeWord(REG.SP - 2, *at);
 	REG.SP -= 2;
+	MEM.writeWord(REG.SP, *at);
 	REG.TCLK = 16;
 	REG.PC += 1;
 }
@@ -527,6 +527,15 @@ void pop_rw(uint16_t *at) {
 	REG.SP += 2;
 	REG.TCLK = 12;
 	REG.PC += 1;
+}
+
+// only top 4 bits of F are writable
+void pop_AF() {
+	REG.AF &= 0x000F;
+	REG.AF |= (0xFFF0 & MEM.readWord(REG.SP));
+	REG.SP += 2;
+	REG.TCLK = 12;
+	REG.PC += 1;	
 }
 
 // ext block
@@ -1591,7 +1600,7 @@ instruction instructions[256] = {
 	{"RST 28", 0, [](){ rst(0x28); }},          // 0xEF
 
 	{"LDH A, (0x%02X)", 1, [](){ ldh_A_atn(); }},         // 0xF0
-	{"POP AF", 0, [](){ pop_rw(&REG.AF); }},         // 0xF1
+	{"POP AF", 0, [](){ pop_AF(); }},         // 0xF1
 	{"XX", 0, TODO},  // 0xF2
 	{"DI", 0, [](){ di(); }},      // 0xF3
 	{"XX", 0, TODO},// 0xF4
