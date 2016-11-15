@@ -5,6 +5,8 @@
 #include "reg.h"
 #include "mem.h"
 
+#define ARGBYTE (MEM.readByte(REG.PC + 1))
+#define ARGWORD (MEM.readWord(REG.PC + 1))
 
 void nop() {
 	REG.TCLK = 4;
@@ -29,7 +31,7 @@ void inc_atHL() {
 
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_H, (val & 0x0F) == 0x0F);
-	set_flag_cond(FLAG_Z, (val + 1) == 0);
+	set_flag_cond(FLAG_Z, (val == 0xFF));
 
 	REG.TCLK = 12;
 	REG.PC += 1;
@@ -249,7 +251,10 @@ void adc_A_rb(uint8_t * ptr) {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
-	REG.A += *ptr + carry;
+	REG.A += *ptr;
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (0xFF - REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+	REG.A += carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
@@ -261,7 +266,10 @@ void adc_A_n() {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
-	REG.A += val + carry;
+	REG.A += val;
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (0xFF - REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+	REG.A += carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 2;
@@ -273,7 +281,10 @@ void adc_A_atHL() {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, 0xFF - REG.A < val);
 	set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
-	REG.A += val + carry;
+	REG.A += val;
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (0xFF - REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+	REG.A += carry;
 	unset_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
@@ -313,10 +324,13 @@ void sub_A_atHL() {
 }
 
 void sbc_A_rb(uint8_t * ptr) {
+	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, REG.A < *ptr);
 	set_flag_cond(FLAG_H, (REG.A & 0x0F) < (*ptr & 0x0F));
 	REG.A -= *ptr;
-	REG.A -= get_flag(FLAG_C);
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+	REG.A -= carry;
 	set_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
@@ -324,11 +338,14 @@ void sbc_A_rb(uint8_t * ptr) {
 }
 
 void sbc_A_n() {
+	bool carry = get_flag(FLAG_C);
 	uint8_t val = ARGBYTE;
 	set_flag_cond(FLAG_C, REG.A < val);
 	set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
 	REG.A -= val;
-	REG.A -= get_flag(FLAG_C);
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+	REG.A -= carry;
 	set_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 2;
@@ -336,11 +353,14 @@ void sbc_A_n() {
 }
 
 void sbc_A_atHL() {
+	bool carry = get_flag(FLAG_C);
 	uint8_t val = MEM.readByte(REG.HL);
 	set_flag_cond(FLAG_C, REG.A < val);
 	set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
 	REG.A -= val; 
-	REG.A -= get_flag(FLAG_C);
+	set_flag_cond(FLAG_C, get_flag(FLAG_C) || (REG.A < carry));
+	set_flag_cond(FLAG_H, get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+	REG.A -= carry;
 	set_flag(FLAG_N);
 	set_flag_cond(FLAG_Z, REG.A == 0);
 	REG.PC += 1;
@@ -726,14 +746,17 @@ void srl_atHL() {
 	val >>= 1;
 	MEM.writeByte(REG.HL, val);
 
+	unset_flag(FLAG_N | FLAG_H);
+	set_flag_cond(FLAG_Z, val == 0);
+
 	REG.TCLK = 8;	
 	REG.PC += 1;
 }
 
 void swap_rb(uint8_t * at) {
-	uint8_t tmp = *at & 0x0F;
+	uint8_t tmp = *at << 4;
 	*at >>= 4;
-	*at |= (tmp << 4);
+	*at |= tmp;
 
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
 	set_flag_cond(FLAG_Z, *at == 0);
@@ -744,9 +767,9 @@ void swap_rb(uint8_t * at) {
 
 void swap_atHL() {
 	uint8_t val = MEM.readByte(REG.HL);
-	uint8_t tmp = val & 0x0F;
+	uint8_t tmp = val << 4;
 	val >>= 4;
-	val &= (tmp << 4);
+	val |= tmp;
 	MEM.writeByte(REG.HL, val);
 
 	unset_flag(FLAG_N | FLAG_H | FLAG_C);
@@ -766,7 +789,7 @@ void cpl() {
 
 void bit_i_rb(const uint8_t mask, uint8_t *from) {
 	unset_flag(FLAG_N);
-	unset_flag(FLAG_H);
+	set_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (*from & mask) == 0);
 
 	REG.TCLK = 8;
@@ -775,7 +798,7 @@ void bit_i_rb(const uint8_t mask, uint8_t *from) {
 
 void bit_i_atHL(const uint8_t mask) {
 	unset_flag(FLAG_N);
-	unset_flag(FLAG_H);
+	set_flag(FLAG_H);
 	set_flag_cond(FLAG_Z, (MEM.readByte(REG.HL) & mask) == 0);
 
 	REG.TCLK = 12;
@@ -1008,32 +1031,28 @@ void halt() {
 }
 
 void daa() {
-	uint8_t corr = 0;
-	if (REG.A > 0x99 || get_flag(FLAG_C)) {
-		corr |= 0x60;
-		set_flag(FLAG_C);
-	} else {
-		corr |= 0x00;
-		unset_flag(FLAG_C);
-	}
+	
+	int a = REG.A;
 
-	if (((REG.A & 0x0F) > 0x09) || get_flag(FLAG_H)) {
-		corr |= 0x06;
-	} else {
-		corr |= 0x00;
-	}
+  if (!get_flag(FLAG_N)) {
+      if (get_flag(FLAG_H) || (a & 0x0F) > 0x09)
+          a += 0x06;
+      if (get_flag(FLAG_C) || a > 0x9F)
+          a += 0x60;
+  } else {
+      if (get_flag(FLAG_H))
+          a = (a - 6) & 0xFF;
+      if (get_flag(FLAG_C))
+          a -= 0x60;
+  }
 
-	uint8_t old = REG.A;
+  unset_flag(FLAG_H);
+  set_flag_cond(FLAG_C, get_flag(FLAG_C) || (a & 0x100) == 0x100);
+  a &= 0xFF;
+  set_flag_cond(FLAG_Z, a == 0);
 
-	if (!get_flag(FLAG_N)) {
-		REG.A += corr;
-	} else {
-		REG.A -= corr;
-	}
-
-	set_flag_cond(FLAG_H, (old ^ REG.A) & 0x10);
-	set_flag_cond(FLAG_Z, REG.A == 0);
-	REG.TCLK = 4;
+  REG.A = (uint8_t)a;
+  REG.TCLK = 4;
 	REG.PC += 1;
 }
 
@@ -1072,73 +1091,73 @@ void TODO(void){
 }
 
 instruction ext_instructions[256] = {
-	{"RLC B", 0, [](){ rlc_rb(&REG.B); }}, //0xCB01
-	{"RLC C", 0, [](){ rlc_rb(&REG.C);}}, //0xCB02
-	{"RLC D", 0, [](){ rlc_rb(&REG.D);}}, //0xCB03
-	{"RLC E", 0, [](){ rlc_rb(&REG.E);}}, //0xCB04
-	{"RLC H", 0, [](){ rlc_rb(&REG.H);}}, //0xCB05
-	{"RLC L", 0, [](){ rlc_rb(&REG.L);}}, //0xCB06
-	{"RLC (HL)", 0, [](){ rlc_atHL();}}, //0xCB07
-	{"RLC A", 0, [](){ rlc_rb(&REG.A);}}, //0xCB08
-	{"RRC B", 0, [](){ rrc_rb(&REG.B);}}, //0xCB09
-	{"RRC C", 0, [](){ rrc_rb(&REG.C);}}, //0xCB0A
-	{"RRC D", 0, [](){ rrc_rb(&REG.D);}}, //0xCB0B
-	{"RRC E", 0, [](){ rrc_rb(&REG.E);}}, //0xCB0C
-	{"RRC H", 0, [](){ rrc_rb(&REG.H);}}, //0xCB0D
-	{"RRC L", 0, [](){ rrc_rb(&REG.L);}}, //0xCB0E 
-	{"RRC (HL)", 0, [](){ rrc_atHL();}}, //0xCB0F
-	{"RRC A", 0, [](){ rrc_rb(&REG.A);}}, //0xCB01
+	{"RLC B", 0, [](){ rlc_rb(&REG.B); }}, //0xCB00
+	{"RLC C", 0, [](){ rlc_rb(&REG.C);}}, //0xCB01
+	{"RLC D", 0, [](){ rlc_rb(&REG.D);}}, //0xCB02
+	{"RLC E", 0, [](){ rlc_rb(&REG.E);}}, //0xCB03
+	{"RLC H", 0, [](){ rlc_rb(&REG.H);}}, //0xCB04
+	{"RLC L", 0, [](){ rlc_rb(&REG.L);}}, //0xCB05
+	{"RLC (HL)", 0, [](){ rlc_atHL();}},  //0xCB06
+	{"RLC A", 0, [](){ rlc_rb(&REG.A);}}, //0xCB07
+	{"RRC B", 0, [](){ rrc_rb(&REG.B);}}, //0xCB08
+	{"RRC C", 0, [](){ rrc_rb(&REG.C);}}, //0xCB09
+	{"RRC D", 0, [](){ rrc_rb(&REG.D);}}, //0xCB0A
+	{"RRC E", 0, [](){ rrc_rb(&REG.E);}}, //0xCB0B
+	{"RRC H", 0, [](){ rrc_rb(&REG.H);}}, //0xCB0C
+	{"RRC L", 0, [](){ rrc_rb(&REG.L);}}, //0xCB0D 
+	{"RRC (HL)", 0, [](){ rrc_atHL();}}, //0xCB0E
+	{"RRC A", 0, [](){ rrc_rb(&REG.A);}}, //0xCB0F
 
-	{"RL B", 0, [](){ rl_rb(&REG.B); }}, //0xCB11
-	{"RL C", 0, [](){ rl_rb(&REG.C);}}, //0xCB12
-	{"RL D", 0, [](){ rl_rb(&REG.D);}}, //0xCB13
-	{"RL E", 0, [](){ rl_rb(&REG.E);}}, //0xCB14
-	{"RL H", 0, [](){ rl_rb(&REG.H);}}, //0xCB15
-	{"RL L", 0, [](){ rl_rb(&REG.L);}}, //0xCB16
-	{"RL (HL)", 0, [](){ rl_atHL();}}, //0xCB17
-	{"RL A", 0, [](){ rl_rb(&REG.A);}}, //0xCB18
-	{"RR B", 0, [](){ rr_rb(&REG.B);}}, //0xCB19
-	{"RR C", 0, [](){ rr_rb(&REG.C);}}, //0xCB1A
-	{"RR D", 0, [](){ rr_rb(&REG.D);}}, //0xCB1B
-	{"RR E", 0, [](){ rr_rb(&REG.E);}}, //0xCB1C
-	{"RR H", 0, [](){ rr_rb(&REG.H);}}, //0xCB1D
-	{"RR L", 0, [](){ rr_rb(&REG.L);}}, //0xCB1E 
-	{"RR (HL)", 0, [](){ rr_atHL();}}, //0xCB1F
-	{"RR A", 0, [](){ rr_rb(&REG.A);}}, //0xCB11
+	{"RL B", 0, [](){ rl_rb(&REG.B); }}, //0xCB10
+	{"RL C", 0, [](){ rl_rb(&REG.C);}}, //0xCB11
+	{"RL D", 0, [](){ rl_rb(&REG.D);}}, //0xCB12
+	{"RL E", 0, [](){ rl_rb(&REG.E);}}, //0xCB13
+	{"RL H", 0, [](){ rl_rb(&REG.H);}}, //0xCB14
+	{"RL L", 0, [](){ rl_rb(&REG.L);}}, //0xCB15
+	{"RL (HL)", 0, [](){ rl_atHL();}},  //0xCB16
+	{"RL A", 0, [](){ rl_rb(&REG.A);}}, //0xCB17
+	{"RR B", 0, [](){ rr_rb(&REG.B);}}, //0xCB18
+	{"RR C", 0, [](){ rr_rb(&REG.C);}}, //0xCB19
+	{"RR D", 0, [](){ rr_rb(&REG.D);}}, //0xCB1A
+	{"RR E", 0, [](){ rr_rb(&REG.E);}}, //0xCB1B
+	{"RR H", 0, [](){ rr_rb(&REG.H);}}, //0xCB1C
+	{"RR L", 0, [](){ rr_rb(&REG.L);}}, //0xCB1D 
+	{"RR (HL)", 0, [](){ rr_atHL();}},  //0xCB1E
+	{"RR A", 0, [](){ rr_rb(&REG.A);}}, //0xCB1F
 
-	{"SLA B", 0, [](){ sla_rb(&REG.B); }}, //0xCB21
-	{"SLA C", 0, [](){ sla_rb(&REG.C);}}, //0xCB22
-	{"SLA D", 0, [](){ sla_rb(&REG.D);}}, //0xCB23
-	{"SLA E", 0, [](){ sla_rb(&REG.E);}}, //0xCB24
-	{"SLA H", 0, [](){ sla_rb(&REG.H);}}, //0xCB25
-	{"SLA L", 0, [](){ sla_rb(&REG.L);}}, //0xCB26
-	{"SLA (HL)", 0, [](){ sla_atHL();}}, //0xCB27
-	{"SLA A", 0, [](){ sla_rb(&REG.A);}}, //0xCB28
-	{"SRA B", 0, [](){ sra_rb(&REG.B);}}, //0xCB29
-	{"SRA C", 0, [](){ sra_rb(&REG.C);}}, //0xCB2A
-	{"SRA D", 0, [](){ sra_rb(&REG.D);}}, //0xCB2B
-	{"SRA E", 0, [](){ sra_rb(&REG.E);}}, //0xCB2C
-	{"SRA H", 0, [](){ sra_rb(&REG.H);}}, //0xCB2D
-	{"SRA L", 0, [](){ sra_rb(&REG.L);}}, //0xCB2E 
-	{"SRA (HL)", 0, [](){ sra_atHL();}}, //0xCB2F
-	{"SRA A", 0, [](){ sra_rb(&REG.A);}}, //0xCB21
+	{"SLA B", 0, [](){ sla_rb(&REG.B); }}, //0xCB20
+	{"SLA C", 0, [](){ sla_rb(&REG.C);}}, //0xCB21
+	{"SLA D", 0, [](){ sla_rb(&REG.D);}}, //0xCB22
+	{"SLA E", 0, [](){ sla_rb(&REG.E);}}, //0xCB23
+	{"SLA H", 0, [](){ sla_rb(&REG.H);}}, //0xCB24
+	{"SLA L", 0, [](){ sla_rb(&REG.L);}}, //0xCB25
+	{"SLA (HL)", 0, [](){ sla_atHL();}},  //0xCB26
+	{"SLA A", 0, [](){ sla_rb(&REG.A);}}, //0xCB27
+	{"SRA B", 0, [](){ sra_rb(&REG.B);}}, //0xCB28
+	{"SRA C", 0, [](){ sra_rb(&REG.C);}}, //0xCB29
+	{"SRA D", 0, [](){ sra_rb(&REG.D);}}, //0xCB2A
+	{"SRA E", 0, [](){ sra_rb(&REG.E);}}, //0xCB2B
+	{"SRA H", 0, [](){ sra_rb(&REG.H);}}, //0xCB2C
+	{"SRA L", 0, [](){ sra_rb(&REG.L);}}, //0xCB2D 
+	{"SRA (HL)", 0, [](){ sra_atHL();}},  //0xCB2E
+	{"SRA A", 0, [](){ sra_rb(&REG.A);}}, //0xCB3F
 
-	{"SWAP B", 0, [](){ swap_rb(&REG.B); }}, //0xCB31
-	{"SWAP C", 0, [](){ swap_rb(&REG.C);}}, //0xCB32
-	{"SWAP D", 0, [](){ swap_rb(&REG.D);}}, //0xCB33
-	{"SWAP E", 0, [](){ swap_rb(&REG.E);}}, //0xCB34
-	{"SWAP H", 0, [](){ swap_rb(&REG.H);}}, //0xCB35
-	{"SWAP L", 0, [](){ swap_rb(&REG.L);}}, //0xCB36
-	{"SWAP (HL)", 0, [](){ swap_atHL();}}, //0xCB37
-	{"SWAP A", 0, [](){ swap_rb(&REG.A);}}, //0xCB38
-	{"SRL B", 0, [](){ srl_rb(&REG.B);}}, //0xCB39
-	{"SRL C", 0, [](){ srl_rb(&REG.C);}}, //0xCB3A
-	{"SRL D", 0, [](){ srl_rb(&REG.D);}}, //0xCB3B
-	{"SRL E", 0, [](){ srl_rb(&REG.E);}}, //0xCB3C
-	{"SRL H", 0, [](){ srl_rb(&REG.H);}}, //0xCB3D
-	{"SRL L", 0, [](){ srl_rb(&REG.L);}}, //0xCB3E 
-	{"SRL (HL)", 0, [](){ srl_atHL();}}, //0xCB3F
-	{"SRL A", 0, [](){ srl_rb(&REG.A);}}, //0xCB31
+	{"SWAP B", 0, [](){ swap_rb(&REG.B); }}, //0xCB30
+	{"SWAP C", 0, [](){ swap_rb(&REG.C);}}, //0xCB31
+	{"SWAP D", 0, [](){ swap_rb(&REG.D);}}, //0xCB32
+	{"SWAP E", 0, [](){ swap_rb(&REG.E);}}, //0xCB33
+	{"SWAP H", 0, [](){ swap_rb(&REG.H);}}, //0xCB34
+	{"SWAP L", 0, [](){ swap_rb(&REG.L);}}, //0xCB35
+	{"SWAP (HL)", 0, [](){ swap_atHL();}},  //0xCB36
+	{"SWAP A", 0, [](){ swap_rb(&REG.A);}}, //0xCB37
+	{"SRL B", 0, [](){ srl_rb(&REG.B);}}, //0xCB38
+	{"SRL C", 0, [](){ srl_rb(&REG.C);}}, //0xCB39
+	{"SRL D", 0, [](){ srl_rb(&REG.D);}}, //0xCB3A
+	{"SRL E", 0, [](){ srl_rb(&REG.E);}}, //0xCB3B
+	{"SRL H", 0, [](){ srl_rb(&REG.H);}}, //0xCB3C
+	{"SRL L", 0, [](){ srl_rb(&REG.L);}}, //0xCB3D
+	{"SRL (HL)", 0, [](){ srl_atHL();}},  //0xCB3E
+	{"SRL A", 0, [](){ srl_rb(&REG.A);}}, //0xCB3F
 
 	{"BIT 0, B", 0, [](){ bit_i_rb(BIT_0, &REG.B); }}, //0xCB41
 	{"BIT 0, C", 0, [](){ bit_i_rb(BIT_0, &REG.C);}}, //0xCB42

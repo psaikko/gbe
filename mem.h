@@ -234,6 +234,7 @@ typedef struct {
 		uint8_t *ptr = getWritePtr(addr);
 
 		if (addr == 0xFF00) { // JOYPAD
+			//printf("Write (0x%02X) to JOYP\n", val);
 			*ptr &= 0x0F;
 			if (val == 0x10) {
 				*ptr |= 0x20; 
@@ -249,13 +250,14 @@ typedef struct {
 				// TODO: should we reset lower 4 bits here?
 				*ptr &= 0xF0;
 			} else {
-				fprintf(stdout, "[Warning] Bad write (0x%02X) to JOYP (0x%04X)\n", val, addr);
+				printf("[Warning] Bad write (0x%02X) to JOYP (0x%04X)\n", val, addr);
 			}
 			
 			return;
 		} else if (ptr == OAM_DMA) {
 			// TODO: block memory access
-			assert(val <= 0xF1);
+			//printf("OAM DMA\n");
+			//assert(val <= 0xF1);
 			for (uint8_t low = 0x00; low <= 0xF9; ++low) {
 				RAW[0xFE00 + low] = RAW[(((uint16_t)val) << 8) + low];
 			}
@@ -343,6 +345,3 @@ typedef struct {
 } memory;
 
 memory MEM;
-
-#define ARGBYTE (MEM.readByte(REG.PC + 1))
-#define ARGWORD (MEM.readWord(REG.PC + 1))

@@ -21,7 +21,7 @@ void printRegisters(bool words) {
 						 REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
 	} else {
 		printf("AF %04X BC %04X DE %04X HL %04X SP %04X PC %04X (HL) %02X\n",
-					 REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(REG.HL));
+					 REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.RAW[REG.HL]);
 	}
 }
 
@@ -53,8 +53,8 @@ void readBIOSFile(const string filename) {
 
 int main(int argc, char ** argv) {
 
-	int log_register_bytes = false, 
-			log_register_words = false, 
+	int log_register_bytes = false,
+			log_register_words = false,
 			log_flags = false,
 			log_gpu = false,
 			log_instructions = false,
@@ -292,7 +292,7 @@ int main(int argc, char ** argv) {
 						scanf("%hX %hX", &addr, &len);
 						for (uint16_t i = 0; i < len; ++i) {
 							printf("%02X ", MEM.RAW[addr+i]);
-							if ((i + 1) % 8 == 0) printf("\n");
+							if (((i + 1) % 8 == 0) || (i == len - 1)) printf("\n");
 						}
 						more = true;
 						break;
@@ -308,7 +308,7 @@ int main(int argc, char ** argv) {
 				}
 			}
 		}
-	
+
 		if (!REG.HALT) instr.fn();
 		GPU.update();
 
