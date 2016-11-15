@@ -308,7 +308,7 @@ typedef struct {
   void draw_buffer() {
   	//static long frame = 0;
   	glfwMakeContextCurrent(game_window);
-
+    glfwSwapInterval(0);
   	glClear( GL_COLOR_BUFFER_BIT );
     glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
     glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
@@ -327,7 +327,7 @@ typedef struct {
 
   void draw_tilemap() {
 		glfwMakeContextCurrent(tilemap_window);
-
+    glfwSwapInterval(0);
   	glClear( GL_COLOR_BUFFER_BIT );
     glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
     glDrawPixels(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, GL_RGB, GL_UNSIGNED_BYTE, tilemap_buffer);
@@ -336,7 +336,7 @@ typedef struct {
 
   void draw_tileset() {
 		glfwMakeContextCurrent(tileset_window);
-
+    glfwSwapInterval(0);
   	glClear( GL_COLOR_BUFFER_BIT );
     glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
     glDrawPixels(TILESET_WINDOW_W, TILESET_WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, tileset_buffer);

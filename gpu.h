@@ -1,5 +1,8 @@
 #pragma once
 
+#include <chrono>
+#include <thread>
+
 #include "reg.h"
 #include "mem.h"
 #include "window.h"
@@ -19,6 +22,8 @@
 
 #define STAT_LYC 0x04
 
+using namespace std;
+
 void update_lcd_status(uint8_t mode) {
 	*MEM.LCD_STAT &= ~MODE_MASK;
 	*MEM.LCD_STAT |= mode;
@@ -27,6 +32,7 @@ void update_lcd_status(uint8_t mode) {
 typedef struct {
 
 	uint16_t clk;
+	chrono::time_point<chrono::high_resolution_clock> prev_frame;
 
 	void update() {
 		clk += REG.TCLK;
@@ -51,6 +57,21 @@ typedef struct {
 					if (*MEM.SCAN_LN == 143) {
 						update_lcd_status(MODE_VBLANK);
 						WINDOW.draw_buffer();
+
+						{
+						using namespace std::chrono;
+						auto time = high_resolution_clock::now();
+						auto frame_time = time - prev_frame;
+						long long frame_us = duration_cast<microseconds>(frame_time).count();
+
+						// sleep until 16750 microseconds have passed since previous frame was drawn
+						// (~ 59.7 fps)
+						if (frame_us < 16750) {
+							unsigned sleep_us = 16750 - frame_us;
+							this_thread::sleep_for(microseconds(sleep_us));
+						}
+						prev_frame = high_resolution_clock::now();
+						}
 					} else {
 						update_lcd_status(MODE_OAM);
 					}
