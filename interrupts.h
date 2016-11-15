@@ -16,9 +16,13 @@
 
 void handle_interrupts() {
 	uint8_t trigger = *MEM.IE & *MEM.IF;
-	if (REG.IME && trigger) {
-		REG.HALT = 0;
+	if ((REG.IME || REG.HALT) && trigger) {
+		if (REG.HALT) {
+			REG.HALT = 0;
+			return;
+		}
 		REG.IME = 0;
+		//printf("[interrupt] %02X\n", trigger);
 		if (trigger & FLAG_IF_VBLANK) {
 			*MEM.IF ^= FLAG_IF_VBLANK;
 			rsti(ISR_VBLANK);
