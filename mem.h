@@ -69,6 +69,10 @@ typedef struct {
 	uint8_t BIOS[256];	 
 
 	uint8_t *IE       = &RAW[0xFFFF];
+	uint8_t *DIV      = &RAW[0xFF04];
+	uint8_t *TIMA     = &RAW[0xFF05];
+	uint8_t *TMA      = &RAW[0xFF06];
+	uint8_t *TAC      = &RAW[0xFF07];
 	uint8_t *IF       = &RAW[0xFF0F];
 	uint8_t *LCD_CTRL = &RAW[0xFF40];
 	uint8_t *LCD_STAT = &RAW[0xFF41];
@@ -232,9 +236,13 @@ typedef struct {
 		if (break_addr == addr) at_breakpoint = true;
 
 		uint8_t *ptr = getWritePtr(addr);
-
+/*
+		if (addr >= 0xFF04 && addr <= 0xFF07) {
+			printf("[timer] 0x%04X write 0x%02X\n", addr, val);
+		}
+*/
 		if (addr == 0xFF00) { // JOYPAD
-			//printf("Write (0x%02X) to JOYP\n", val);
+			//printf("[joypad] write (0x%02X)\n", val);
 			*ptr &= 0x0F;
 			if (val == 0x10) {
 				*ptr |= 0x20; 
@@ -264,6 +272,7 @@ typedef struct {
 		} else if (addr == 0xFF04) {
 			// divider register reset on write
 			*ptr = 0;
+			return;
 		}
 
 		switch (bank_controller) {
