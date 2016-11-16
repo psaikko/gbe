@@ -237,11 +237,12 @@ void add_SP_e() {
 	uint8_t n = ARGBYTE;
 	int8_t e = *reinterpret_cast<uint8_t*>(&n);
 
+	uint8_t lb = REG.SP & 0x00FF;
+
+	set_flag_cond(FLAG_C, (0xFF - lb) < n);
+	set_flag_cond(FLAG_H, ((lb & 0x0F) + (n & 0x0F)) & 0x10);
 	REG.SP += e;
 
-	// TODO: fix H, C flags
-	set_flag_cond(FLAG_H, 0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
-	set_flag_cond(FLAG_C, 0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
 	unset_flag(FLAG_Z | FLAG_N);
 
 	REG.PC += 2;
