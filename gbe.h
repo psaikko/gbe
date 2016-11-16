@@ -384,7 +384,7 @@ void dec_rw(uint16_t * ptr) {
 
 void add_hl_rw(uint16_t * ptr) {
 	set_flag_cond(FLAG_C, 0xFFFF - REG.HL < *ptr);
-	set_flag_cond(FLAG_H, (0x00FF - (REG.HL & 0x00FF))  > (*ptr & 0x00FF));
+	set_flag_cond(FLAG_H, ((REG.HL & 0x0FFF) + (*ptr & 0x0FFF)) & 0x1000);
 	REG.HL += *ptr;
 	unset_flag(FLAG_N);
 	REG.PC += 1;
