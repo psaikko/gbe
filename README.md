@@ -6,22 +6,14 @@ make
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
 
-Currently implemented
----
-- Most CPU instructions
-- Tile rendering
-- Tilemap & tileset display
-- Some interactive debugging
-- Most interrupts
-- Timers
-- Basic sprite handling
-
 TODOs
 ---
-- Some interrupts
-- Sprite rotation & priority
+- Joypad, Serial port interrupts
 - Sound
 - Savestates
 - Usable UI
-- Memory mappers
+- Display scaling
+- Sprite display limits
+- Intra-scanline timing
+- Some memory bank controllers
 - ... and more
