@@ -561,6 +561,18 @@ void pop_AF() {
 // ext block
 
 // rotate right
+void rrca() {
+	bool carry = REG.A & BIT_0;
+	set_flag_cond(FLAG_C, carry);
+	REG.A >>= 1;
+	if (carry) REG.A |= BIT_7;
+
+	unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+
+	REG.TCLK = 4;
+	REG.PC += 1;
+}
+
 void rrc_rb(uint8_t * at) {
 	bool carry = *at & BIT_0;
 	set_flag_cond(FLAG_C, carry);
@@ -590,6 +602,18 @@ void rrc_atHL() {
 }
 
 // rotate left
+void rlca() {
+	bool carry = REG.A & BIT_7;
+	set_flag_cond(FLAG_C, carry);
+	REG.A <<= 1;
+	if (carry) REG.A |= BIT_0;
+
+	unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+
+	REG.TCLK = 4;
+	REG.PC += 1;
+}
+
 void rlc_rb(uint8_t * at) {
 	bool carry = *at & BIT_7;
 	set_flag_cond(FLAG_C, carry);
@@ -619,6 +643,19 @@ void rlc_atHL() {
 }
 
 // rotate right (through carry flag)
+void rra() {
+	bool carry = get_flag(FLAG_C);
+	set_flag_cond(FLAG_C, REG.A & BIT_0);
+	REG.A >>= 1;
+	if (carry) REG.A |= BIT_7;
+
+	unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+
+
+	REG.TCLK = 4;
+	REG.PC += 1;
+}
+
 void rr_rb(uint8_t * at) {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, *at & BIT_0);
@@ -648,6 +685,18 @@ void rr_atHL() {
 }
 
 // rotate left (through carry flag)
+void rla() {
+	bool carry = get_flag(FLAG_C);
+	set_flag_cond(FLAG_C, REG.A & BIT_7);
+	REG.A <<= 1;
+	if (carry) REG.A |= BIT_0;
+
+	unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+
+	REG.TCLK = 4;
+	REG.PC += 1;
+}
+
 void rl_rb(uint8_t * at) {
 	bool carry = get_flag(FLAG_C);
 	set_flag_cond(FLAG_C, *at & BIT_7);
@@ -1031,7 +1080,7 @@ void halt() {
 }
 
 void daa() {
-	
+
 	int a = REG.A;
 
   if (!get_flag(FLAG_N)) {
@@ -1370,7 +1419,7 @@ instruction instructions[256] = {
 	{"INC B", 0, [](){ inc_rb(&REG.B); }},          // 0x04
 	{"DEC B", 0, [](){ dec_rb(&REG.B); }},          // 0x05
 	{"LD B, 0x%02X", 1, [](){ ld_rb_n(&REG.B); }},   // 0x06
-	{"RLC A", 0, [](){ rlc_rb(&REG.A); }},          // 0x07
+	{"RLCA", 0, [](){ rlca(); }},          // 0x07
 	{"LD (0x%04X), SP", 2, [](){ ld_atnn_SP(); }},// 0x08
 	{"ADD HL, BC", 0, [](){ add_hl_rw(&REG.BC); }},     // 0x09
 	{"LD A, (BC)", 0, [](){ ld_A_atrw(&REG.BC); }},     // 0x0A
@@ -1378,7 +1427,7 @@ instruction instructions[256] = {
 	{"INC C", 0, [](){ inc_rb(&REG.C); }},          // 0x0C
 	{"DEC C", 0, [](){ dec_rb(&REG.C); }},          // 0x0D
 	{"LD C, 0x%02X", 1, [](){ ld_rb_n(&REG.C); }},   // 0x0E
-	{"RRC A", 0, [](){ rrc_rb(&REG.A); }},          // 0x0F
+	{"RRCA", 0, [](){ rrca(); }},          // 0x0F
 
 	{"STOP", 0, TODO },           // 0x10
 	{"LD DE, 0x%04X", 2, [](){ ld_rw_nn(&REG.DE); }},  // 0x11
@@ -1387,7 +1436,7 @@ instruction instructions[256] = {
 	{"INC D", 0, [](){ inc_rb(&REG.D); }},          // 0x14
 	{"DEC D", 0, [](){ dec_rb(&REG.D); }},          // 0x15
 	{"LD D, 0x%02X", 1, [](){ ld_rb_n(&REG.D); }},   // 0x16
-	{"RL A", 0, [](){ rl_rb(&REG.A); }},           // 0x17
+	{"RLA", 0, [](){ rla(); }},           // 0x17
 	{"JR 0x%02X", 1, [](){ jr_e(); }},      // 0x18
 	{"ADD HL, DE", 0, [](){ add_hl_rw(&REG.DE); }},     // 0x19
 	{"LD A, (DE)", 0, [](){ ld_A_atrw(&REG.DE); }},     // 0x1A
@@ -1395,7 +1444,7 @@ instruction instructions[256] = {
 	{"INC E", 0, [](){ inc_rb(&REG.E); }},          // 0x1C
 	{"DEC E", 0, [](){ dec_rb(&REG.E); }},          // 0x1D
 	{"LD E, 0x%02X", 1, [](){ ld_rb_n(&REG.E); }},   // 0x1E
-	{"RR A", 0, [](){ rr_rb(&REG.A); }},           // 0x1F
+	{"RRA", 0, [](){ rra(); }},           // 0x1F
 
 	{"JR NZ, 0x%02X", 1, [](){ jr_nf_e(FLAG_Z); }},       // 0x20
 	{"LD HL, 0x%04X", 2, [](){ ld_rw_nn(&REG.HL); }},  // 0x21
