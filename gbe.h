@@ -1670,7 +1670,7 @@ instruction instructions[256] = {
 
 	{"LDH A, (0x%02X)", 1, [](){ ldh_A_atn(); }},         // 0xF0
 	{"POP AF", 0, [](){ pop_AF(); }},         // 0xF1
-	{"XX", 0, TODO},  // 0xF2
+	{"LDH A, (C)", 0, [](){ ldh_A_atC(); }},  // 0xF2
 	{"DI", 0, [](){ di(); }},      // 0xF3
 	{"XX", 0, TODO},// 0xF4
 	{"PUSH AF", 0, [](){ push_rw(&REG.AF); }},        // 0xF5
