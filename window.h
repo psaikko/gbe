@@ -74,6 +74,8 @@ typedef struct {
 
     uint8_t lcd_y = *MEM.SCAN_LN;
 
+    // TODO: draw bg, window, sprites in single loop
+
     if (*MEM.LCD_CTRL & FLAG_GPU_BG) {
     	uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 

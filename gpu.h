@@ -33,6 +33,7 @@ typedef struct {
 
 	uint16_t clk;
 	chrono::time_point<chrono::high_resolution_clock> prev_frame;
+	bool unlocked_frame_rate;
 
 	void update() {
 		clk += REG.TCLK;
@@ -66,10 +67,11 @@ typedef struct {
 
 						// sleep until 16750 microseconds have passed since previous frame was drawn
 						// (~ 59.7 fps)
-						if (frame_us < 16750) {
+						if (frame_us < 16750 && !unlocked_frame_rate) {
 							unsigned sleep_us = 16750 - frame_us;
 							this_thread::sleep_for(microseconds(sleep_us));
 						}
+						printf("frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
 						prev_frame = high_resolution_clock::now();
 						}
 					} else {

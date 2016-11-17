@@ -80,6 +80,7 @@ int main(int argc, char ** argv) {
 
           {"instructions", no_argument, 0, 'i'},
           {"flags", no_argument, 0, 'f'},
+          {"unlockfps", no_argument, 0, 'u'},
           {"bios", required_argument, 0, 'B'},
           {"rom", required_argument, 0, 'R'},
           {"breakpoint", required_argument, 0, 'b'},
@@ -89,7 +90,7 @@ int main(int argc, char ** argv) {
         };
 
       int option_index = 0;
-      c = getopt_long (argc, argv, "s:b:ifB:R:M:", long_options, &option_index);
+      c = getopt_long (argc, argv, "s:b:ifuB:R:M:", long_options, &option_index);
 
       /* Detect the end of the options. */
       if (c == -1) break;
@@ -131,6 +132,10 @@ int main(int argc, char ** argv) {
 
         case 'i':
         	log_instructions = true;
+        	break;
+
+        case 'u':
+        	GPU.unlocked_frame_rate = true;
         	break;
 
         case '?':
@@ -308,7 +313,7 @@ int main(int argc, char ** argv) {
 				}
 			}
 		}
-
+	
 		if (!REG.HALT) instr.fn();
 		GPU.update();
 
