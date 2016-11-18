@@ -21,7 +21,7 @@ typedef struct {
 		transfer_bit = 0;
 		clock = 0;
 		*MEM.SC &= ~START;
-		*MEM.IF |= SERIAL_INT;
+		//*MEM.IF |= SERIAL_INT;
 
 		// log transfer
 		// printf("[serial] 0x%02X\n", *MEM.SB);
@@ -34,32 +34,32 @@ typedef struct {
 	void update(unsigned tclocks) {
 		if (*MEM.SC & START) {
 
-			clock += tclocks;
-
 			if ((*MEM.SC & SPEED) != 0) {
 				printf("[warning] cgb mode fast transfer not implemented\n");
 			}
-			if ((*MEM.SC & CLOCK) == 0) {
-				printf("[error] serial transfer external clock unavailable\n");
+			if ((*MEM.SC & CLOCK) == 1) {
+				
+				clock += tclocks;
+
+				// tclock runs at 4,194,304 Hz
+				// DMG transfer 8,192 Hz
+				// transfer one bit every 512 tclocks
+
+				if (clock >= 512) {
+					clock -= 512;
+
+					transfer();
+
+					if (transfer_bit == 8) {
+						finish();
+					}
+				}	
+			} else {
+				// serial port unimplemented
 			}
-
-			// tclock runs at 4,194,304 Hz
-			// DMG transfer 8,192 Hz
-			// transfer one bit every 512 tclocks
-
-			if (clock >= 512) {
-				clock -= 512;
-
-				transfer();
-
-				if (transfer_bit == 8) {
-					finish();
-				}
-			}
-
 		}
 	}
 
 } serial_port_interface;
 
-serial_port_interface SERIAL;
+serial_port_interface SERIAL;	
