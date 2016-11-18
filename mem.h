@@ -68,7 +68,8 @@ typedef struct {
 
 	uint8_t BIOS[256];	 
 
-	uint8_t *IE       = &RAW[0xFFFF];
+	uint8_t *SB       = &RAW[0xFF01];
+	uint8_t *SC       = &RAW[0xFF02];
 	uint8_t *DIV      = &RAW[0xFF04];
 	uint8_t *TIMA     = &RAW[0xFF05];
 	uint8_t *TMA      = &RAW[0xFF06];
@@ -87,6 +88,7 @@ typedef struct {
 	uint8_t *WIN_Y    = &RAW[0xFF4A];
 	uint8_t *WIN_X    = &RAW[0xFF4B];
 	uint8_t *BIOS_OFF = &RAW[0xFF50];
+	uint8_t *IE       = &RAW[0xFFFF];
 
 	uint8_t *TILESET1 = &RAW[0x8000];
 	uint8_t *TILESET0 = &RAW[0x8800];

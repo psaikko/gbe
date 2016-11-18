@@ -12,6 +12,7 @@
 #include "window.h"
 #include "interrupts.h"
 #include "timer.h"
+#include "serial.h"
 
 using namespace std;
 
@@ -319,11 +320,13 @@ int main(int argc, char ** argv) {
 		else REG.TCLK = 4;
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
+		SERIAL.update(REG.TCLK);
 
 		REG.TCLK = 0;
 		handle_interrupts();
 
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
+		SERIAL.update(REG.TCLK);
 	}
 }

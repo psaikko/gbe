@@ -70,7 +70,7 @@ typedef struct {
 							unsigned sleep_us = 16750 - frame_us;
 							this_thread::sleep_for(microseconds(sleep_us));
 						}
-						printf("frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
+						//printf("frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
 						prev_frame = high_resolution_clock::now();
 						}
 					} else {
