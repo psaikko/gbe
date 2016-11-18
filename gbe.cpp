@@ -316,8 +316,13 @@ int main(int argc, char ** argv) {
 			}
 		}
 	
-		if (!REG.HALT) instr.fn();
-		else REG.TCLK = 4;
+		if (!REG.HALT) {
+			REG.PC += 1;
+			instr.fn();
+		} else {
+			REG.TCLK = 4;
+		}
+
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
