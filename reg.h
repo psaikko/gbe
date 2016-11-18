@@ -15,43 +15,36 @@
 #define BIT_7 0x80
 
 typedef struct {
-	struct {
-		union {
-			uint16_t AF;
-			struct {
-				uint8_t F;
-				uint8_t A;
-			};
+
+	union {
+		uint16_t AF;
+		struct {
+			uint8_t F;
+			uint8_t A;
 		};
 	};
 
-	struct {
-		union {
-			uint16_t BC;
-			struct {
-				uint8_t C;
-				uint8_t B;
-			};
+	union {
+		uint16_t BC;
+		struct {
+			uint8_t C;
+			uint8_t B;
 		};
 	};
 
-	struct {
-		union {
-			uint16_t DE;
-			struct {
-				uint8_t E;
-				uint8_t D;
-			};
+	union {
+		uint16_t DE;
+		struct {
+			uint8_t E;
+			uint8_t D;
 		};
 	};
 
-	struct {
-		union {
-			uint16_t HL;
-			struct {
-				uint8_t L;
-				uint8_t H;
-			};
+	union {
+		uint16_t HL;
+		struct {
+			uint8_t L;
+			uint8_t H;
 		};
 	};
 
