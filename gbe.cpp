@@ -219,21 +219,22 @@ int main(int argc, char ** argv) {
 		uint8_t opcode = MEM.readByte(REG.PC);
 		instruction instr = instructions[opcode];
 
-		if (log_register_bytes) printRegisters(false);
-		if (log_register_words) printRegisters(true);
-		if (log_flags) {
-			printf("Z %1d N %1d H %1d C %1d\n",
-							get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
-			printf("LCD_CTRL %02X LCD_STAT %02x SCAN_LN %02X PLT %02X BIOS_OFF %1X\n",
-							*MEM.LCD_CTRL, *MEM.LCD_STAT, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
-			printf("IME %X IE %02X IF %02X ROM%d RAM%d\n", REG.IME, *MEM.IE, *MEM.IF, MEM.rom_bank, MEM.ram_bank);
-		}
-		if (log_gpu) {
-			printf("GPU CLK: 0x%04X LINE: 0x%02X\n", 
-						  GPU.clk, *MEM.SCAN_LN);
-		}
+		if (!REG.HALT) {
+			if (log_register_bytes) printRegisters(false);
+			if (log_register_words) printRegisters(true);
+			if (log_flags) {
+				printf("Z %1d N %1d H %1d C %1d\n",
+								get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
+				printf("LCD_CTRL %02X LCD_STAT %02x SCAN_LN %02X PLT %02X BIOS_OFF %1X\n",
+								*MEM.LCD_CTRL, *MEM.LCD_STAT, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
+				printf("IME %X IE %02X IF %02X ROM%d RAM%d\n", REG.IME, *MEM.IE, *MEM.IF, MEM.rom_bank, MEM.ram_bank);
+			}
+			if (log_gpu) {
+				printf("GPU CLK: 0x%04X LINE: 0x%02X\n", GPU.clk, *MEM.SCAN_LN);
+			}
 
-		if (log_instructions) printInstruction();
+			if (log_instructions) printInstruction();
+		}
 
 		if (stepping || is_breakpoint) {
 			WINDOW.draw_buffer();
