@@ -29,8 +29,8 @@ typedef struct {
 	}
 
 	void update() {
+
 		div_clock += REG.TCLK;
-		m_clock += REG.TCLK / 4;
 
 		if (div_clock >= 256) {
 			(*MEM.DIV)++;
@@ -38,6 +38,8 @@ typedef struct {
 		}
 
 		if (*MEM.TAC & TIMER_CTRL_RUN) {
+			m_clock += REG.TCLK / 4;
+
 			switch (*MEM.TAC & TIMER_CTRL_SPD) {
 				case TICK_262144_HZ:
 					if (m_clock >= 4) {
@@ -63,7 +65,9 @@ typedef struct {
 						m_clock -= 256;
 					}
 					break;
-			}
+				}
+		} else {
+			m_clock = 0;
 		}
 }
 	
