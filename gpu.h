@@ -3,7 +3,6 @@
 #include <chrono>
 #include <thread>
 
-#include "reg.h"
 #include "mem.h"
 #include "window.h"
 #include "interrupts.h"
@@ -35,8 +34,8 @@ typedef struct {
 	chrono::time_point<chrono::high_resolution_clock> prev_frame;
 	bool unlocked_frame_rate;
 
-	void update() {
-		clk += REG.TCLK;
+	void update(unsigned tclock) {
+		clk += tclock;
 		switch (*MEM.LCD_STAT & MODE_MASK) {
 			case (MODE_OAM):
 				if (clk >= 80) {

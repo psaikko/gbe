@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mem.h"
-#include "reg.h"
 
 // TCLK ticks at 4,194,304Hz
 // MCLK ticks at 1,048,576
@@ -28,39 +27,38 @@ typedef struct {
 		}
 	}
 
-	void update() {
+	void update(unsigned tclock) {
 
-		div_clock += REG.TCLK;
-
+		div_clock += tclock;
 		if (div_clock >= 256) {
 			(*MEM.DIV)++;
 			div_clock -= 256;	
 		}
 
 		if (*MEM.TAC & TIMER_CTRL_RUN) {
-			m_clock += REG.TCLK / 4;
+			m_clock += tclock / 4;
 
 			switch (*MEM.TAC & TIMER_CTRL_SPD) {
 				case TICK_262144_HZ:
-					if (m_clock >= 4) {
+					while (m_clock >= 4) {
 						tick();
 						m_clock -= 4;
 					}
 					break;
 				case TICK_65536_HZ:
-					if (m_clock >= 16) {
+					while (m_clock >= 16) {
 						tick();
 						m_clock -= 16;
 					}
 					break;
 				case TICK_16384_HZ:
-					if (m_clock >= 64) {
+					while (m_clock >= 64) {
 						tick();
 						m_clock -= 64;
 					}
 					break;
 				case TICK_4096_HZ:
-					if (m_clock >= 256) {
+					while (m_clock >= 256) {
 						tick();
 						m_clock -= 256;
 					}

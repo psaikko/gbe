@@ -316,11 +316,14 @@ int main(int argc, char ** argv) {
 		}
 	
 		if (!REG.HALT) instr.fn();
-		GPU.update();
+		else REG.TCLK = 4;
+		GPU.update(REG.TCLK);
+		TIMER.update(REG.TCLK);
 
-		TIMER.update();
-
+		REG.TCLK = 0;
 		handle_interrupts();
 
+		GPU.update(REG.TCLK);
+		TIMER.update(REG.TCLK);
 	}
 }
