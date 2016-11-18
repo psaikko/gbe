@@ -82,17 +82,18 @@ typedef struct {
     	uint8_t scrl_x = *MEM.SCRL_X;
     	uint8_t scrl_y = *MEM.SCRL_Y;
 
-    	uint8_t map_pixel_y = lcd_y + scrl_y;
-    	uint8_t map_tile_y  = map_pixel_y / TILE_H;
-    	uint8_t bg_tile_y   = map_pixel_y % TILE_H;
-    	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
-    		uint8_t map_pixel_x = lcd_x + scrl_x;
-    		uint8_t map_tile_x  = map_pixel_x / TILE_W;
-    		uint8_t bg_tile_x   = map_pixel_x % TILE_W;
+    	uint8_t bg_map_pixel_y = lcd_y + scrl_y;
+    	uint8_t bg_map_tile_y  = bg_map_pixel_y / TILE_H;
+    	uint8_t bg_tile_y   = bg_map_pixel_y % TILE_H;
 
-    		// get pixel (tile_x, tile_y) from map tile (map_tile_x, map_tile_y)
-    		// and draw it to (lcd_x, lcd_y)
-    		uint8_t tile_id = BG_MAP[map_tile_x + map_tile_y * TILEMAP_H];
+    	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
+    		uint8_t bg_map_pixel_x = lcd_x + scrl_x;
+    		uint8_t bg_map_tile_x  = bg_map_pixel_x / TILE_W;
+    		uint8_t bg_tile_x      = bg_map_pixel_x % TILE_W;
+
+    		// get pixel (tile_x, tile_y) from map tile (bg_map_tile_x, bg_map_tile_y)
+  		  // and draw it to (lcd_x, lcd_y)
+    		uint8_t tile_id = BG_MAP[bg_map_tile_x + bg_map_tile_y * TILEMAP_H];
 
     		uint8_t *bg_tile;
   			if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
@@ -117,13 +118,13 @@ typedef struct {
       int map_tile_y  = map_pixel_y / TILE_H;
       int win_tile_y  = map_pixel_y % TILE_H;
 
-      if (map_pixel_y > 0) {
+      if (map_pixel_y >= 0) {
         for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; lcd_x++) {
           int map_pixel_x = lcd_x - window_x;
           int map_tile_x  = map_pixel_x / TILE_W;
           int win_tile_x  = map_pixel_x % TILE_H;
 
-          if (map_pixel_x > 0) {
+          if (map_pixel_x >= 0) {
             uint8_t tile_id = WIN_MAP[map_tile_x + map_tile_y * TILEMAP_H];
 
             uint8_t *win_tile;

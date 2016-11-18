@@ -54,7 +54,7 @@ typedef struct {
 				if (clk >= 204) {
 					clk = 0;
 					*MEM.SCAN_LN += 1;
-					if (*MEM.SCAN_LN == 143) {
+					if (*MEM.SCAN_LN == 144) {
 						update_lcd_status(MODE_VBLANK);
 						WINDOW.draw_buffer();
 
@@ -81,7 +81,7 @@ typedef struct {
 			case (MODE_VBLANK):
 				if (clk >= 456) {
 					clk = 0;
-					if (*MEM.SCAN_LN == 143)
+					if (*MEM.SCAN_LN == 144)
 						*MEM.IF |= FLAG_IF_VBLANK;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 153) {
