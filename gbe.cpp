@@ -6,17 +6,18 @@
 #include <iostream>
 #include <fstream>
 
-#include "gbe.h"
+#include "cpu.h"
 #include "gpu.h"
 #include "rom.h"
 #include "window.h"
-#include "interrupts.h"
 #include "timer.h"
 #include "serial.h"
+#include "mem.h"
+#include "reg.h"
 
 using namespace std;
 
-void printRegisters(bool words) {
+void printRegisters(Memory &MEM, Registers &REG, bool words) {
 	if (!words) {
 		printf("A %02X F %02X B %02X C %02X D %02X E %02X H %02X L %02X\n",
 						 REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
@@ -26,9 +27,9 @@ void printRegisters(bool words) {
 	}
 }
 
-void printInstruction() {
+void printInstruction(Memory &MEM, Registers &REG, Cpu &CPU) {
 	uint8_t opcode = MEM.readByte(REG.PC);
-	instruction instr = instructions[opcode];
+	Cpu::Instruction instr = CPU.instructions[opcode];
 	printf("Instruction 0x%02X at 0x%04X: ", opcode, REG.PC);
 	if (instr.argw == 0)
 		printf(instr.name);
@@ -41,12 +42,12 @@ void printInstruction() {
 	if (opcode == 0xCB) {
 		uint8_t ext_opcode = MEM.readByte(REG.PC+1);
 		printf("        Ext 0x%02X at 0x%04X: ", ext_opcode, REG.PC+1);
-		printf(ext_instructions[MEM.readByte(REG.PC+1)].name);
+		printf(CPU.ext_instructions[MEM.readByte(REG.PC+1)].name);
 		printf("\n");
 	}
 }
 
-void readBIOSFile(const string filename) {
+void readBIOSFile(Memory &MEM, const string filename) {
 	ifstream biosfile(filename, ios::binary);
 	biosfile.read((char *)MEM.BIOS, 256);
 	biosfile.close();
@@ -63,13 +64,16 @@ int main(int argc, char ** argv) {
 			mem_breakpoint = false,
 			stepping = false,
 			load_bios = false,
-			load_rom = false;
+			load_rom = false,
+			unlocked_frame_rate = false;
 
 	string romfile, biosfile;
 
   uint16_t breakpoint_addr = 0;
 
   int c;
+
+  Memory MEM;
 
   while (1)
     {
@@ -93,12 +97,12 @@ int main(int argc, char ** argv) {
       int option_index = 0;
       c = getopt_long (argc, argv, "s:b:ifuB:R:M:", long_options, &option_index);
 
-      /* Detect the end of the options. */
+      // Detect the end of the options. 
       if (c == -1) break;
 
       switch (c) {
         case 0:
-          /* If this option set a flag, do nothing else now. */
+          // If this option set a flag, do nothing else now. 
           if (long_options[option_index].flag != 0) break;
           printf ("option %s", long_options[option_index].name);
           if (optarg) printf (" with arg %s", optarg);
@@ -136,11 +140,11 @@ int main(int argc, char ** argv) {
         	break;
 
         case 'u':
-        	GPU.unlocked_frame_rate = true;
+        	unlocked_frame_rate = true;
         	break;
 
         case '?':
-          /* getopt_long already printed an error message. */
+          // getopt_long already printed an error message.
           break;
 
         default:
@@ -154,8 +158,17 @@ int main(int argc, char ** argv) {
     fprintf(stderr, "\n");
   }
 
+  Registers REG;
+  
+  Window WINDOW(MEM);
+  Timer TIMER(MEM);
+
+  Gpu GPU(MEM, WINDOW, unlocked_frame_rate);
+  Cpu CPU(MEM, REG);
+  SerialPortInterface SERIAL(MEM);
+
   if (load_bios) {
-  	readBIOSFile(biosfile);
+  	readBIOSFile(MEM, biosfile);
   } else {
   	REG.AF = 0x01B0;
   	REG.BC = 0x0013;
@@ -167,42 +180,42 @@ int main(int argc, char ** argv) {
   }
 
   if (load_rom) {
-		readROMFile(romfile);  	
+		readROMFile(MEM, romfile);  	
   } else if (!load_bios) {
   	printf("No rom (-R) or bios (-B) loaded. Exiting.\n");
   	exit(0);
   }
 
-  MEM.mbc_mode = memory::controller_mode::ROM_banking;
+  MEM.mbc_mode = Memory::controller_mode::ROM_banking;
 	WINDOW.init();
 
 	while (1) {
 
 		glfwPollEvents();
-		key_state = 0;
+		MEM.key_state = 0;
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-      key_state |= KEY_LEFT;
+      MEM.key_state |= KEY_LEFT;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-      key_state |= KEY_RIGHT;
+      MEM.key_state |= KEY_RIGHT;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_UP) == GLFW_PRESS) {
-      key_state |= KEY_UP;
+      MEM.key_state |= KEY_UP;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-      key_state |= KEY_DOWN;
+      MEM.key_state |= KEY_DOWN;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_Z) == GLFW_PRESS) {
-    	key_state |= KEY_A;
+    	MEM.key_state |= KEY_A;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_X) == GLFW_PRESS) {
-    	key_state |= KEY_B;
+    	MEM.key_state |= KEY_B;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_C) == GLFW_PRESS) {
-    	key_state |= KEY_START;
+    	MEM.key_state |= KEY_START;
     }
     if (glfwGetKey(WINDOW.game_window, GLFW_KEY_V) == GLFW_PRESS) {
-    	key_state |= KEY_SELECT;
+    	MEM.key_state |= KEY_SELECT;
     }
 
     // Check if the ESC key was pressed or the window was closed
@@ -218,14 +231,14 @@ int main(int argc, char ** argv) {
 		MEM.at_breakpoint = false;
 		
 		uint8_t opcode = MEM.readByte(REG.PC);
-		instruction instr = instructions[opcode];
+		Cpu::Instruction instr = CPU.instructions[opcode];
 
 		if (!REG.HALT) {
-			if (log_register_bytes) printRegisters(false);
-			if (log_register_words) printRegisters(true);
+			if (log_register_bytes) printRegisters(MEM, REG, false);
+			if (log_register_words) printRegisters(MEM, REG, true);
 			if (log_flags) {
 				printf("Z %1d N %1d H %1d C %1d\n",
-								get_flag(FLAG_Z), get_flag(FLAG_N), get_flag(FLAG_H), get_flag(FLAG_C));
+								REG.get_flag(FLAG_Z), REG.get_flag(FLAG_N), REG.get_flag(FLAG_H), REG.get_flag(FLAG_C));
 				printf("LCD_CTRL %02X LCD_STAT %02x SCAN_LN %02X PLT %02X BIOS_OFF %1X\n",
 								*MEM.LCD_CTRL, *MEM.LCD_STAT, *MEM.SCAN_LN, *MEM.BG_PLT, *MEM.BIOS_OFF);
 				printf("IME %X IE %02X IF %02X ROM%d RAM%d\n", REG.IME, *MEM.IE, *MEM.IF, MEM.rom_bank, MEM.ram_bank);
@@ -234,7 +247,7 @@ int main(int argc, char ** argv) {
 				printf("GPU CLK: 0x%04X LINE: 0x%02X\n", GPU.clk, *MEM.SCAN_LN);
 			}
 
-			if (log_instructions) printInstruction();
+			if (log_instructions) printInstruction(MEM, REG, CPU);
 		}
 
 		if (stepping || is_breakpoint) {
@@ -259,8 +272,8 @@ int main(int argc, char ** argv) {
 						break;
 					case 'I':
 						// display current state
-						printRegisters(true);
-						printInstruction();
+						printRegisters(MEM, REG, true);
+						printInstruction(MEM, REG, CPU);
 						more = true;
 						break;
 					case 's':
@@ -318,7 +331,7 @@ int main(int argc, char ** argv) {
 	
 		if (!REG.HALT) {
 			REG.PC += 1;
-			instr.fn();
+			instr.fn(CPU);
 		} else {
 			REG.TCLK = 4;
 		}
@@ -328,10 +341,11 @@ int main(int argc, char ** argv) {
 		SERIAL.update(REG.TCLK);
 
 		REG.TCLK = 0;
-		handle_interrupts();
+		CPU.handle_interrupts();
 
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
 	}
+
 }

@@ -14,8 +14,8 @@
 #define BIT_6 0x40
 #define BIT_7 0x80
 
-typedef struct {
-
+class Registers {
+public:
 	union {
 		uint16_t AF;
 		struct {
@@ -54,23 +54,22 @@ typedef struct {
 	bool IME;
 
 	bool HALT;
-} registers;
 
-registers REG;
+	void set_flag(uint8_t flag) {
+		F |= flag;
+	}
 
-void set_flag(uint8_t flag) {
-	REG.F |= flag;
-}
+	void set_flag_cond(uint8_t flag, bool on) {
+		if (on) F |= flag;
+		else    F &= ~flag;
+	}
 
-void set_flag_cond(uint8_t flag, bool on) {
-	if (on) REG.F |= flag;
-	else    REG.F &= ~flag;
-}
+	void unset_flag(uint8_t flag) {
+		F &= ~flag;
+	}
 
-void unset_flag(uint8_t flag) {
-	REG.F &= ~flag;
-}
+	bool get_flag(uint8_t flag) {
+		return F & flag;
+	}
 
-bool get_flag(uint8_t flag) {
-	return REG.F & flag;
-}
+};

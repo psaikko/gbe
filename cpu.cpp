@@ -1,20 +1,23 @@
-#pragma once
-#include "reg.h"
+#include "cpu.h"
 #include "mem.h"
 
-#define ISR_VBLANK 0x0040
-#define ISR_LCD    0x0048
-#define ISR_TIMER  0x0050
-#define ISR_SERIAL 0x0058
-#define ISR_JOYPAD 0x0060
+uint8_t Cpu::readByte(uint16_t addr) {
+	return MEM.readByte(addr);
+}
 
-#define FLAG_IF_VBLANK 0x01
-#define FLAG_IF_LCD    0x02
-#define FLAG_IF_TIMER  0x04
-#define FLAG_IF_SERIAL 0x08
-#define FLAG_IF_JOYPAD 0x10
+uint16_t Cpu::readWord(uint16_t addr) {
+	return MEM.readWord(addr);
+}
 
-void handle_interrupts() {
+void Cpu::writeByte(uint16_t addr, uint8_t val) {
+	MEM.writeByte(addr, val);
+}
+
+void Cpu::writeWord(uint16_t addr, uint16_t val) {
+	MEM.writeWord(addr, val);
+}
+
+void Cpu::handle_interrupts() {
 	uint8_t trigger = *MEM.IE & *MEM.IF;
 	if ((REG.IME || REG.HALT) && trigger) {
 		REG.HALT = 0;

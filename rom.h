@@ -3,22 +3,28 @@
 #include "mem.h"
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <map>
 
 using namespace std;
 
-void readROMFile(const string filename) {
+void readROMFile(Memory &MEM, const string filename) {
 
 		ifstream romfile(filename, ios::binary);
-		romfile.read(MEM.ROM_BANKS, 8388608);
-		MEM.rom_size = romfile.gcount();
+		romfile.seekg(0, romfile.end);
+		MEM.rom_size = romfile.tellg();
+		romfile.seekg(0, romfile.beg);
+		MEM.ROM_BANKS = (uint8_t*)malloc(MEM.rom_size);
+		printf("%u\n", MEM.rom_size);
+		romfile.read((char*)MEM.ROM_BANKS, MEM.rom_size);
+		printf("%02X\n", MEM.ROM_BANKS[0x100]);
+		printf("%02X\n", MEM.ROM_BANKS[0x101]);
 		romfile.close();
 
 		// load lower 16K
 		memcpy(MEM.ROM0, MEM.ROM_BANKS, 0x4000);
 		// load bank 1 to upper 16K
 		MEM.loadROMBank(1);
-		MEM.loadRAMBank(0);
 
   	// cart data reference http://www.devrs.com/gb/files/gbspec.txt
 
@@ -71,23 +77,23 @@ void readROMFile(const string filename) {
 		switch (type) {
 			default:
 			case 0x00:
-				MEM.bank_controller = memory::mbc_type::NONE;
+				MEM.bank_controller = Memory::mbc_type::NONE;
 				break;
 			case 0x01:
 			case 0x02:
 			case 0x03:
-				MEM.bank_controller = memory::mbc_type::MBC1;
+				MEM.bank_controller = Memory::mbc_type::MBC1;
 				break;
 			case 0x05:
 			case 0x06:
-				MEM.bank_controller = memory::mbc_type::MBC2;
+				MEM.bank_controller = Memory::mbc_type::MBC2;
 				break;			
 			case 0x0F:
 			case 0x10:
 			case 0x11:
 			case 0x12:
 			case 0x13:
-				MEM.bank_controller = memory::mbc_type::MBC3;
+				MEM.bank_controller = Memory::mbc_type::MBC3;
 				break;
 			case 0x19:
 			case 0x1A:
@@ -95,7 +101,7 @@ void readROMFile(const string filename) {
 			case 0x1C:
 			case 0x1D:
 			case 0x1E:
-				MEM.bank_controller = memory::mbc_type::MBC5;
+				MEM.bank_controller = Memory::mbc_type::MBC5;
 				break;
 		}	
 
@@ -111,11 +117,25 @@ void readROMFile(const string filename) {
 		rom_sizes[0x53] = "1.2MB / 80 banks";
 		rom_sizes[0x54] = "1.5MB / 96 banks";
 
+		map<uint8_t, int> rom_banks;
+		rom_banks[0x00] = 2;
+		rom_banks[0x01] = 4;
+		rom_banks[0x02] = 8;
+		rom_banks[0x03] = 16;
+		rom_banks[0x04] = 32;
+		rom_banks[0x05] = 64;
+		rom_banks[0x06] = 128;
+		rom_banks[0x52] = 72;
+		rom_banks[0x53] = 80;
+		rom_banks[0x54] = 96;
+
 		uint8_t rom = MEM.RAW[0x0148];
 		if (rom_sizes.count(rom)) {
 			printf("ROM:\t%s\n", rom_sizes[rom].c_str());
+			assert(rom_banks[rom] == MEM.rom_size / 0x4000);
 		} else {
 			printf("Unknown rom size 0x%02X\n", type);
+			exit(1);
 		}
 
 		map<uint8_t, string> ram_sizes;
@@ -125,11 +145,22 @@ void readROMFile(const string filename) {
 	  ram_sizes[0x03] = "32KB / 4 banks";
 	  ram_sizes[0x04] = "128KB / 16 banks";
 
+	  map<uint8_t, int> ram_banks;
+	  ram_banks[0x00] = 0;
+	  ram_banks[0x01] = 1;
+	  ram_banks[0x02] = 1;
+	  ram_banks[0x03] = 4;
+	  ram_banks[0x04] = 16;
+
 	  uint8_t ram = MEM.RAW[0x0149];
 		if (ram_sizes.count(ram)) {
 			printf("RAM:\t%s\n", ram_sizes[ram].c_str());
+			MEM.RAM_BANKS = (uint8_t*)malloc(0x800 * ram_banks[rom]);
+			if (ram_banks[rom])
+				MEM.loadRAMBank(0); // TODO: if there is no ram banks?
 		} else {
 			printf("Unknown ram size 0x%02X\n", type);
+			exit(1);
 		}
 
 		printf("CPL:\t0x%02X\n", MEM.RAW[0x014D]);
