@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "mem.h"
+#include "buttons.h"
 
 void Memory::loadROMBank(int new_bank) {
 	// Load 32K ROM bank
@@ -150,12 +151,12 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 			*ptr |= 0x20; 
 			*ptr &= 0xF0;
 			// Load A, B, Select, Start bits
-			*ptr |= (key_state >> 4);
+			*ptr |= BTN.key_state();
 		} else if (val == 0x20) {
 			*ptr |= 0x10;
 			*ptr &= 0xF0;
 			// Load Right, Left, Up, Down bits
-			*ptr |= (key_state & 0x0F);
+			*ptr |= BTN.dpad_state();
 		} else if (val == 0x30) {
 			// TODO: should we reset lower 4 bits here?
 			*ptr &= 0xF0;

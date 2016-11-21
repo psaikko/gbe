@@ -3,6 +3,7 @@
 
 #include "window.h"
 #include "mem.h"
+#include "buttons.h"
 
 #define FLAG_GPU_BG     0x01
 #define FLAG_GPU_SPR    0x02
@@ -17,6 +18,46 @@
 #define PLT_COLOR1 0x0C
 #define PLT_COLOR2 0x30
 #define PLT_COLOR3 0xC0
+
+#define KEY_RIGHT  0x01
+#define KEY_LEFT   0x02
+#define KEY_UP     0x04
+#define KEY_DOWN   0x08
+#define KEY_A      0x10
+#define KEY_B      0x20
+#define KEY_START  0x40
+#define KEY_SELECT 0x80
+
+void Window::poll_buttons() {
+
+  glfwPollEvents();
+
+  // Check if the ESC key was pressed or the window was closed
+  if (glfwGetKey(game_window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
+      glfwWindowShouldClose(game_window) == 1) {
+    exit(1);
+  }
+
+  breakpoint = glfwGetKey(game_window, GLFW_KEY_B) == GLFW_PRESS;
+
+  BTN.state = 0;
+  if (glfwGetKey(game_window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    BTN.state |= KEY_LEFT;
+  if (glfwGetKey(game_window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    BTN.state |= KEY_RIGHT;
+  if (glfwGetKey(game_window, GLFW_KEY_UP) == GLFW_PRESS)
+    BTN.state |= KEY_UP;
+  if (glfwGetKey(game_window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    BTN.state |= KEY_DOWN;
+  if (glfwGetKey(game_window, GLFW_KEY_Z) == GLFW_PRESS)
+    BTN.state |= KEY_A;
+  if (glfwGetKey(game_window, GLFW_KEY_X) == GLFW_PRESS)
+    BTN.state |= KEY_B;
+  if (glfwGetKey(game_window, GLFW_KEY_C) == GLFW_PRESS)
+    BTN.state |= KEY_START;
+  if (glfwGetKey(game_window, GLFW_KEY_V) == GLFW_PRESS)
+    BTN.state |= KEY_SELECT;
+}
 
 void Window::debug_pixel(uint8_t *addr) {
   addr[0] = 255;
@@ -285,6 +326,8 @@ void Window::render_tileset() {
 
 void Window::draw_buffer() {
 	//static long frame = 0;
+  poll_buttons();
+
 	glfwMakeContextCurrent(game_window);
   glfwSwapInterval(0);
 	glClear( GL_COLOR_BUFFER_BIT );

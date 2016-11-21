@@ -32,12 +32,14 @@ using namespace glm;
 #define COLOR_BLACK 3 
 
 class Memory;
+class Buttons;
 
 class Window {
 public:
-  Window(Memory &MemRef) : MEM(MemRef) {}
+  Window(Memory &MemRef, Buttons &BtnRef) : MEM(MemRef), BTN(BtnRef), breakpoint(false) {}
 
   Memory &MEM;
+  Buttons &BTN;
 
   GLFWwindow* game_window;
   GLFWwindow* tilemap_window;
@@ -46,6 +48,10 @@ public:
   uint8_t game_buffer[WINDOW_H * WINDOW_W * 3];
   uint8_t tilemap_buffer[TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3];
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
+
+  bool breakpoint;
+
+  void poll_buttons();
 
   void debug_pixel(uint8_t *addr);
 
