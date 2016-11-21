@@ -15,10 +15,7 @@ void readROMFile(Memory &MEM, const string filename) {
 		MEM.rom_size = romfile.tellg();
 		romfile.seekg(0, romfile.beg);
 		MEM.ROM_BANKS = (uint8_t*)malloc(MEM.rom_size);
-		printf("%u\n", MEM.rom_size);
 		romfile.read((char*)MEM.ROM_BANKS, MEM.rom_size);
-		printf("%02X\n", MEM.ROM_BANKS[0x100]);
-		printf("%02X\n", MEM.ROM_BANKS[0x101]);
 		romfile.close();
 
 		// load lower 16K
@@ -155,8 +152,8 @@ void readROMFile(Memory &MEM, const string filename) {
 	  uint8_t ram = MEM.RAW[0x0149];
 		if (ram_sizes.count(ram)) {
 			printf("RAM:\t%s\n", ram_sizes[ram].c_str());
-			MEM.RAM_BANKS = (uint8_t*)malloc(0x800 * ram_banks[rom]);
-			if (ram_banks[rom])
+			MEM.RAM_BANKS = (uint8_t*)malloc(0x1000 * ram_banks[ram]);
+			if (ram_banks[ram])
 				MEM.loadRAMBank(0); // TODO: if there is no ram banks?
 		} else {
 			printf("Unknown ram size 0x%02X\n", type);

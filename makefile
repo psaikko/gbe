@@ -2,7 +2,7 @@ GLFWDIR = glfw
 GLFWLIBS = -lGL -lGLU -lGLEW -lglfw3 -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXcursor -lXinerama
 
 CXX = g++
-CXXFLAGS = -std=c++11 -ggdb -Wall -Wextra -MMD -Wno-format-security
+CXXFLAGS = -std=c++11 -O3 -Wall -Wextra -MMD -Wno-format-security
 CPPFLAGS = -I$(GLFWDIR)/include -L$(GLFWDIR)/lib $(GLFWLIBS)
 
 SRCS=gpu.cpp window.cpp mem.cpp timer.cpp cpu.cpp serial.cpp gbe.cpp

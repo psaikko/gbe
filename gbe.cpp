@@ -12,6 +12,7 @@
 #include "window.h"
 #include "timer.h"
 #include "serial.h"
+#include "buttons.h"
 #include "mem.h"
 #include "reg.h"
 
@@ -73,7 +74,8 @@ int main(int argc, char ** argv) {
 
   int c;
 
-  Memory MEM;
+  Buttons BTN;
+  Memory MEM(BTN);
 
   while (1)
     {
@@ -160,7 +162,7 @@ int main(int argc, char ** argv) {
 
   Registers REG;
   
-  Window WINDOW(MEM);
+  Window WINDOW(MEM, BTN);
   Timer TIMER(MEM);
 
   Gpu GPU(MEM, WINDOW, unlocked_frame_rate);
@@ -191,42 +193,11 @@ int main(int argc, char ** argv) {
 
 	while (1) {
 
-		glfwPollEvents();
-		MEM.key_state = 0;
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-      MEM.key_state |= KEY_LEFT;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-      MEM.key_state |= KEY_RIGHT;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_UP) == GLFW_PRESS) {
-      MEM.key_state |= KEY_UP;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-      MEM.key_state |= KEY_DOWN;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_Z) == GLFW_PRESS) {
-    	MEM.key_state |= KEY_A;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_X) == GLFW_PRESS) {
-    	MEM.key_state |= KEY_B;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_C) == GLFW_PRESS) {
-    	MEM.key_state |= KEY_START;
-    }
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_V) == GLFW_PRESS) {
-    	MEM.key_state |= KEY_SELECT;
-    }
-
-    // Check if the ESC key was pressed or the window was closed
-    if (glfwGetKey(WINDOW.game_window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
-        glfwWindowShouldClose(WINDOW.game_window) == 1) {
-    	break;
-    }
-
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
 												 (mem_breakpoint && (MEM.at_breakpoint)) ||
-												 (glfwGetKey(WINDOW.game_window, GLFW_KEY_B) == GLFW_PRESS);
+												 WINDOW.breakpoint;
+
+		WINDOW.breakpoint = false;
 
 		MEM.at_breakpoint = false;
 		
@@ -295,21 +266,21 @@ int main(int argc, char ** argv) {
 						break;
 					case 'b':
 						// set breakpoint
+						if(!scanf("%hX", &breakpoint_addr)) break;
 						stepping = false;
 						breakpoint = true;
-						scanf("%hX", &breakpoint_addr);
 						break;
 					case 'M':
 						// set memory breakpoint
+						if(!scanf("%hX", &MEM.break_addr)) break;
 						stepping = false;
 						mem_breakpoint = true;
-						scanf("%hX", &MEM.break_addr);
 						break;
 					case 'd':
 						// dump memory range
 						uint16_t addr;
 						uint16_t len;
-						scanf("%hX %hX", &addr, &len);
+						if (!scanf("%hX %hX", &addr, &len)) break;
 						for (uint16_t i = 0; i < len; ++i) {
 							printf("%02X ", MEM.RAW[addr+i]);
 							if (((i + 1) % 8 == 0) || (i == len - 1)) printf("\n");
