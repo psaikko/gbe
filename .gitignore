@@ -2,3 +2,4 @@ gbe
 *.gb
 *.bin
 *.o
+*.d
