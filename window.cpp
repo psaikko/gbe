@@ -84,156 +84,131 @@ void Window::draw_pixel(uint8_t *addr, uint8_t color_id) {
 	}
 }
 
+uint8_t * Window::get_tile(const uint8_t tile_id, const bool tileset1) {
+  uint8_t *tile;
+  if (tileset1) {
+    tile = &MEM.TILESET1[tile_id * 16];
+  } else {
+    tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+  }
+  return tile;
+}
+
 void Window::render_buffer_line() {
 
   if (! (*MEM.LCD_CTRL & FLAG_GPU_DISP) ) return;
 
   uint8_t lcd_y = *MEM.SCAN_LN;
 
-  // TODO: draw bg, window, sprites in single loop
+	uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 
-  if (*MEM.LCD_CTRL & FLAG_GPU_BG) {
-  	uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
+	uint8_t scrl_x = *MEM.SCRL_X;
+	uint8_t scrl_y = *MEM.SCRL_Y;
 
-  	uint8_t scrl_x = *MEM.SCRL_X;
-  	uint8_t scrl_y = *MEM.SCRL_Y;
+	uint8_t bg_map_pixel_y = lcd_y + scrl_y;
+	uint8_t bg_map_tile_y  = bg_map_pixel_y / TILE_H;
+	uint8_t bg_tile_y   = bg_map_pixel_y % TILE_H;
 
-  	uint8_t bg_map_pixel_y = lcd_y + scrl_y;
-  	uint8_t bg_map_tile_y  = bg_map_pixel_y / TILE_H;
-  	uint8_t bg_tile_y   = bg_map_pixel_y % TILE_H;
 
-  	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
+  uint8_t *WIN_MAP = (*MEM.LCD_CTRL & FLAG_GPU_WIN_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
+
+  int window_x = *MEM.WIN_X - 7;
+  int window_y = *MEM.WIN_Y;
+
+  int win_map_pixel_y = lcd_y - window_y;
+  int win_map_tile_y  = win_map_pixel_y / TILE_H;
+  int win_tile_y  = win_map_pixel_y % TILE_H;
+
+	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
+    uint8_t color_id = 0;
+    uint8_t color = 0;
+
+    if (*MEM.LCD_CTRL & FLAG_GPU_BG) {
   		uint8_t bg_map_pixel_x = lcd_x + scrl_x;
   		uint8_t bg_map_tile_x  = bg_map_pixel_x / TILE_W;
   		uint8_t bg_tile_x      = bg_map_pixel_x % TILE_W;
 
   		// get pixel (tile_x, tile_y) from map tile (bg_map_tile_x, bg_map_tile_y)
 		  // and draw it to (lcd_x, lcd_y)
-  		uint8_t tile_id = BG_MAP[bg_map_tile_x + bg_map_tile_y * TILEMAP_H];
+  		uint8_t bg_tile_id = BG_MAP[bg_map_tile_x + bg_map_tile_y * TILEMAP_H];
 
-  		uint8_t *bg_tile;
-			if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
-				bg_tile = &MEM.TILESET1[tile_id * 16];
-			} else {
-				bg_tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
-			}
+  		uint8_t *bg_tile = get_tile(bg_tile_id, *MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS);
 
-  		uint8_t bg_color_id = get_tile_pixel(bg_tile, bg_tile_x, bg_tile_y);
-  		unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
-  		draw_pixel(&game_buffer[i], apply_bg_palette(bg_color_id));
-  	}
-  }
+  		color_id = get_tile_pixel(bg_tile, bg_tile_x, bg_tile_y);
+      color = apply_palette(color_id, *MEM.BG_PLT);
+    }
 
-  if (*MEM.LCD_CTRL & FLAG_GPU_WIN) {
-    uint8_t *WIN_MAP = (*MEM.LCD_CTRL & FLAG_GPU_WIN_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
+    if ((*MEM.LCD_CTRL & FLAG_GPU_WIN) && (win_map_pixel_y >= 0)) {
+      int win_map_pixel_x = lcd_x - window_x;
+      int win_map_tile_x  = win_map_pixel_x / TILE_W;
+      int win_tile_x  = win_map_pixel_x % TILE_H;
 
-    int window_x = *MEM.WIN_X - 7;
-    int window_y = *MEM.WIN_Y;
+      if (win_map_pixel_x >= 0) {
+        uint8_t win_tile_id = WIN_MAP[win_map_tile_x + win_map_tile_y * TILEMAP_H];
 
-    int map_pixel_y = lcd_y - window_y;
-    int map_tile_y  = map_pixel_y / TILE_H;
-    int win_tile_y  = map_pixel_y % TILE_H;
-
-    if (map_pixel_y >= 0) {
-      for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; lcd_x++) {
-        int map_pixel_x = lcd_x - window_x;
-        int map_tile_x  = map_pixel_x / TILE_W;
-        int win_tile_x  = map_pixel_x % TILE_H;
-
-        if (map_pixel_x >= 0) {
-          uint8_t tile_id = WIN_MAP[map_tile_x + map_tile_y * TILEMAP_H];
-
-          uint8_t *win_tile;
-          if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
-            win_tile = &MEM.TILESET1[tile_id * 16];
-          } else {
-            win_tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
-          }
-
-          uint8_t win_color_id = get_tile_pixel(win_tile, win_tile_x, win_tile_y);
-          unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
-          draw_pixel(&game_buffer[i], apply_bg_palette(win_color_id));
-        }
+        uint8_t *win_tile = get_tile(win_tile_id, *MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS);
+      
+        color_id = get_tile_pixel(win_tile, win_tile_x, win_tile_y);
+        color = apply_palette(color_id, *MEM.BG_PLT);
       }
     }
-  }
 
-  if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
+    if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
+      if (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) {
+        std::cerr << "TODO: 16x8 sprite" << std::endl;
+        exit(1);
+      }  
 
-    if (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) 
-      std::cerr << "TODO: 16x8 sprite" << std::endl;
+      for (int spr_id = 0; spr_id < 40; ++spr_id) {
+        oam_entry spr = MEM.OAM[spr_id];
+        uint8_t spr_w = 8;
+        uint8_t spr_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
+        // x and y coords offset in memory..
+        int spr_y = ((int)spr.y) - 16;
+        int spr_x = ((int)spr.x) - 8;
 
-    for (int spr_id = 0; spr_id < 40; ++spr_id) {
-      oam_entry sprite = MEM.OAM[spr_id];
-      uint8_t sprite_w = 8;
-      uint8_t sprite_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
-      // x and y coords offset in memory..
-      int sprite_y = ((int)sprite.y) - 16;
-      int sprite_x = ((int)sprite.x) - 8;
+        // does not intersect current scanline (lcd_y)
+        if (lcd_y < spr_y || lcd_y >= spr_y + spr_h) continue; 
+        // not onscreen in x direction
+        if (spr_x == -spr_w) continue;
+        // does not hit current x pixel
+        if ((lcd_x > spr_x + 7) || (lcd_x < spr_x)) continue;
 
-      // does not intersect current scanline (lcd_y)
-      if (lcd_y < sprite_y || lcd_y >= sprite_y + sprite_h) continue; 
-      // not onscreen in x direction
-      if (sprite_x == -sprite_w) continue;
+        uint8_t spr_tile_y = lcd_y - spr_y;        
+        if (spr.yflip) spr_tile_y = 7 - spr_tile_y;
 
-      uint8_t *tile = &MEM.TILESET1[sprite.tile_id * 16];
-      uint8_t tile_y = lcd_y - sprite_y;
-      if (sprite.yflip) {
-        tile_y = 7 - tile_y;
-      }
+        uint8_t spr_tile_x = lcd_x - spr_x;
+        if (spr.xflip) spr_tile_x = 7 - spr_tile_x;
 
-      for (uint8_t x = 0; x < 8; ++x) {
-        uint8_t tile_x = x;
-        int lcd_x = sprite_x + tile_x;
-        if (lcd_x < 0) continue;
-        if (lcd_x >= WINDOW_W) break;
-
-        if (sprite.xflip) {
-          tile_x = 7 - tile_x;
+        uint8_t *spr_tile = get_tile(spr.tile_id, true);
+        
+        if (!spr.priority || color_id == 0) {
+          uint8_t spr_color_id = get_tile_pixel(spr_tile, spr_tile_x, spr_tile_y);
+          if (spr_color_id == 0) continue; // sprite color 0 is transparent
+          color_id = spr_color_id;
+          color = apply_palette(color_id, spr.palette ? *MEM.OBJ1_PLT : *MEM.OBJ0_PLT);
         }
-
-        uint8_t color_id = get_tile_pixel(tile, tile_x, tile_y);
-        if (color_id == COLOR_WHITE) continue;
-        color_id = apply_spr_palette(color_id, sprite.palette);
-
-        unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
-        if (!sprite.priority || game_buffer[i] == 255)
-          draw_pixel(&game_buffer[i], color_id);
-
-      }
+      }  
     }
-  }    
+
+    unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
+    draw_pixel(&game_buffer[i], color);
+	} 
 }
 
-uint8_t Window::apply_bg_palette(uint8_t color_id) {
+uint8_t Window::apply_palette(uint8_t color_id, uint8_t palette) {
 	assert(color_id <= 3);
 	switch (color_id) {
 		case 0:
-			return (*MEM.BG_PLT & PLT_COLOR0);
+			return (palette & PLT_COLOR0);
 		case 1:
-			return (*MEM.BG_PLT & PLT_COLOR1) >> 2;
+			return (palette & PLT_COLOR1) >> 2;
 		case 2:
-			return (*MEM.BG_PLT & PLT_COLOR2) >> 4;
+			return (palette & PLT_COLOR2) >> 4;
 		default:
 		case 3:
-			return (*MEM.BG_PLT & PLT_COLOR3) >> 6;
+			return (palette & PLT_COLOR3) >> 6;
 	}
-}
-
-uint8_t Window::apply_spr_palette(uint8_t color_id, bool plt_attr) {
-  uint8_t plt = plt_attr ? *MEM.OBJ1_PLT : *MEM.OBJ0_PLT;
-  assert(color_id <= 3);
-  switch (color_id) {
-    case 0:
-      return (plt & PLT_COLOR0);
-    case 1:
-      return (plt & PLT_COLOR1) >> 2;
-    case 2:
-      return (plt & PLT_COLOR2) >> 4;
-    default:
-    case 3:
-      return (plt & PLT_COLOR3) >> 6;
-  }
 }
 
 uint8_t Window::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
@@ -258,8 +233,6 @@ void Window::render_tile(uint8_t *buffer, uint8_t *tile, unsigned lcd_x, unsigne
 	for (uint8_t yoff = 0; yoff < TILE_H; yoff++) {
 		for (uint8_t xoff = 0; xoff < TILE_W; xoff++) {
 			uint8_t color_id = get_tile_pixel(tile, xoff, yoff);
-
-			//color_id = apply_bg_palette(color_id);
 
 			unsigned i = rgb_buffer_index(lcd_x + xoff, lcd_y + yoff, buffer_w, buffer_h);
 			draw_pixel(&buffer[i], color_id);

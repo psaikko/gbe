@@ -57,11 +57,11 @@ public:
 
   void draw_pixel(uint8_t *addr, uint8_t color_id);
 
+  uint8_t * get_tile(const uint8_t tile_id, const bool tileset0);
+
   void render_buffer_line();
 
-  uint8_t apply_bg_palette(uint8_t color_id);
-
-  uint8_t apply_spr_palette(uint8_t color_id, bool plt_attr);
+  uint8_t apply_palette(uint8_t color_id, uint8_t palette);
 
   uint8_t get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y);
 
