@@ -89,7 +89,7 @@ uint8_t * Window::get_tile(const uint8_t tile_id, const bool tileset1) {
   if (tileset1) {
     tile = &MEM.TILESET1[tile_id * 16];
   } else {
-    tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
+    tile = MEM.getReadPtr(0x9000 + (int16_t)((int8_t)tile_id) * 16);
   }
   return tile;
 }
@@ -247,12 +247,7 @@ void Window::render_tilemap() {
 		for (uint8_t yoff = 0; yoff < TILEMAP_H; ++yoff) {
 			uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
 
-			uint8_t *tile;
-			if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
-				tile = &MEM.TILESET1[tile_id * 16];
-			} else {
-				tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
-			}
+			uint8_t *tile = get_tile(tile_id, *MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS);
 			unsigned lcd_x = xoff * TILE_W;
 			unsigned lcd_y = yoff * TILE_H;
 
@@ -266,12 +261,7 @@ void Window::render_tilemap() {
     for (uint8_t yoff = 0; yoff < TILEMAP_H; ++yoff) {
       uint8_t tile_id = MAP[xoff + yoff * TILEMAP_H];
 
-      uint8_t *tile;
-      if (*MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS) {
-        tile = &MEM.TILESET1[tile_id * 16];
-      } else {
-        tile = &MEM.RAW[0x9000 + (int16_t)((int8_t)tile_id) * 16];
-      }
+      uint8_t *tile = get_tile(tile_id, *MEM.LCD_CTRL & FLAG_GPU_BG_WIN_TS);
       unsigned lcd_x = xoff * TILE_W;
       uint8_t lcd_y = yoff * TILE_H;
 
@@ -281,7 +271,7 @@ void Window::render_tilemap() {
 }
 
 void Window::render_tileset() { 
-	uint8_t *SET = &MEM.RAW[0x8000];
+	uint8_t *SET = MEM.TILESET1;
 
 	uint16_t tile_id = 0;
 	for (uint8_t yoff = 0; yoff < 24; ++yoff) {

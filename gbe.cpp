@@ -24,7 +24,7 @@ void printRegisters(Memory &MEM, Registers &REG, bool words) {
 						 REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
 	} else {
 		printf("AF %04X BC %04X DE %04X HL %04X SP %04X PC %04X (HL) %02X\n",
-					 REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.RAW[REG.HL]);
+					 REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(REG.HL));
 	}
 }
 
@@ -282,7 +282,7 @@ int main(int argc, char ** argv) {
 						uint16_t len;
 						if (!scanf("%hX %hX", &addr, &len)) break;
 						for (uint16_t i = 0; i < len; ++i) {
-							printf("%02X ", MEM.RAW[addr+i]);
+							printf("%02X ", MEM.readByte(addr+i));
 							if (((i + 1) % 8 == 0) || (i == len - 1)) printf("\n");
 						}
 						more = true;
