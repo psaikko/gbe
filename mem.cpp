@@ -6,47 +6,28 @@
 #include "mem.h"
 #include "buttons.h"
 
-void Memory::loadROMBank(int new_bank) {
-	// Load 32K ROM bank
-	// printf("Selecting ROM bank %d\n", new_bank);
-	memcpy(ROM1, &ROM_BANKS[0x4000 * new_bank], 0x4000);
-	rom_bank = new_bank;
-}
-
-void Memory::loadRAMBank(int new_bank) {
-	// Store current RAM bank
-	// printf("Selecting RAM bank %d\n", new_bank);
-	memcpy(&RAM_BANKS[0x2000 * ram_bank], extRAM, 0x2000);
-	// Load new 8K RAM bank
-	memcpy(extRAM, &RAM_BANKS[0x2000 * new_bank], 0x2000);
-	ram_bank = new_bank;
-}
-
 uint8_t* Memory::getReadPtr(uint16_t addr) {
 	// switch by 8192 byte segments
-	switch(addr >> 13) {
-		case 0:
+	switch(addr >> 12) {
+		case 0x0:
 			if ( ( ! *BIOS_OFF ) && addr < 0x0100) {
 				return &BIOS[addr];
 			}
-		case 1: // ROM0
-			return &RAW[addr];
-		case 2: // ROM1
-		case 3: 
-			return &RAW[addr];
-		case 4: // grRAM
-			return &RAW[addr];
-		case 5: // extRAM
-			return &RAW[addr];
-		case 6: // RAM
-			return &RAW[addr];
-		case 7: 
-		default:
-			if (addr < 0xE000) // RAM
-				return &RAW[addr];
-			else if (addr < 0xFE00) // shadow RAM
+		case 0x1: case 0x2: case 0x3:
+			return &ROM0[addr]; // ROM0
+		case 0x4: case 0x5:
+		case 0x6: case 0x7:
+			return &ROM1[addr - 0x4000]; // ROM1
+		case 0x8:  case 0x9: 
+			return &RAW[addr]; // grRAM
+		case 0xA: case 0xB: 
+			return &extRAM[addr - 0xA000]; // extRAM
+		case 0xC: case 0xD:
+			return &RAW[addr]; // RAM
+		default: // E, F
+			if (addr < 0xFE00) { // shadow RAM
 				return &RAW[addr & 0xDFFF];
-			else {
+			} else {
 				switch (addr & 0xFF80) {
 					case 0xFE00: // SPR
 					case 0xFE80: 
@@ -56,10 +37,10 @@ uint8_t* Memory::getReadPtr(uint16_t addr) {
 							return nullptr;
 					case 0xFF00: // IO
 						return &RAW[addr];
-					default:
-						assert(false);
 					case 0xFF80: // ZERO
 						return &RAW[addr];
+					default:
+						assert(false);
 				}
 			}
 	}
@@ -67,25 +48,26 @@ uint8_t* Memory::getReadPtr(uint16_t addr) {
 
 uint8_t* Memory::getWritePtr(uint16_t addr) {
 	// switch by 8192 byte segments
-	switch(addr >> 13) {
-		case 0:
-		case 1: // ROM0
-		case 2: // ROM1
-		case 3: 
+	switch(addr >> 12) {
+		case 0x0: case 0x1:
+		case 0x2: case 0x3:
+		case 0x4: case 0x5:
+		case 0x6: case 0x7:
+			// ROM0, ROM1
 			return nullptr;
-		case 4: // grRAM
+		case 0x8: case 0x9: 
+			// grRAM
 			return &RAW[addr];
-		case 5: // extRAM
+		case 0xA: case 0xB: 
+			// extRAM
+			return &extRAM[addr - 0xA000];
+		case 0xC: case 0xD: 
+			// RAM
 			return &RAW[addr];
-		case 6: // RAM
-			return &RAW[addr];
-		case 7: 
-		default:
-			if (addr < 0xE000) // RAM
-				return &RAW[addr];
-			else if (addr < 0xFE00) // shadow RAM
+		default: // E, F
+			if (addr < 0xFE00) { // shadow RAM
 				return &RAW[addr & 0xDFFF];
-			else {
+			} else {
 				switch (addr & 0xFF80) {
 					case 0xFE00: // SPR
 					case 0xFE80: 
@@ -98,10 +80,10 @@ uint8_t* Memory::getWritePtr(uint16_t addr) {
 							return nullptr;
 						}
 						return &RAW[addr];
-					default:
-						assert(false);
 					case 0xFF80: // ZERO
 						return &RAW[addr];
+					default:
+						assert(false);
 				}
 			} 
 	}
@@ -170,7 +152,7 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 		//printf("OAM DMA\n");
 		//assert(val <= 0xF1);
 		for (uint8_t low = 0x00; low <= 0xF9; ++low) {
-			RAW[0xFE00 + low] = RAW[(((uint16_t)val) << 8) + low];
+			RAW[0xFE00 + low] = readByte((((uint16_t)val) << 8) + low);
 		}
 	} else if (addr == 0xFF04) {
 		// divider register reset on write
@@ -178,10 +160,10 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 		return;
 	}
 
-	switch (bank_controller) {
-		case mbc_type::NONE:
+	switch (CART.bank_controller) {
+		case Cart::mbc_type::NONE:
 			break;
-		case mbc_type::MBC1:
+		case Cart::mbc_type::MBC1:
 			if (addr <= 0x1FFF) {
 				//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
 				return;
@@ -190,16 +172,16 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 				//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x1F;
 				if (val == 0) val = 1;
-				loadROMBank(val);
+				ROM1 = CART.romBank(val);
 				return;
 			}
 			else if (0x4000 <= addr && addr <= 0x5FFF) {
 				//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x03;
 				if (mbc_mode == controller_mode::RAM_banking) {
-					loadRAMBank(val);
+					extRAM = CART.ramBank(val);
 				} else {
-					loadROMBank((rom_bank & 0x1F) | (val << 5));
+					ROM1 = CART.romBank((CART.rom_bank & 0x1F) | (val << 5));
 				}
 				return;
 			}
@@ -211,7 +193,7 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 				}
 			}
 			break;
-		case mbc_type::MBC3:
+		case Cart::mbc_type::MBC3:
 			if (addr <= 0x1FFF) {
 				//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
 				return;
@@ -220,13 +202,13 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 				//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x7F;
 				if (val == 0) val = 1;
-				loadROMBank(val);
+				ROM1 = CART.romBank(val);
 				return;
 			}
 			if (0x4000 <= addr && addr <= 0x5FFF) {
 				//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x1F;
-				loadRAMBank(val);
+				extRAM = CART.ramBank(val);
 				return;
 			}
 			break;

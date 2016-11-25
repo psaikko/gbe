@@ -8,7 +8,7 @@
 
 #include "cpu.h"
 #include "gpu.h"
-#include "rom.h"
+#include "cart.h"
 #include "window.h"
 #include "timer.h"
 #include "serial.h"
@@ -71,11 +71,9 @@ int main(int argc, char ** argv) {
 	string romfile, biosfile;
 
   uint16_t breakpoint_addr = 0;
+  uint16_t mem_breakpoint_addr = 0;
 
   int c;
-
-  Buttons BTN;
-  Memory MEM(BTN);
 
   while (1)
     {
@@ -130,7 +128,7 @@ int main(int argc, char ** argv) {
         case 'M':
         	printf ("option -M with value `%s'\n", optarg);
           mem_breakpoint = true;
-          MEM.break_addr = std::stoi(optarg,0,0);
+          mem_breakpoint_addr = std::stoi(optarg,0,0);
           break;	
 
         case 'f':
@@ -160,6 +158,15 @@ int main(int argc, char ** argv) {
     fprintf(stderr, "\n");
   }
 
+  if (!load_rom) {
+  	printf("load ROM with -R <file>\n");
+  	exit(0);
+  }
+
+  Buttons BTN;
+  Cart CART(romfile);
+  Memory MEM(CART, BTN);
+
   Registers REG;
   
   Window WINDOW(MEM, BTN);
@@ -181,14 +188,8 @@ int main(int argc, char ** argv) {
   	*MEM.BIOS_OFF = 1;
   }
 
-  if (load_rom) {
-		readROMFile(MEM, romfile);  	
-  } else if (!load_bios) {
-  	printf("No rom (-R) or bios (-B) loaded. Exiting.\n");
-  	exit(0);
-  }
+  MEM.break_addr = mem_breakpoint_addr;
 
-  MEM.mbc_mode = Memory::controller_mode::ROM_banking;
 	WINDOW.init();
 
 	while (1) {

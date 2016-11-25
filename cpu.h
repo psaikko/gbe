@@ -1599,7 +1599,7 @@ public:
 		{"JP C, 0x%04X",    2, [](Cpu &CPU){ CPU.jp_f_nn(FLAG_C); }},      // 0xDA
 		{"XX",              0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xDB
 		{"CALL C, 0x%04X",  2, [](Cpu &CPU){ CPU.call_f_nn(FLAG_C); }},    // 0xDC
-		{"XX",              0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xDD
+		{"MEM_SENTINEL",    0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xDD
 		{"SBC A, 0x%02X",   1, [](Cpu &CPU){ CPU.sbc_A_n(); }},            // 0xDE
 		{"RST 18",          0, [](Cpu &CPU){ CPU.rst(0x18); }},            // 0xDF
 

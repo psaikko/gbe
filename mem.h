@@ -1,6 +1,9 @@
 #pragma once
 
 #include <inttypes.h>
+#include <cstring>
+
+#include "cart.h"
 
 typedef struct {
 	uint8_t y;
@@ -23,10 +26,27 @@ typedef struct {
 class Buttons;
 
 class Memory {
+
+	enum controller_mode { ROM_banking, RAM_banking }; // MBC1 mode switch
+	controller_mode mbc_mode;
+
 public:
-	Memory(Buttons &BtnRef) : BTN(BtnRef) {}
+	Memory(Cart &CartRef, Buttons &BtnRef) : mbc_mode(controller_mode::ROM_banking), BTN(BtnRef), CART(CartRef) {
+		// Don't read ROM or cart RAM from RAW
+		// Fill with sentinel value (unused instruction 0xDD)
+		memset(&RAW[0x0000], 0xDD, 0x4000);
+		memset(&RAW[0x4000], 0xDD, 0x4000);
+		memset(&RAW[0xA000], 0xDD, 0x2000);
+
+		ROM0 = CART.romBank(0);
+		ROM1 = CART.romBank(1);
+
+		if (CART.ram_banks)
+			extRAM = CART.ramBank(0);
+	}
 
 	Buttons &BTN;
+	Cart &CART;
 
 	uint8_t *ROM_BANKS; // Max ROM size 8 MB
 	uint8_t *RAM_BANKS;  // Max RAM size 128 KB
@@ -35,11 +55,11 @@ public:
 	int rom_bank;
 
 	uint8_t RAW[65536]; // TODO
-	uint8_t * ROM0   = &RAW[0x0000];
-	uint8_t * ROM1   = &RAW[0x4000];
-	uint8_t * const grRAM  = &RAW[0x8000];
-	
-	uint8_t * extRAM = &RAW[0xA000];
+
+	uint8_t * ROM0;
+	uint8_t * ROM1;
+	uint8_t * extRAM;
+
 	uint8_t * const RAM    = &RAW[0xC000];
 	uint8_t * const _RAM   = &RAW[0xE000];
 	oam_entry * const OAM  = (oam_entry*)(&RAW[0xFE00]);
@@ -77,16 +97,6 @@ public:
 
 	uint16_t break_addr = 0;
 	bool at_breakpoint = false;
-
-	void loadROMBank(int new_bank);
-
-	void loadRAMBank(int new_bank);
-
-	enum mbc_type { NONE, MBC1, MBC2, MBC3, MBC5 };
-	mbc_type bank_controller;
-
-	enum controller_mode { ROM_banking, RAM_banking }; // MBC1 mode switch
-	controller_mode mbc_mode;
 
 	uint8_t* getReadPtr(uint16_t addr);
 
