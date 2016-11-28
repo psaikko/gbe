@@ -1,9 +1,9 @@
 #pragma once
 
-#define FLAG_C 0x10
-#define FLAG_H 0x20
-#define FLAG_N 0x40
-#define FLAG_Z 0x80
+#define F_C 0x10
+#define F_H 0x20
+#define F_N 0x40
+#define F_Z 0x80
 
 #define BIT_0 0x01
 #define BIT_1 0x02
@@ -19,7 +19,16 @@ public:
 	union {
 		uint16_t AF;
 		struct {
-			uint8_t F;
+			union {
+				uint8_t F;
+				struct {
+					uint8_t _ : 4;
+					uint8_t FLAG_C : 1;
+					uint8_t FLAG_H : 1;
+					uint8_t FLAG_N : 1;
+					uint8_t FLAG_Z : 1;
+				};
+			};
 			uint8_t A;
 		};
 	};
@@ -54,22 +63,4 @@ public:
 	bool IME;
 
 	bool HALT;
-
-	void set_flag(uint8_t flag) {
-		F |= flag;
-	}
-
-	void set_flag_cond(uint8_t flag, bool on) {
-		if (on) F |= flag;
-		else    F &= ~flag;
-	}
-
-	void unset_flag(uint8_t flag) {
-		F &= ~flag;
-	}
-
-	bool get_flag(uint8_t flag) {
-		return F & flag;
-	}
-
 };

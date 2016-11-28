@@ -59,9 +59,9 @@ public:
 	void inc_rb(uint8_t * ptr) {
 		(*ptr)++;
 
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_H, (*ptr & 0x0F) == 0);
-		REG.set_flag_cond(FLAG_Z, *ptr == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = ((*ptr & 0x0F) == 0);
+		REG.FLAG_Z = (*ptr == 0);
 		REG.TCLK = 4;
 	}
 
@@ -69,9 +69,9 @@ public:
 		uint8_t val = readByte(REG.HL);
 		writeByte(REG.HL, val + 1);
 
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_H, (val & 0x0F) == 0x0F);
-		REG.set_flag_cond(FLAG_Z, (val == 0xFF));
+		REG.FLAG_N = 0;
+		REG.FLAG_H = ((val & 0x0F) == 0x0F);
+		REG.FLAG_Z = ((val == 0xFF));
 
 		REG.TCLK = 12;
 	}
@@ -79,9 +79,9 @@ public:
 	void dec_rb(uint8_t * ptr) {
 		(*ptr)--;
 
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_H, (*ptr & 0x0F) == 0x0F);
-		REG.set_flag_cond(FLAG_Z, *ptr == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = ((*ptr & 0x0F) == 0x0F);
+		REG.FLAG_Z = (*ptr == 0);
 		REG.TCLK = 4;
 	}
 
@@ -89,9 +89,9 @@ public:
 		uint8_t val = readByte(REG.HL);
 		writeByte(REG.HL, val - 1);
 
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_H, (val & 0x0F) == 0x00);
-		REG.set_flag_cond(FLAG_Z, (val - 1) == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = ((val & 0x0F) == 0x00);
+		REG.FLAG_Z = ((val - 1) == 0);
 
 		REG.TCLK = 12;
 	}
@@ -99,9 +99,10 @@ public:
 	void xor_rb(uint8_t * from) {
 		REG.A ^= *from;
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	} 
@@ -109,9 +110,10 @@ public:
 	void xor_n() {
 		REG.A ^= argbyte();
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -119,9 +121,10 @@ public:
 	void xor_atHL() {
 		REG.A ^= readByte(REG.HL);
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -129,9 +132,10 @@ public:
 	void or_rb(uint8_t * from) {
 		REG.A |= *from;
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	} 
@@ -139,9 +143,10 @@ public:
 	void or_n() {
 		REG.A |= argbyte();
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -149,9 +154,10 @@ public:
 	void or_atHL() {
 		REG.A |= readByte(REG.HL);
 		
-		REG.unset_flag(FLAG_H | FLAG_N | FLAG_C);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -159,10 +165,10 @@ public:
 	void and_rb(uint8_t * from) {
 		REG.A &= *from;
 		
-		REG.unset_flag(FLAG_N | FLAG_C);
-		REG.set_flag(FLAG_H);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_H = 1;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	} 
@@ -170,10 +176,10 @@ public:
 	void and_n() {
 		REG.A &= argbyte();
 		
-		REG.unset_flag(FLAG_N | FLAG_C);
-		REG.set_flag(FLAG_H);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_H = 1;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -181,10 +187,10 @@ public:
 	void and_atHL() {
 		REG.A &= readByte(REG.HL);
 		
-		REG.unset_flag(FLAG_N | FLAG_C);
-		REG.set_flag(FLAG_H);
-		if (REG.A == 0) REG.set_flag(FLAG_Z);
-		else REG.unset_flag(FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_H = 1;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -193,10 +199,10 @@ public:
 
 		uint8_t e = *from;
 
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, e == REG.A);
-		REG.set_flag_cond(FLAG_C, e > REG.A);
-		REG.set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (e == REG.A);
+		REG.FLAG_C = (e > REG.A);
+		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
 
 		REG.TCLK = 4;
 	} 
@@ -205,10 +211,10 @@ public:
 
 		uint8_t e = argbyte();
 
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, e == REG.A);
-		REG.set_flag_cond(FLAG_C, e > REG.A);
-		REG.set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (e == REG.A);
+		REG.FLAG_C = (e > REG.A);
+		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
 
 		REG.TCLK = 8;
 	}
@@ -217,31 +223,31 @@ public:
 
 		uint8_t e = readByte(REG.HL);
 
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, e == REG.A);
-		REG.set_flag_cond(FLAG_C, e > REG.A);
-		REG.set_flag_cond(FLAG_H, (e & 0x0F) > (REG.A & 0x0F));
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (e == REG.A);
+		REG.FLAG_C = (e > REG.A);
+		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
 
 		REG.TCLK = 8;
 	}
 
 	void add_A_rb(uint8_t * ptr) {
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
+		REG.FLAG_C = (0xFF - REG.A < *ptr);
+		REG.FLAG_H = (((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
 		REG.A += *ptr;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	}
 
 	void add_A_n() {
 		uint8_t val = argbyte();
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
+		REG.FLAG_C = (0xFF - REG.A < val);
+		REG.FLAG_H = (((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 		REG.A += val;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -249,11 +255,11 @@ public:
 	void add_A_atHL() {
 		uint8_t val = readByte(REG.HL);
 
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
+		REG.FLAG_C = (0xFF - REG.A < val);
+		REG.FLAG_H = (((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 		REG.A += val;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -264,131 +270,132 @@ public:
 
 		uint8_t lb = REG.SP & 0x00FF;
 
-		REG.set_flag_cond(FLAG_C, (0xFF - lb) < n);
-		REG.set_flag_cond(FLAG_H, ((lb & 0x0F) + (n & 0x0F)) & 0x10);
+		REG.FLAG_C = ((0xFF - lb) < n);
+		REG.FLAG_H = (((lb & 0x0F) + (n & 0x0F)) & 0x10);
 		REG.SP += e;
 
-		REG.unset_flag(FLAG_Z | FLAG_N);
+		REG.FLAG_Z = 0;
+		REG.FLAG_N = 0;
 
 		REG.TCLK = 16;
 	}
 
 	void adc_A_rb(uint8_t * ptr) {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < *ptr);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (0xFF - REG.A < *ptr);
+		REG.FLAG_H = (((REG.A & 0x0F) + (*ptr & 0x0F)) & 0xF0);
 		REG.A += *ptr;
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (0xFF - REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+		REG.FLAG_C = (REG.FLAG_C || (0xFF - REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) + carry) & 0xF0));
 		REG.A += carry;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	}
 
 	void adc_A_n() {
 		uint8_t val = argbyte();
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (0xFF - REG.A < val);
+		REG.FLAG_H = (((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 		REG.A += val;
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (0xFF - REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+		REG.FLAG_C = (REG.FLAG_C || (0xFF - REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) + carry) & 0xF0));
 		REG.A += carry;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void adc_A_atHL() {
 		uint8_t val = readByte(REG.HL);
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, 0xFF - REG.A < val);
-		REG.set_flag_cond(FLAG_H, ((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (0xFF - REG.A < val);
+		REG.FLAG_H = (((REG.A & 0x0F) + (val & 0x0F)) & 0xF0);
 		REG.A += val;
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (0xFF - REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) + carry) & 0xF0));
+		REG.FLAG_C = (REG.FLAG_C || (0xFF - REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) + carry) & 0xF0));
 		REG.A += carry;
-		REG.unset_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sub_A_rb(uint8_t * ptr) {
-		REG.set_flag_cond(FLAG_C, REG.A < *ptr);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (*ptr & 0x0F));
+		REG.FLAG_C = (REG.A < *ptr);
+		REG.FLAG_H = ((REG.A & 0x0F) < (*ptr & 0x0F));
 		REG.A -= *ptr;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	}
 
 	void sub_A_n() {
 		uint8_t val = argbyte();
-		REG.set_flag_cond(FLAG_C, REG.A < val);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
+		REG.FLAG_C = (REG.A < val);
+		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sub_A_atHL() {
 		uint8_t val = readByte(REG.HL);
-		REG.set_flag_cond(FLAG_C, REG.A < val);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
+		REG.FLAG_C = (REG.A < val);
+		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sbc_A_rb(uint8_t * ptr) {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, REG.A < *ptr);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (*ptr & 0x0F));
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (REG.A < *ptr);
+		REG.FLAG_H = ((REG.A & 0x0F) < (*ptr & 0x0F));
 		REG.A -= *ptr;
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
 	}
 
 	void sbc_A_n() {
-		bool carry = REG.get_flag(FLAG_C);
+		bool carry = REG.FLAG_C;
 		uint8_t val = argbyte();
-		REG.set_flag_cond(FLAG_C, REG.A < val);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
+		REG.FLAG_C = (REG.A < val);
+		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val;
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sbc_A_atHL() {
-		bool carry = REG.get_flag(FLAG_C);
+		bool carry = REG.FLAG_C;
 		uint8_t val = readByte(REG.HL);
-		REG.set_flag_cond(FLAG_C, REG.A < val);
-		REG.set_flag_cond(FLAG_H, (REG.A & 0x0F) < (val & 0x0F));
+		REG.FLAG_C = (REG.A < val);
+		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val; 
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (REG.A < carry));
-		REG.set_flag_cond(FLAG_H, REG.get_flag(FLAG_H) || (((REG.A & 0x0F) < carry)));
+		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
+		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.set_flag(FLAG_N);
-		REG.set_flag_cond(FLAG_Z, REG.A == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
 	}
@@ -407,10 +414,10 @@ public:
 	}
 
 	void add_hl_rw(uint16_t * ptr) {
-		REG.set_flag_cond(FLAG_C, 0xFFFF - REG.HL < *ptr);
-		REG.set_flag_cond(FLAG_H, ((REG.HL & 0x0FFF) + (*ptr & 0x0FFF)) & 0x1000);
+		REG.FLAG_C = (0xFFFF - REG.HL < *ptr);
+		REG.FLAG_H = (((REG.HL & 0x0FFF) + (*ptr & 0x0FFF)) & 0x1000);
 		REG.HL += *ptr;
-		REG.unset_flag(FLAG_N);
+		REG.FLAG_N = 0;
 
 		REG.TCLK = 8;
 	}
@@ -528,9 +535,10 @@ public:
 		REG.HL = REG.SP + e;
 
 		// TODO fix H, C flags
-		REG.set_flag_cond(FLAG_H, 0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
-		REG.set_flag_cond(FLAG_C, 0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
-		REG.unset_flag(FLAG_Z | FLAG_N);
+		REG.FLAG_H = (0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
+		REG.FLAG_C = (0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
+		REG.FLAG_Z = 0;
+		REG.FLAG_N = 0;
 	}
 
 	void push_rw(uint16_t *at) {
@@ -558,23 +566,26 @@ public:
 	// rotate right
 	void rrca() {
 		bool carry = REG.A & BIT_0;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		REG.A >>= 1;
 		if (carry) REG.A |= BIT_7;
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0; 
+		REG.FLAG_Z = 0;
 
 		REG.TCLK = 4;
 	}
 
 	void rrc_rb(uint8_t * at) {
 		bool carry = *at & BIT_0;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		*at >>= 1;
 		if (carry) *at |= BIT_7;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
@@ -582,13 +593,14 @@ public:
 	void rrc_atHL() {
 		uint8_t val = readByte(REG.HL);
 		bool carry = val & BIT_0;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		val >>= 1;
 		if (carry) val |= BIT_7;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
@@ -596,23 +608,26 @@ public:
 	// rotate left
 	void rlca() {
 		bool carry = REG.A & BIT_7;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		REG.A <<= 1;
 		if (carry) REG.A |= BIT_0;
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0; 
+		REG.FLAG_Z = 0;
 
 		REG.TCLK = 4;
 	}
 
 	void rlc_rb(uint8_t * at) {
 		bool carry = *at & BIT_7;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		*at <<= 1;
 		if (carry) *at |= BIT_0;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
@@ -620,160 +635,175 @@ public:
 	void rlc_atHL() {
 		uint8_t val = readByte(REG.HL);
 		bool carry = val & BIT_7;
-		REG.set_flag_cond(FLAG_C, carry);
+		REG.FLAG_C = (carry);
 		val <<= 1;
 		if (carry) val |= BIT_0;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	// rotate right (through carry flag)
 	void rra() {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, REG.A & BIT_0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (REG.A & BIT_0);
 		REG.A >>= 1;
 		if (carry) REG.A |= BIT_7;
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0; 
+		REG.FLAG_Z = 0;
 
 		REG.TCLK = 4;
 	}
 
 	void rr_rb(uint8_t * at) {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, *at & BIT_0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (*at & BIT_0);
 		*at >>= 1;
 		if (carry) *at |= BIT_7;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void rr_atHL() {
 		uint8_t val = readByte(REG.HL);
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, val & BIT_0);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (val & BIT_0);
 		val >>= 1;
 		if (carry) val |= BIT_7;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	// rotate left (through carry flag)
 	void rla() {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, REG.A & BIT_7);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (REG.A & BIT_7);
 		REG.A <<= 1;
 		if (carry) REG.A |= BIT_0;
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_Z);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0; 
+		REG.FLAG_Z = 0;
 
 		REG.TCLK = 4;
 	}
 
 	void rl_rb(uint8_t * at) {
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, *at & BIT_7);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (*at & BIT_7);
 		*at <<= 1;
 		if (carry) *at |= BIT_0;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void rl_atHL() {
 		uint8_t val = readByte(REG.HL);
-		bool carry = REG.get_flag(FLAG_C);
-		REG.set_flag_cond(FLAG_C, val & BIT_7);
+		bool carry = REG.FLAG_C;
+		REG.FLAG_C = (val & BIT_7);
 		val <<= 1;
 		if (carry) val |= BIT_0;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	// shift left
 	void sla_rb(uint8_t * at) {
-		REG.set_flag_cond(FLAG_C, *at & BIT_7);
+		REG.FLAG_C = (*at & BIT_7);
 		*at <<= 1;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sla_atHL() {
 		uint8_t val = readByte(REG.HL);
-		REG.set_flag_cond(FLAG_C, val & BIT_7);
+		REG.FLAG_C = (val & BIT_7);
 		val <<= 1;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	// shift right (keep bit 7)
 	void sra_rb(uint8_t * at) {
-		REG.set_flag_cond(FLAG_C, *at & BIT_0);
+		REG.FLAG_C = (*at & BIT_0);
 		*at >>= 1;
 		if (*at & BIT_6) *at |= BIT_7;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void sra_atHL() {
 		uint8_t val = readByte(REG.HL);
-		REG.set_flag_cond(FLAG_C, val & BIT_0);
+		REG.FLAG_C = (val & BIT_0);
 		val >>= 1;
 		if (val & BIT_6) val |= BIT_7;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	// shift right
 	void srl_rb(uint8_t * at) {
-		REG.set_flag_cond(FLAG_C, *at & BIT_0);
+		REG.FLAG_C = (*at & BIT_0);
 		*at >>= 1;
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void srl_atHL() {
 		uint8_t val = readByte(REG.HL);
-		REG.set_flag_cond(FLAG_C, val & BIT_0);
+		REG.FLAG_C = (val & BIT_0);
 		val >>= 1;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 8;
 	}
@@ -783,8 +813,10 @@ public:
 		*at >>= 4;
 		*at |= tmp;
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_C);
-		REG.set_flag_cond(FLAG_Z, *at == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (*at == 0);
 
 		REG.TCLK = 8;
 	}
@@ -796,31 +828,34 @@ public:
 		val |= tmp;
 		writeByte(REG.HL, val);
 
-		REG.unset_flag(FLAG_N | FLAG_H | FLAG_C);
-		REG.set_flag_cond(FLAG_Z, val == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 0;
+		REG.FLAG_C = 0;
+		REG.FLAG_Z = (val == 0);
 
 		REG.TCLK = 16;
 	}
 
 	void cpl() {
 		REG.A = ~REG.A;
-		REG.set_flag(FLAG_N | FLAG_H);
+		REG.FLAG_N = 1;
+		REG.FLAG_H = 1;
 
 		REG.TCLK = 4;
 	}
 
 	void bit_i_rb(const uint8_t mask, uint8_t *from) {
-		REG.unset_flag(FLAG_N);
-		REG.set_flag(FLAG_H);
-		REG.set_flag_cond(FLAG_Z, (*from & mask) == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 1;
+		REG.FLAG_Z = ((*from & mask) == 0);
 
 		REG.TCLK = 8;
 	}
 
 	void bit_i_atHL(const uint8_t mask) {
-		REG.unset_flag(FLAG_N);
-		REG.set_flag(FLAG_H);
-		REG.set_flag_cond(FLAG_Z, (readByte(REG.HL) & mask) == 0);
+		REG.FLAG_N = 0;
+		REG.FLAG_H = 1;
+		REG.FLAG_Z = ((readByte(REG.HL) & mask) == 0);
 
 		REG.TCLK = 12;
 	}
@@ -858,19 +893,7 @@ public:
 		REG.PC = argword();
 	}
 
-	void jp_f_nn(uint8_t mask) {
-		bool cond = REG.get_flag(mask);
-		uint16_t addr = argword();
-		if (cond) {
-			REG.TCLK = 16;
-			REG.PC = addr;
-		} else {
-			REG.TCLK = 12;
-		}
-	}
-
-	void jp_nf_nn(uint8_t mask) {
-		bool cond = !REG.get_flag(mask);
+	void jp_f_nn(bool cond) {
 		uint16_t addr = argword();
 		if (cond) {
 			REG.TCLK = 16;
@@ -893,26 +916,7 @@ public:
 		REG.TCLK = 12;
 	}
 
-	void jr_f_e(uint8_t mask) {
-		bool cond = REG.get_flag(mask);
-		uint8_t n = argbyte();
-		if (cond) {
-			int8_t e = *reinterpret_cast<int8_t*>(&n);
-			REG.TCLK = 12;
-			#ifndef NDEBUG
-			if (e == -2) {
-				printf("DEBUG: exiting on JRO 0\n");
-				exit(1);
-			}
-			#endif
-			REG.PC += e;
-		} else {
-			REG.TCLK = 8;
-		}
-	}
-
-	void jr_nf_e(uint8_t mask) {
-		bool cond = !REG.get_flag(mask);
+	void jr_f_e(bool cond) {
 		uint8_t n = argbyte();
 		if (cond) {
 			int8_t e = *reinterpret_cast<int8_t*>(&n);
@@ -951,22 +955,8 @@ public:
 		REG.TCLK = 24;
 	}
 
-	void call_f_nn(uint8_t mask) {
+	void call_f_nn(bool cond) {
 		uint16_t nn = argword();
-		bool cond = REG.get_flag(mask);
-		if (cond) {
-			writeWord(REG.SP - 2, REG.PC);
-			REG.PC = nn;
-			REG.SP -= 2;
-			REG.TCLK = 24;
-		} else {
-			REG.TCLK = 12;
-		}
-	}
-
-	void call_nf_nn(uint8_t mask) {
-		uint16_t nn = argword();
-		bool cond = !REG.get_flag(mask);
 		if (cond) {
 			writeWord(REG.SP - 2, REG.PC);
 			REG.PC = nn;
@@ -1000,8 +990,7 @@ public:
 		REG.TCLK = 16;
 	}
 
-	void ret_f(uint8_t mask) {
-		bool cond = REG.get_flag(mask);
+	void ret_f(bool cond) {
 		if (cond) {
 			REG.PC = readWord(REG.SP);
 			REG.SP += 2;
@@ -1009,17 +998,6 @@ public:
 		} else {
 			REG.TCLK = 8;
 		}
-	}
-
-	void ret_nf(uint8_t mask) {
-		bool cond = !REG.get_flag(mask);
-		if (cond) {
-			REG.PC = readWord(REG.SP);
-			REG.SP += 2;
-			REG.TCLK = 20;
-		} else {
-			REG.TCLK = 8;
-		}	
 	}
 
 	void reti() {
@@ -1038,36 +1016,38 @@ public:
 
 		int a = REG.A;
 
-		if (!REG.get_flag(FLAG_N)) {
-			if (REG.get_flag(FLAG_H) || (a & 0x0F) > 0x09)
+		if (!REG.FLAG_N) {
+			if (REG.FLAG_H || (a & 0x0F) > 0x09)
 				a += 0x06;			
-			if (REG.get_flag(FLAG_C) || a > 0x9F)
+			if (REG.FLAG_C || a > 0x9F)
 				a += 0x60;
 		} else {
-			if (REG.get_flag(FLAG_H))
+			if (REG.FLAG_H)
 				a = (a - 6) & 0xFF;
-			if (REG.get_flag(FLAG_C))
+			if (REG.FLAG_C)
 				a -= 0x60;
 		}
 
-		REG.unset_flag(FLAG_H);
-		REG.set_flag_cond(FLAG_C, REG.get_flag(FLAG_C) || (a & 0x100) == 0x100);
+		REG.FLAG_H = 0;
+		REG.FLAG_C = (REG.FLAG_C || (a & 0x100) == 0x100);
 		a &= 0xFF;
-		REG.set_flag_cond(FLAG_Z, a == 0);
+		REG.FLAG_Z = (a == 0);
 
 		REG.A = (uint8_t)a;
 		REG.TCLK = 4;
 	}
 
 	void scf() {
-		REG.set_flag(FLAG_C);
-		REG.unset_flag(FLAG_H | FLAG_N);
+		REG.FLAG_C = 1;
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
 		REG.TCLK = 4;
 	}
 
 	void ccf() {
-		REG.set_flag_cond(FLAG_C, !REG.get_flag(FLAG_C));
-		REG.unset_flag(FLAG_H | FLAG_N);
+		REG.FLAG_C = (!REG.FLAG_C);
+		REG.FLAG_H = 0;
+		REG.FLAG_N = 0;
 		REG.TCLK = 4;
 	}
 
@@ -1399,7 +1379,7 @@ public:
 		{"LD E, 0x%02X",    1, [](Cpu &CPU){ CPU.ld_rb_n(&CPU.REG.E); }},    // 0x1E
 		{"RRA",             0, [](Cpu &CPU){ CPU.rra(); }},                  // 0x1F
 
-		{"JR NZ, 0x%02X",   1, [](Cpu &CPU){ CPU.jr_nf_e(FLAG_Z); }},        // 0x20
+		{"JR NZ, 0x%02X",   1, [](Cpu &CPU){ CPU.jr_f_e(!CPU.REG.FLAG_Z); }},        // 0x20
 		{"LD HL, 0x%04X",   2, [](Cpu &CPU){ CPU.ld_rw_nn(&CPU.REG.HL); }},  // 0x21
 		{"LDI (HL), A",     0, [](Cpu &CPU){ CPU.ldi_atHL_A(); }},           // 0x22
 		{"INC HL",          0, [](Cpu &CPU){ CPU.inc_rw(&CPU.REG.HL); }},    // 0x23
@@ -1407,7 +1387,7 @@ public:
 		{"DEC H",           0, [](Cpu &CPU){ CPU.dec_rb(&CPU.REG.H); }},     // 0x25
 		{"LD H, 0x%02X",    1, [](Cpu &CPU){ CPU.ld_rb_n(&CPU.REG.H); }},    // 0x26
 		{"DAA",             0, [](Cpu &CPU){ CPU.daa(); }},                  // 0x27
-		{"JR Z, 0x%02X",    1, [](Cpu &CPU){ CPU.jr_f_e(FLAG_Z); }},         // 0x28
+		{"JR Z, 0x%02X",    1, [](Cpu &CPU){ CPU.jr_f_e(CPU.REG.FLAG_Z); }},         // 0x28
 		{"ADD HL, HL",      0, [](Cpu &CPU){ CPU.add_hl_rw(&CPU.REG.HL); }}, // 0x29
 		{"LDI A, (HL)",     0, [](Cpu &CPU){ CPU.ldi_A_atHL(); }},           // 0x2A
 		{"DEC HL",          0, [](Cpu &CPU){ CPU.dec_rw(&CPU.REG.HL); }},    // 0x2B
@@ -1416,7 +1396,7 @@ public:
 		{"LD L, 0x%02X",    1, [](Cpu &CPU){ CPU.ld_rb_n(&CPU.REG.L); }},    // 0x2E
 		{"CPL",             0, [](Cpu &CPU){ CPU.cpl(); }},                  // 0x2F
 	 
-		{"JR NC, 0x%02X",   1, [](Cpu &CPU){ CPU.jr_nf_e(FLAG_C); }},        // 0x30
+		{"JR NC, 0x%02X",   1, [](Cpu &CPU){ CPU.jr_f_e(!CPU.REG.FLAG_C); }},        // 0x30
 		{"LD SP, 0x%04X",   2, [](Cpu &CPU){ CPU.ld_rw_nn(&CPU.REG.SP); }},  // 0x31
 		{"LDD (HL), A",     0, [](Cpu &CPU){ CPU.ldd_atHL_A(); }},           // 0x32
 		{"INC SP",          0, [](Cpu &CPU){ CPU.inc_rw(&CPU.REG.SP); }},    // 0x33
@@ -1424,7 +1404,7 @@ public:
 		{"DEC (HL)",        0, [](Cpu &CPU){ CPU.dec_atHL(); }},             // 0x35
 		{"LD (HL), 0x%02X", 1, [](Cpu &CPU){ CPU.ld_atHL_n(); }},            // 0x36
 		{"SCF",             0, [](Cpu &CPU){ CPU.scf(); }},                  // 0x37
-		{"JR C, 0x%02X",    1, [](Cpu &CPU){ CPU.jr_f_e(FLAG_C); }},         // 0x38
+		{"JR C, 0x%02X",    1, [](Cpu &CPU){ CPU.jr_f_e(CPU.REG.FLAG_C); }},         // 0x38
 		{"ADD HL, SP",      0, [](Cpu &CPU){ CPU.add_hl_rw(&CPU.REG.SP); }}, // 0x39
 		{"LDD A, (HL)",     0, [](Cpu &CPU){ CPU.ldd_A_atHL(); }},           // 0x3A
 		{"DEC SP",          0, [](Cpu &CPU){ CPU.dec_rw(&CPU.REG.SP); }},    // 0x3B
@@ -1569,36 +1549,36 @@ public:
 		{"CP (HL)", 0, [](Cpu &CPU){ CPU.cp_atHL(); }},                // 0xBE
 		{"CP A", 0, [](Cpu &CPU){ CPU.cp_rb(&CPU.REG.A); }},           // 0xBF
 
-		{"RET NZ",          0, [](Cpu &CPU){ CPU.ret_nf(FLAG_Z); }},       // 0xC0
+		{"RET NZ",          0, [](Cpu &CPU){ CPU.ret_f(!CPU.REG.FLAG_Z); }},       // 0xC0
 		{"POP BC",          0, [](Cpu &CPU){ CPU.pop_rw(&CPU.REG.BC); }},  // 0xC1
-		{"JP NZ, 0x%04X",   2, [](Cpu &CPU){ CPU.jp_nf_nn(FLAG_Z); }},     // 0xC2
+		{"JP NZ, 0x%04X",   2, [](Cpu &CPU){ CPU.jp_f_nn(!CPU.REG.FLAG_Z); }},     // 0xC2
 		{"JP 0x%04X",       2, [](Cpu &CPU){ CPU.jp_nn(); }},              // 0xC3
-		{"CALL NZ, 0x%04X", 2, [](Cpu &CPU){ CPU.call_nf_nn(FLAG_Z); }},   // 0xC4
+		{"CALL NZ, 0x%04X", 2, [](Cpu &CPU){ CPU.call_f_nn(!CPU.REG.FLAG_Z); }},   // 0xC4
 		{"PUSH BC",         0, [](Cpu &CPU){ CPU.push_rw(&CPU.REG.BC); }}, // 0xC5
 		{"ADD A, 0x%02X",   1, [](Cpu &CPU){ CPU.add_A_n(); }},            // 0xC6
 		{"RST 0",           0, [](Cpu &CPU){ CPU.rst(0x00); }},            // 0xC7
-		{"RET Z",           0, [](Cpu &CPU){ CPU.ret_f(FLAG_Z); }},        // 0xC8
+		{"RET Z",           0, [](Cpu &CPU){ CPU.ret_f(CPU.REG.FLAG_Z); }},        // 0xC8
 		{"RET",             0, [](Cpu &CPU){ CPU.ret(); }},                // 0xC9
-		{"JP Z, 0x%04X",    2, [](Cpu &CPU){ CPU.jp_f_nn(FLAG_Z); }},      // 0xCA
+		{"JP Z, 0x%04X",    2, [](Cpu &CPU){ CPU.jp_f_nn(CPU.REG.FLAG_Z); }},      // 0xCA
 		{"Ext Op",          1, [](Cpu &CPU){ CPU.ext(); }},                // 0xCB
-		{"CALL Z, 0x%04X",  2, [](Cpu &CPU){ CPU.call_f_nn(FLAG_Z); }},    // 0xCC
+		{"CALL Z, 0x%04X",  2, [](Cpu &CPU){ CPU.call_f_nn(CPU.REG.FLAG_Z); }},    // 0xCC
 		{"CALL 0x%04X",     2, [](Cpu &CPU){ CPU.call_nn(); }},            // 0xCD
 		{"ADC A, 0x%02X",   1, [](Cpu &CPU){ CPU.adc_A_n(); }},            // 0xCE
 		{"RST 8",           0, [](Cpu &CPU){ CPU.rst(0x08); }},            // 0xCF
 
-		{"RET NC",          0, [](Cpu &CPU){ CPU.ret_nf(FLAG_C); }},       // 0xD0
+		{"RET NC",          0, [](Cpu &CPU){ CPU.ret_f(!CPU.REG.FLAG_C); }},       // 0xD0
 		{"POP DE",          0, [](Cpu &CPU){ CPU.pop_rw(&CPU.REG.DE); }},  // 0xD1
-		{"JP NC, 0x%04X",   2, [](Cpu &CPU){ CPU.jp_nf_nn(FLAG_C); }},     // 0xD2
+		{"JP NC, 0x%04X",   2, [](Cpu &CPU){ CPU.jp_f_nn(!CPU.REG.FLAG_C); }},     // 0xD2
 		{"XX",              0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xD3
-		{"CALL NC, 0x%04X", 2, [](Cpu &CPU){ CPU.call_nf_nn(FLAG_C); }},   // 0xD4
+		{"CALL NC, 0x%04X", 2, [](Cpu &CPU){ CPU.call_f_nn(!CPU.REG.FLAG_C); }},   // 0xD4
 		{"PUSH DE",         0, [](Cpu &CPU){ CPU.push_rw(&CPU.REG.DE); }}, // 0xD5
 		{"SUB A, 0x%02X",   1, [](Cpu &CPU){ CPU.sub_A_n(); }},            // 0xD6
 		{"RST 10",          0, [](Cpu &CPU){ CPU.rst(0x10); }},            // 0xD7
-		{"RET C",           0, [](Cpu &CPU){ CPU.ret_f(FLAG_C); }},        // 0xD8
+		{"RET C",           0, [](Cpu &CPU){ CPU.ret_f(CPU.REG.FLAG_C); }},        // 0xD8
 		{"RETI",            0, [](Cpu &CPU){ CPU.reti(); }},               // 0xD9
-		{"JP C, 0x%04X",    2, [](Cpu &CPU){ CPU.jp_f_nn(FLAG_C); }},      // 0xDA
+		{"JP C, 0x%04X",    2, [](Cpu &CPU){ CPU.jp_f_nn(CPU.REG.FLAG_C); }},      // 0xDA
 		{"XX",              0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xDB
-		{"CALL C, 0x%04X",  2, [](Cpu &CPU){ CPU.call_f_nn(FLAG_C); }},    // 0xDC
+		{"CALL C, 0x%04X",  2, [](Cpu &CPU){ CPU.call_f_nn(CPU.REG.FLAG_C); }},    // 0xDC
 		{"MEM_SENTINEL",    0, [](Cpu &CPU){ CPU.TODO(); }},               // 0xDD
 		{"SBC A, 0x%02X",   1, [](Cpu &CPU){ CPU.sbc_A_n(); }},            // 0xDE
 		{"RST 18",          0, [](Cpu &CPU){ CPU.rst(0x18); }},            // 0xDF
