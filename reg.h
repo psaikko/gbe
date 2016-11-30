@@ -23,10 +23,10 @@ public:
 				uint8_t F;
 				struct {
 					uint8_t _ : 4;
-					uint8_t FLAG_C : 1;
-					uint8_t FLAG_H : 1;
-					uint8_t FLAG_N : 1;
-					uint8_t FLAG_Z : 1;
+					bool FLAG_C : 1;
+					bool FLAG_H : 1;
+					bool FLAG_N : 1;
+					bool FLAG_Z : 1;
 				};
 			};
 			uint8_t A;
