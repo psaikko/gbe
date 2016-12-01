@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "mem.h"
+#include "sound.h"
 #include "buttons.h"
 
 uint8_t* Memory::getReadPtr(uint16_t addr) {
@@ -90,7 +91,11 @@ uint8_t* Memory::getWritePtr(uint16_t addr) {
 }
 
 uint8_t Memory::readByte(uint16_t addr) {
+
 	if (break_addr == addr) at_breakpoint = true;
+
+	if (addr >= 0xFF10 && addr <= 0xFF26)
+		return SND.readByte(addr);
 
 	uint8_t *ptr = getReadPtr(addr);
 
@@ -107,6 +112,7 @@ uint8_t Memory::readByte(uint16_t addr) {
 }
 
 uint16_t Memory::readWord(uint16_t addr) {
+	assert(!(addr >= 0xFF10 && addr <= 0xFF26)); // not a sound register
 	if (break_addr == addr) at_breakpoint = true;
 	uint8_t *ptr = getReadPtr(addr);
 	if (ptr != nullptr)
@@ -119,6 +125,11 @@ uint16_t Memory::readWord(uint16_t addr) {
 
 void Memory::writeByte(uint16_t addr, uint8_t val) {
 	if (break_addr == addr) at_breakpoint = true;
+
+	if (addr >= 0xFF10 && addr <= 0xFF26) {
+		SND.writeByte(addr, val);
+		return;
+	}
 
 	uint8_t *ptr = getWritePtr(addr);
 /*
@@ -225,6 +236,7 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 }
 
 void Memory::writeWord(uint16_t addr, uint16_t val) {
+	assert(!(addr >= 0xFF10 && addr <= 0xFF26));
 	if (break_addr == addr) at_breakpoint = true;
 	uint8_t *ptr = getWritePtr(addr);
 
