@@ -11,6 +11,7 @@
 #include "cart.h"
 #include "window.h"
 #include "timer.h"
+#include "sound.h"
 #include "serial.h"
 #include "buttons.h"
 #include "mem.h"
@@ -21,10 +22,10 @@ using namespace std;
 void printRegisters(Memory &MEM, Registers &REG, bool words) {
 	if (!words) {
 		printf("A %02X F %02X B %02X C %02X D %02X E %02X H %02X L %02X\n",
-						 REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
+			REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
 	} else {
 		printf("AF %04X BC %04X DE %04X HL %04X SP %04X PC %04X (HL) %02X\n",
-					 REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(REG.HL));
+			REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(REG.HL));
 	}
 }
 
@@ -164,8 +165,9 @@ int main(int argc, char ** argv) {
   }
 
   Buttons BTN;
+  Sound SND;
   Cart CART(romfile);
-  Memory MEM(CART, BTN);
+  Memory MEM(CART, BTN, SND);
 
   Registers REG;
   
