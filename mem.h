@@ -13,10 +13,10 @@ typedef struct {
 		union {
 			uint8_t flags;
 			struct {
-				uint8_t _ : 4;
-				uint8_t palette : 1;
-				uint8_t xflip : 1;
-				uint8_t yflip : 1;
+				uint8_t _        : 4;
+				uint8_t palette  : 1;
+				uint8_t xflip    : 1;
+				uint8_t yflip    : 1;
 				uint8_t priority : 1;
 			};
 		};
@@ -24,6 +24,7 @@ typedef struct {
 } oam_entry;
 
 class Buttons;
+class Sound;
 
 class Memory {
 
@@ -31,7 +32,9 @@ class Memory {
 	controller_mode mbc_mode;
 
 public:
-	Memory(Cart &CartRef, Buttons &BtnRef) : mbc_mode(controller_mode::ROM_banking), BTN(BtnRef), CART(CartRef) {
+	Memory(Cart &CartRef, Buttons &BtnRef, Sound &SndRef) : 
+			mbc_mode(controller_mode::ROM_banking), 
+			BTN(BtnRef), CART(CartRef), SND(SndRef) {
 		// Don't read ROM or cart RAM from RAW
 		// Fill with sentinel value (unused instruction 0xDD)
 		memset(&RAW[0x0000], 0xDD, 0x4000);
@@ -47,6 +50,7 @@ public:
 
 	Buttons &BTN;
 	Cart &CART;
+	Sound &SND;
 
 	uint8_t *ROM_BANKS; // Max ROM size 8 MB
 	uint8_t *RAM_BANKS;  // Max RAM size 128 KB
