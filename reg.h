@@ -1,10 +1,5 @@
 #pragma once
 
-#define F_C 0x10
-#define F_H 0x20
-#define F_N 0x40
-#define F_Z 0x80
-
 #define BIT_0 0x01
 #define BIT_1 0x02
 #define BIT_2 0x04

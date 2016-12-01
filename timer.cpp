@@ -7,21 +7,21 @@
 #define TIMER_CTRL_SPD 0x03
 #define TIMER_CTRL_RUN 0x04
 
-#define TICK_4096_HZ 0   // M / 256
+#define TICK_4096_HZ   0 // M / 256
 #define TICK_262144_HZ 1 // M / 4
-#define TICK_65536_HZ 2  // M / 16
-#define TICK_16384_HZ 3  // M / 64
+#define TICK_65536_HZ  2 // M / 16
+#define TICK_16384_HZ  3 // M / 64
 
 #define FLAG_IF_TIMER  0x04
 
 void Timer::tick() {
-		if (*MEM.TIMA == 0xFF) {
-			*MEM.IF |= FLAG_IF_TIMER;
-			*MEM.TIMA = *MEM.TMA;
-		} else {
-			(*MEM.TIMA)++;
-		}
+	if (*MEM.TIMA == 0xFF) {
+		*MEM.IF |= FLAG_IF_TIMER;
+		*MEM.TIMA = *MEM.TMA;
+	} else {
+		(*MEM.TIMA)++;
 	}
+}
 
 void Timer::update(unsigned tclock) {
 
