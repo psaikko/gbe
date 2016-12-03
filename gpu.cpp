@@ -23,13 +23,12 @@
 
 using namespace std;
 
-
-
 void Gpu::set_status(uint8_t mode) {
 	*MEM.LCD_STAT &= ~MODE_MASK;
 	*MEM.LCD_STAT |= mode;
 }
 
+// refresh every 70224 cycles
 void Gpu::update(unsigned tclock) {
 	clk += tclock;
 	switch (*MEM.LCD_STAT & MODE_MASK) {
@@ -52,24 +51,7 @@ void Gpu::update(unsigned tclock) {
 				*MEM.SCAN_LN += 1;
 				if (*MEM.SCAN_LN == 144) {
 					set_status(MODE_VBLANK);
-					{
-					using namespace std::chrono;
-					auto time = high_resolution_clock::now();
-					auto frame_time = time - prev_frame;
-					long long frame_us = duration_cast<microseconds>(frame_time).count();
-
-					// sleep until 16750 microseconds have passed since previous frame was drawn
-					// (~ 59.7 fps)
-					if (frame_us < 16750 && !unlocked_frame_rate) {
-						unsigned sleep_us = 16750 - frame_us;
-						this_thread::sleep_for(microseconds(sleep_us));
-					}
-					//printf("frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
-					if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > 16750) {
-						prev_frame = high_resolution_clock::now();
-						WINDOW.draw_buffer();
-					}
-					}
+					WINDOW.draw_buffer();
 				} else {
 					set_status(MODE_OAM);
 				}

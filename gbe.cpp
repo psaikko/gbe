@@ -12,6 +12,7 @@
 #include "window.h"
 #include "timer.h"
 #include "sound.h"
+#include "openal_output.h"
 #include "serial.h"
 #include "buttons.h"
 #include "mem.h"
@@ -166,15 +167,16 @@ int main(int argc, char ** argv) {
 
   Buttons BTN;
   Sound SND;
+  OpenAL_Output SND_OUT(SND);
   Cart CART(romfile);
   Memory MEM(CART, BTN, SND);
 
   Registers REG;
   
-  Window WINDOW(MEM, BTN);
+  Window WINDOW(MEM, BTN, SND_OUT, unlocked_frame_rate);
   Timer TIMER(MEM);
 
-  Gpu GPU(MEM, WINDOW, unlocked_frame_rate);
+  Gpu GPU(MEM, WINDOW);
   Cpu CPU(MEM, REG);
   SerialPortInterface SERIAL(MEM);
 
@@ -313,6 +315,7 @@ int main(int argc, char ** argv) {
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
+		SND.update(REG.TCLK);
 
 		REG.TCLK = 0;
 		CPU.handle_interrupts();
@@ -320,6 +323,9 @@ int main(int argc, char ** argv) {
 		GPU.update(REG.TCLK);
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
-	}
+		SND.update(REG.TCLK);
+
+		SND_OUT.update_buffer();
+	}	
 
 }

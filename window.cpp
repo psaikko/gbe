@@ -1,9 +1,11 @@
 #include <string.h>
 #include <iostream>
+#include <thread>
 
 #include "window.h"
 #include "mem.h"
 #include "buttons.h"
+#include "openal_output.h"
 
 #define FLAG_GPU_BG     0x01
 #define FLAG_GPU_SPR    0x02
@@ -289,16 +291,57 @@ void Window::render_tileset() {
 
 void Window::draw_buffer() {
 	//static long frame = 0;
-  poll_buttons();
+  
+  {
+    using namespace std::chrono;
+    auto time = high_resolution_clock::now();
+    auto frame_time = time - prev_frame;
+    long long frame_us = duration_cast<microseconds>(frame_time).count();
 
-	glfwMakeContextCurrent(game_window);
-  glfwSwapInterval(0);
-	glClear( GL_COLOR_BUFFER_BIT );
-  glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
-  glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
-  glfwSwapBuffers(game_window);
+    // sleep until 16750 microseconds have passed since previous frame was drawn
+    // (~ 59.7 fps)
+    unsigned frame_target = 16750;
+    if (frame_us < frame_target && !unlocked_frame_rate) {
+      unsigned sleep_us = frame_target - frame_us;
+      this_thread::sleep_for(microseconds(sleep_us));
+    }
+    
+    if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > frame_target) {
 
-  refresh_debug();
+      auto wait_start = high_resolution_clock::now();
+
+      if (!unlocked_frame_rate) {
+        while (1) {
+          while (SND_OUT.buffer_lock.test_and_set())
+            ; 
+
+          if (SND_OUT.queueSize() < SND_OUT.buffer_size*3) {
+            printf("[window] waiting %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - wait_start).count());
+            SND_OUT.buffer_lock.clear();
+            break; 
+          }
+          //this_thread::sleep_for(1ms);
+          SND_OUT.buffer_lock.clear();
+        }
+      }
+
+      printf("[window] frame %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - prev_frame).count());
+      prev_frame = high_resolution_clock::now();
+      
+      // draw
+      poll_buttons();
+
+      glfwMakeContextCurrent(game_window);
+      glfwSwapInterval(0);
+      glClear( GL_COLOR_BUFFER_BIT );
+      glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
+      glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
+      glfwSwapBuffers(game_window);
+
+      refresh_debug();
+    }
+
+  }
   //printf("Frame #%ld\n", frame++);
 }
 

@@ -9,6 +9,8 @@
 // Include GLM
 #include <glm/glm.hpp>
 
+#include <chrono>
+
 using namespace glm;
 
 #define WINDOW_W 160
@@ -33,13 +35,16 @@ using namespace glm;
 
 class Memory;
 class Buttons;
+class OpenAL_Output;
 
 class Window {
 public:
-  Window(Memory &MemRef, Buttons &BtnRef) : MEM(MemRef), BTN(BtnRef), breakpoint(false) {}
+  Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, bool u) : MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), breakpoint(false),
+      prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u) {}
 
   Memory &MEM;
   Buttons &BTN;
+  OpenAL_Output &SND_OUT;
 
   GLFWwindow* game_window;
   GLFWwindow* tilemap_window;
@@ -82,5 +87,8 @@ public:
   void draw_tileset();
 
   void init();
+private:
+  std::chrono::time_point<std::chrono::high_resolution_clock> prev_frame;
+  bool unlocked_frame_rate;
 
 };

@@ -3,13 +3,14 @@
 #include <inttypes.h>
 #include <unordered_map>
 
-#define SAMPLE_RATE 44100
+#define TCLK_HZ   4194304
+#define SAMPLE_RATE 44000
 
 class Sound {
 public:
 	Sound();
 
-	void tick(unsigned tclk);
+	void update(unsigned tclk);
 
 	bool hasNewSample();
 
@@ -19,6 +20,7 @@ public:
 	uint8_t readByte(uint16_t addr);
 
 private:
+	bool sample_ready;
 	unsigned clock;
 	int8_t lsample, rsample;
 
@@ -38,10 +40,10 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t*> reg_pointers;
 
-	void updateCh1();
-	void updateCh2();
-	void updateCh3();
-	void updateCh4();
+	uint8_t updateCh1();
+	uint8_t updateCh2();
+	uint8_t updateCh3();
+	uint8_t updateCh4();
 };
 
 // 1 step = n/64 sec

@@ -4,145 +4,200 @@
 struct Sound::CH1 {
 	enum op { Addition, Subtraction };
 
-	struct { // rw
-		uint8_t sweep_number : 3; // 0-7
-		op      sweep_mode   : 1; 
-		uint8_t sweep_time   : 3; // x / 128 Hz
-		uint8_t _            : 1; 
-	} NR10;
+	union {
+		struct { // rw
+			uint8_t sweep_number : 3; // 0-7
+			op      sweep_mode   : 1; 
+			uint8_t sweep_time   : 3; // x / 128 Hz
+			uint8_t _1           : 1; 
+		};
+		uint8_t NR10;
+	};
 
-	struct { // rw
-		uint8_t sound_length : 6; // len = (64 - t)*(1/256) sec
-		uint8_t wave_duty    : 2; // 12.5%, 25%, 50%, 75%
-	} NR11;
+	union {
+		struct { // rw
+			uint8_t sound_length : 6; // len = (64 - t)*(1/256) sec
+			uint8_t wave_duty    : 2; // 12.5%, 25%, 50%, 75%
+		}; 
+		uint8_t NR11;
+	};
 
-	struct { // rw
-		uint8_t env_sweep       : 3; // 0 = stop
-		direction env_direction : 1;
-		uint8_t env_volume      : 4; // n: 0 = no sound
-	} NR12;
+	union {
+		struct { // rw
+			uint8_t   env_sweep     : 3; // 0 = stop
+			direction env_direction : 1;
+			uint8_t   env_volume    : 4; // n: 0 = no sound
+		}; 
+		uint8_t NR12;
+	};
 
-	struct {
+	union {
 		uint8_t freq_lo; // wo
-	} NR13;
+		uint8_t NR13;
+	};
 
-	struct {
-		uint8_t freq_hi     : 3; // wo
-		uint8_t _           : 3;
-		uint8_t consecutive : 1; // rw
-		uint8_t init        : 1; // wo
-	} NR14;
+	union {
+		struct {
+			uint8_t freq_hi     : 3; // wo
+			uint8_t _2          : 3;
+			uint8_t no_loop     : 1; // rw
+			uint8_t init        : 1; // wo
+		};
+		uint8_t NR14;
+	};
 };
 
 struct Sound::CH2 {
 
-	struct {
-		uint8_t sound_length : 6; // wo, len = (64 - t)*(1/256) sec
-		uint8_t wave_duty    : 2; // rw, 12.5%, 25%, 50%, 75%
-	} NR21;		
+	union {
+		struct {
+			uint8_t sound_length : 6; // wo, len = (64 - t)*(1/256) sec
+			uint8_t wave_duty    : 2; // rw, 12.5%, 25%, 50%, 75%
+		}; 
+		uint8_t NR21;		
+	};
 
-	struct { // rw
-		uint8_t env_sweep       : 3; // 0 = stop
-		direction env_direction : 1;
-		uint8_t env_volume      : 4; // n: 0 = no sound
-	} NR22;
+	union {
+		struct { // rw
+			uint8_t   env_sweep     : 3; // 0 = stop
+			direction env_direction : 1;
+			uint8_t   env_volume    : 4; // n: 0 = no sound
+		}; 
+		uint8_t NR22;
+	};
 
-	struct {
+	union {
 		uint8_t freq_lo; // wo
-	} NR23;
+		uint8_t NR23;
+	};
 
-	struct {
-		uint8_t freq_hi     : 3; // wo
-		uint8_t _           : 3;
-		uint8_t consecutive : 1; // rw
-		uint8_t init        : 1; // wo
-	} NR24;
+	union {
+		struct {
+			uint8_t freq_hi     : 3; // wo
+			uint8_t _           : 3;
+			uint8_t no_loop     : 1; // rw
+			uint8_t init        : 1; // wo
+		}; 
+		uint8_t NR24;
+	};
 };
 
 struct Sound::CH3 {
-	struct {
-		uint8_t _        : 7;
-		uint8_t sound_on : 1; // rw
-	} NR30;
+	union {
+		struct {
+			uint8_t _1       : 7;
+			uint8_t sound_on : 1; // rw
+		}; 
+		uint8_t NR30;
+	};
 
-	struct {
+	union {
 		uint8_t sound_length;
-	} NR31;
+		uint8_t NR31;
+	};
 
-	struct {
-		uint8_t _      : 4;
-		uint8_t volume : 2; // rw
-		uint8_t __     : 4;
-		// 0=0% 1=100% 2=50% 3=25%
-	} NR32;
+	union {
+		struct {
+			uint8_t _2     : 4;
+			uint8_t volume : 2; // rw
+			uint8_t _3     : 4;
+			// 0=0% 1=100% 2=50% 3=25%
+		}; 
+		uint8_t NR32;
+	};
 
-	struct { // wo
-		uint8_t freq_lo;
-	} NR33;
+	union { // wo
+		uint8_t freq_lo; 
+		uint8_t NR33;
+	};
 
-	struct {
-		uint8_t freq_hi     : 3; // wo
-		uint8_t _           : 3;
-		uint8_t consecutive : 1; // rw
-		uint8_t init        : 1; // wo
-	} NR34;
+	union {
+		struct {
+			uint8_t freq_hi     : 3; // wo
+			uint8_t _4          : 3;
+			uint8_t no_loop     : 1; // rw
+			uint8_t init        : 1; // wo
+		}; 
+		uint8_t NR34;
+	};
 
 	// Wave Pattern RAM: FF30 - FF3F
 };
 
 struct Sound::CH4 {
-	struct {
-		uint8_t length : 6;
-		uint8_t _ : 2;
-	} NR41;
+	union {
+		struct {
+			uint8_t length : 6;
+			uint8_t _1     : 2;
+		}; 
+		uint8_t NR41;
+	};
 
-	struct {
-		uint8_t env_sweep       : 3; // 0 = stop
-		direction env_direction : 1;
-		uint8_t env_volume      : 4; // n: 0 = no sound
-	} NR42;
+	union {
+		struct {
+			uint8_t env_sweep       : 3; // 0 = stop
+			direction env_direction : 1;
+			uint8_t env_volume      : 4; // n: 0 = no sound
+		}; 
+		uint8_t NR42;
+	};
 
-	struct {
-		uint8_t freq_div : 3; // r
-		uint8_t counter_step : 1; // 0=15 bits, 1=7 bits
-		uint8_t shift_clk_freq : 4; // s
-		// freq = 524288 / r / 2^(s+1) Hz  (assume r=0.5 when 0)
-	} NR43;
+	union {
+		struct {
+			uint8_t freq_div : 3; // r
+			uint8_t counter_step : 1; // 0=15 bits, 1=7 bits
+			uint8_t shift_clk_freq : 4; // s
+			// freq = 524288 / r / 2^(s+1) Hz  (assume r=0.5 when 0)
+		}; 
+		uint8_t NR43;
+	};
 
-	struct {
-		uint8_t _           : 6;
-		uint8_t consecutive : 1; // rw
-		uint8_t init        : 1; // wo
-	} NR44;
+	union {
+		struct {
+			uint8_t _2          : 6;
+			uint8_t no_loop     : 1; // rw
+			uint8_t init        : 1; // wo
+		}; 
+		uint8_t NR44;
+	};
 };
 
 struct Sound::CTRL {
-	struct { // rw
-		uint8_t SO1_vol : 3;
-		uint8_t SO1_vin : 1;
-		uint8_t SO2_vol : 3;
-		uint8_t SO2_vin : 1;
-	} NR50;
+	union {
+		struct { // rw
+			uint8_t SO1_vol : 3;
+			uint8_t SO1_vin : 1;
+			uint8_t SO2_vol : 3;
+			uint8_t SO2_vin : 1;
+		};
+		uint8_t NR50;
+	};
 
-	struct { // rw
-		uint8_t CH1_SO1 : 1;
-		uint8_t CH2_SO1 : 1;
-		uint8_t CH3_SO1 : 1;
-		uint8_t CH4_SO1 : 1;
-		uint8_t CH1_SO2 : 1;
-		uint8_t CH2_SO2 : 1;
-		uint8_t CH3_SO2 : 1;
-		uint8_t CH4_SO2 : 1;
-	} NR51;
+	union {
+		struct { // rw
+			uint8_t CH1_SO1 : 1;
+			uint8_t CH2_SO1 : 1;
+			uint8_t CH3_SO1 : 1;
+			uint8_t CH4_SO1 : 1;
+			uint8_t CH1_SO2 : 1;
+			uint8_t CH2_SO2 : 1;
+			uint8_t CH3_SO2 : 1;
+			uint8_t CH4_SO2 : 1;
+		};
+		uint8_t NR51;
+	};
 
-	struct {
-		uint8_t CH1_on   : 1; // ro
-		uint8_t CH2_on   : 1; // ro
-		uint8_t CH3_on   : 1; // ro
-		uint8_t CH4_on   : 1; // ro
-		uint8_t _        : 3;
-		uint8_t sound_on : 1; // rw
-	} NR52;
+	union {
+		struct {
+			uint8_t CH1_on   : 1; // ro
+			uint8_t CH2_on   : 1; // ro
+			uint8_t CH3_on   : 1; // ro
+			uint8_t CH4_on   : 1; // ro
+			uint8_t _        : 3;
+			uint8_t sound_on : 1; // rw
+		};
+		uint8_t NR52;
+	};
 };
 
 Sound::Sound() : clock(0), lsample(0), rsample(0) {
@@ -153,40 +208,32 @@ Sound::Sound() : clock(0), lsample(0), rsample(0) {
 	Control  = new CTRL();
 
 	reg_pointers = {
-		{0xFF10, (uint8_t*)&(Channel1->NR10)},
-		{0xFF11, (uint8_t*)&(Channel1->NR11)},
-		{0xFF12, (uint8_t*)&(Channel1->NR12)},
-		{0xFF13, (uint8_t*)&(Channel1->NR13)},
-		{0xFF14, (uint8_t*)&(Channel1->NR14)},
+		{0xFF10, &(Channel1->NR10)},
+		{0xFF11, &(Channel1->NR11)},
+		{0xFF12, &(Channel1->NR12)},
+		{0xFF13, &(Channel1->NR13)},
+		{0xFF14, &(Channel1->NR14)},
 
-		{0xFF16, (uint8_t*)&(Channel2->NR21)},
-		{0xFF17, (uint8_t*)&(Channel2->NR22)},
-		{0xFF18, (uint8_t*)&(Channel2->NR23)},
-		{0xFF19, (uint8_t*)&(Channel2->NR24)},
+		{0xFF16, &(Channel2->NR21)},
+		{0xFF17, &(Channel2->NR22)},
+		{0xFF18, &(Channel2->NR23)},
+		{0xFF19, &(Channel2->NR24)},
 
-		{0xFF1A, (uint8_t*)&(Channel3->NR30)},
-		{0xFF1B, (uint8_t*)&(Channel3->NR31)},
-		{0xFF1C, (uint8_t*)&(Channel3->NR32)},
-		{0xFF1D, (uint8_t*)&(Channel3->NR33)},
-		{0xFF1E, (uint8_t*)&(Channel3->NR34)},
+		{0xFF1A, &(Channel3->NR30)},
+		{0xFF1B, &(Channel3->NR31)},
+		{0xFF1C, &(Channel3->NR32)},
+		{0xFF1D, &(Channel3->NR33)},
+		{0xFF1E, &(Channel3->NR34)},
 
-		{0xFF20, (uint8_t*)&(Channel4->NR41)},
-		{0xFF21, (uint8_t*)&(Channel4->NR42)},
-		{0xFF22, (uint8_t*)&(Channel4->NR43)},
-		{0xFF23, (uint8_t*)&(Channel4->NR44)},
+		{0xFF20, &(Channel4->NR41)},
+		{0xFF21, &(Channel4->NR42)},
+		{0xFF22, &(Channel4->NR43)},
+		{0xFF23, &(Channel4->NR44)},
 
-		{0xFF24, (uint8_t*)&(Control->NR50)},
-		{0xFF25, (uint8_t*)&(Control->NR51)},
-		{0xFF26, (uint8_t*)&(Control->NR52)}
+		{0xFF24, &(Control->NR50)},
+		{0xFF25, &(Control->NR51)},
+		{0xFF26, &(Control->NR52)}
 	};
-}
-
-void Sound::tick(unsigned tclk) {
-	clock += tclk;
-}
-
-bool Sound::hasNewSample() {
-	return true;
 }
 
 void Sound::writeByte(uint16_t addr, uint8_t val) {
@@ -233,23 +280,176 @@ uint8_t Sound::readByte(uint16_t addr) {
 	return val & mask;
 }
 
+void Sound::update(unsigned tclk) {
+	clock += tclk;
+/*
+	float test_hz = 220;
+	static unsigned test_ctr = 0;
+	unsigned wave_samples = SAMPLE_RATE / test_hz;
+*/
+	if (clock >= TCLK_HZ / SAMPLE_RATE) {
+		clock -= TCLK_HZ / SAMPLE_RATE;
+		sample_ready = true;
+
+/*
+		uint8_t val;
+		if ((++test_ctr) % wave_samples > wave_samples/2)
+			val = 127;
+		else
+			val = 0; 
+
+		lsample = val;
+		rsample = val;
+*/
+
+		unsigned new_rsample = 0;
+		unsigned new_lsample = 0;
+
+		if (Control->sound_on) {
+			uint8_t ch1_sample = updateCh1();
+			uint8_t ch2_sample = updateCh2();
+
+			if (Control->CH1_SO1) new_lsample += ch1_sample;
+			if (Control->CH1_SO2) new_rsample += ch1_sample;
+
+			if (Control->CH2_SO1) new_lsample += ch2_sample;
+			if (Control->CH2_SO2) new_rsample += ch2_sample;
+
+			new_lsample = new_lsample > 255 ? 255 : new_lsample;
+			new_rsample = new_rsample > 255 ? 255 : new_rsample;
+		}
+
+		// TODO: volume control
+		lsample = Control->SO1_vol ? uint8_t(new_lsample) : 0;
+		rsample = Control->SO1_vol ? uint8_t(new_rsample) : 0;
+	}
+	
+}
+
+bool Sound::hasNewSample() {
+	return sample_ready;
+}
+
 void Sound::getSamples(uint8_t * left, uint8_t * right) {
-	*left = 0;
-	*right = 0;
+	*left = lsample;
+	*right = rsample;
+	sample_ready = false;
 }
 
-void Sound::updateCh1() {
+uint8_t Sound::updateCh1() {
+	static bool active = false;
+	static unsigned ctr = 0;
+	static float length = 0;
+	static float env_step = 0;
+	static float env_ctr = 0;
+	static uint8_t vol = 0;
 
+	uint8_t sample = 0;
+
+	if (Channel1->init) {
+		active = true;
+		Channel1->init = false;
+		if (!Channel1->no_loop)
+			length = float(64 - Channel1->sound_length) / 256;
+		ctr = 0;
+
+		env_step = float(Channel1->env_sweep) / 64.0f;
+		env_ctr  = 0;
+		vol = Channel1->env_volume << 4;
+	}
+
+	if (active) {
+		unsigned gb_freq = unsigned(Channel1->freq_hi) << 8;
+		gb_freq |= Channel1->freq_lo;
+		unsigned hz = 131072 / (2048 - gb_freq);
+
+		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
+		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
+		bool low = ((++ctr) % wavelen) > (duty_map[Channel1->wave_duty] * wavelen);
+
+		sample = low ? 0 : vol;
+
+		if (Channel1->no_loop) {
+			length -= 1.0f / float(SAMPLE_RATE);
+			if (length <= 0) active = false;
+		}
+
+		if (Channel1->env_sweep != 0) {
+			env_ctr += 1.0f / float(SAMPLE_RATE);
+			if (env_ctr > env_step) {
+				env_ctr -= env_step;
+				if (Channel1->env_direction == Increase) {
+					vol ++;
+				} else {
+					vol --;
+				}
+			}
+		}
+	}
+
+	return sample;
 }
 
-void Sound::updateCh2() {
-	
+uint8_t Sound::updateCh2() {
+	static bool active = false;
+	static unsigned ctr = 0;
+	static float length = 0;
+	static float env_step = 0;
+	static float env_ctr = 0;
+	static uint8_t vol = 0;
+
+	uint8_t sample = 0;
+
+	if (Channel2->init) {
+		active = true;
+		Channel2->init = false;
+		if (!Channel2->no_loop)
+			length = float(64 - Channel2->sound_length) / 256;
+		ctr = 0;
+
+		env_step = float(Channel2->env_sweep) / 64.0f;
+		env_ctr  = 0;
+		vol = Channel2->env_volume << 4;
+	}
+
+	if (active) {
+		unsigned gb_freq = unsigned(Channel2->freq_hi) << 8;
+		gb_freq |= Channel2->freq_lo;
+		unsigned hz = 131072 / (2048 - gb_freq);
+
+		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
+		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
+		bool low = ((++ctr) % wavelen) > (duty_map[Channel2->wave_duty] * wavelen);
+
+		// TODO: volume
+
+		sample = low ? 0 : vol;
+
+		if (Channel2->no_loop) {
+			length -= 1.0f / float(SAMPLE_RATE);
+			if (length <= 0) active = false;
+		}
+
+		if (Channel2->env_sweep != 0) {
+			env_ctr += 1.0f / float(SAMPLE_RATE);
+			if (env_ctr > env_step) {
+				env_ctr -= env_step;
+				if (Channel2->env_direction == Increase) {
+					vol ++;
+				} else {
+					vol --;
+				}
+			}
+		}
+	}
+
+	return sample;
 }
 
-void Sound::updateCh3() {
-	
+uint8_t Sound::updateCh3() {
+	return 0;	
 }
 
-void Sound::updateCh4() {
-	
+uint8_t Sound::updateCh4() {
+	return 0;
 }

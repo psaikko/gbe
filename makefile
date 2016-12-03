@@ -1,11 +1,13 @@
 GLFWDIR = glfw
 GLFWLIBS = -lGL -lGLU -lGLEW -lglfw3 -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXcursor -lXinerama
 
-CXX = g++-5 -fdiagnostics-color=always
-CXXFLAGS = --std=c++14 -O3 -Wall -Wextra -MMD -Wno-format-security
-CPPFLAGS = -I$(GLFWDIR)/include -L$(GLFWDIR)/lib $(GLFWLIBS)
+ALLIBS = -lalut -lopenal
 
-SRCS=gpu.cpp window.cpp mem.cpp timer.cpp cpu.cpp serial.cpp gbe.cpp sound.cpp
+CXX = g++-5 -fdiagnostics-color=always
+CXXFLAGS = --std=c++14 -O3 -Wall -Wextra -MMD -Wno-format-security -Wno-reorder
+CPPFLAGS = -I$(GLFWDIR)/include -L$(GLFWDIR)/lib $(GLFWLIBS) $(ALLIBS)
+
+SRCS=gpu.cpp window.cpp mem.cpp timer.cpp cpu.cpp serial.cpp gbe.cpp sound.cpp openal_output.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: $(OBJS)
