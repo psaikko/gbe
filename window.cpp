@@ -156,14 +156,9 @@ void Window::render_buffer_line() {
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
-      if (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) {
-        std::cerr << "TODO: 16x8 sprite" << std::endl;
-        exit(1);
-      }  
-
       for (int spr_id = 0; spr_id < 40; ++spr_id) {
         oam_entry spr = MEM.OAM[spr_id];
-        uint8_t spr_w = 8;
+        const uint8_t spr_w = 8;
         uint8_t spr_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
         // x and y coords offset in memory..
         int spr_y = ((int)spr.y) - 16;
@@ -177,12 +172,14 @@ void Window::render_buffer_line() {
         if ((lcd_x > spr_x + 7) || (lcd_x < spr_x)) continue;
 
         uint8_t spr_tile_y = lcd_y - spr_y;        
-        if (spr.yflip) spr_tile_y = 7 - spr_tile_y;
+        if (spr.yflip) spr_tile_y = (spr_h - 1) - spr_tile_y;
 
         uint8_t spr_tile_x = lcd_x - spr_x;
-        if (spr.xflip) spr_tile_x = 7 - spr_tile_x;
+        if (spr.xflip) spr_tile_x = (spr_w - 1) - spr_tile_x;
 
-        uint8_t *spr_tile = get_tile(spr.tile_id, true);
+        // ignore lsb if double-height sprite
+        uint8_t spr_tile_id = (spr_h == 16) ? spr.tile_id & ~1 : spr.tile_id;
+        uint8_t *spr_tile = get_tile(spr_tile_id, true);
         
         if (!spr.priority || color_id == 0) {
           uint8_t spr_color_id = get_tile_pixel(spr_tile, spr_tile_x, spr_tile_y);
@@ -216,7 +213,7 @@ uint8_t Window::apply_palette(uint8_t color_id, uint8_t palette) {
 uint8_t Window::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
 
 	assert(x <= 7);
-	assert(y <= 7);
+	assert(y <= (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 15 : 7);
 
 	uint8_t *row_y    = tile + 2*y; // tiles have 2 bytes per row
 	uint8_t bitmask_x = 0x80 >> x;

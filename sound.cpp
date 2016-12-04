@@ -282,25 +282,10 @@ uint8_t Sound::readByte(uint16_t addr) {
 
 void Sound::update(unsigned tclk) {
 	clock += tclk;
-/*
-	float test_hz = 220;
-	static unsigned test_ctr = 0;
-	unsigned wave_samples = SAMPLE_RATE / test_hz;
-*/
+
 	if (clock >= TCLK_HZ / SAMPLE_RATE) {
 		clock -= TCLK_HZ / SAMPLE_RATE;
 		sample_ready = true;
-
-/*
-		uint8_t val;
-		if ((++test_ctr) % wave_samples > wave_samples/2)
-			val = 127;
-		else
-			val = 0; 
-
-		lsample = val;
-		rsample = val;
-*/
 
 		unsigned new_rsample = 0;
 		unsigned new_lsample = 0;
@@ -371,6 +356,7 @@ uint8_t Sound::updateCh1() {
 		unsigned hz = 131072 / (2048 - gb_freq);
 
 		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
+		if (wavelen == 0) wavelen = 1;
 		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
 		bool low = ((++ctr) % wavelen) > (duty_map[Channel1->wave_duty] * wavelen);
 
@@ -435,6 +421,7 @@ uint8_t Sound::updateCh2() {
 		unsigned hz = 131072 / (2048 - gb_freq);
 
 		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
+		if (wavelen == 0) wavelen = 1;
 		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
 		bool low = ((++ctr) % wavelen) > (duty_map[Channel2->wave_duty] * wavelen);
 
