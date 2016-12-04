@@ -22,7 +22,10 @@ uint8_t* Memory::getReadPtr(uint16_t addr) {
 		case 0x8:  case 0x9: 
 			return &RAW[addr]; // grRAM
 		case 0xA: case 0xB: 
-			return &extRAM[addr - 0xA000]; // extRAM
+			if (extRAM != nullptr)
+				return &extRAM[addr - 0xA000]; // extRAM
+			else
+				return nullptr;
 		case 0xC: case 0xD:
 			return &RAW[addr]; // RAM
 		default: // E, F
@@ -61,7 +64,10 @@ uint8_t* Memory::getWritePtr(uint16_t addr) {
 			return &RAW[addr];
 		case 0xA: case 0xB: 
 			// extRAM
-			return &extRAM[addr - 0xA000];
+			if (extRAM != nullptr)
+				return &extRAM[addr - 0xA000];
+			else 
+				return nullptr;
 		case 0xC: case 0xD: 
 			// RAM
 			return &RAW[addr];
@@ -78,6 +84,9 @@ uint8_t* Memory::getWritePtr(uint16_t addr) {
 							return nullptr;
 					case 0xFF00: // IO
 						if (addr == 0xFF50 && *BIOS_OFF) {
+							return nullptr;
+						}
+						if (addr == 0xFF44) {
 							return nullptr;
 						}
 						return &RAW[addr];
@@ -229,7 +238,7 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 	}
 
 	if (ptr == nullptr) {
-		fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+		fprintf(stdout, "[Warning] Attempting write to address 0x%04X\n", addr);
 		return;
 	}
 	*ptr = val;
@@ -241,7 +250,7 @@ void Memory::writeWord(uint16_t addr, uint16_t val) {
 	uint8_t *ptr = getWritePtr(addr);
 
 	if (ptr == nullptr) {
-		fprintf(stdout, "[Warning] Attempting write to readonly address 0x%04X\n", addr);
+		fprintf(stdout, "[Warning] Attempting write to address 0x%04X\n", addr);
 		return;
 	}
 	uint16_t *wptr = reinterpret_cast<uint16_t*>(ptr); 

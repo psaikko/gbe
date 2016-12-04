@@ -60,9 +60,9 @@ public:
 
 	uint8_t RAW[65536]; // TODO
 
-	uint8_t * ROM0;
-	uint8_t * ROM1;
-	uint8_t * extRAM;
+	uint8_t * ROM0   = nullptr;
+	uint8_t * ROM1   = nullptr;
+	uint8_t * extRAM = nullptr;
 
 	uint8_t * const RAM    = &RAW[0xC000];
 	uint8_t * const _RAM   = &RAW[0xE000];
