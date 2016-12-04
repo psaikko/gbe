@@ -331,7 +331,7 @@ void Sound::update(unsigned tclk) {
 				if (Control->CH4_SO1) new_lsample += ch4_sample;
 				if (Control->CH4_SO2) new_rsample += ch4_sample;
 			}
-			
+
 			new_rsample >>= 2;
 			new_lsample >>= 2;
 		}
@@ -340,7 +340,7 @@ void Sound::update(unsigned tclk) {
 		lsample = Control->SO1_vol ? uint8_t(new_lsample) : 0;
 		rsample = Control->SO2_vol ? uint8_t(new_rsample) : 0;
 
-		printf("[snd] %02X %02X\n", lsample, rsample);
+		//printf("[snd] %02X %02X\n", lsample, rsample);
 	}
 	
 }
@@ -377,7 +377,7 @@ uint8_t Sound::updateCh1() {
 		vol = Channel1->env_volume << 4;
 
 		Control->CH1_on = true;
-		printf("[ch1] init\n");
+		//printf("[ch1] init\n");
 	}
 
 	if (active) {
@@ -399,7 +399,7 @@ uint8_t Sound::updateCh1() {
 			if (length <= 0) {
 				active = false;
 				Control->CH1_on = false;
-				printf("[ch1] stop\n");
+				//printf("[ch1] stop\n");
 			}
 		}
 
@@ -409,10 +409,10 @@ uint8_t Sound::updateCh1() {
 				env_ctr -= env_step;
 				
 				if (Channel1->env_direction == Increase) {
-					printf("[ch1] vol=%02X env+\n", vol);
+					//printf("[ch1] vol=%02X env+\n", vol);
 					if (vol != 0xF0) vol += 0x10;
 				} else {
-					printf("[ch1] vol=%02X env-\n", vol);
+					//printf("[ch1] vol=%02X env-\n", vol);
 					if (vol & 0xF0) vol -= 0x10;
 				}
 			}
@@ -444,7 +444,7 @@ uint8_t Sound::updateCh2() {
 		vol = Channel2->env_volume << 4;
 
 		Control->CH2_on = true;
-		printf("[ch2] init\n");
+		//printf("[ch2] init\n");
 	}
 
 	if (active) {
@@ -464,7 +464,7 @@ uint8_t Sound::updateCh2() {
 			if (length <= 0) {
 				active = false;
 				Control->CH2_on = false;
-				printf("[ch2] stop\n");
+				//printf("[ch2] stop\n");
 			}
 		}
 
@@ -473,10 +473,10 @@ uint8_t Sound::updateCh2() {
 			if (env_ctr > env_step) {
 				env_ctr -= env_step;
 				if (Channel2->env_direction == Increase) {
-					printf("[ch2] vol=%02X env+\n", vol);
+					//printf("[ch2] vol=%02X env+\n", vol);
 					if (vol != 0xF0) vol += 0x10;
 				} else {
-					printf("[ch2] vol=%02X env-\n", vol);
+					//printf("[ch2] vol=%02X env-\n", vol);
 					if (vol & 0xF0) vol -= 0x10;
 				}
 			}
@@ -505,7 +505,7 @@ uint8_t Sound::updateCh3() {
 		ctr = 0;
 		index = 0;
 		Control->CH3_on = true;
-		printf("[ch3] init\n");
+		//printf("[ch3] init\n");
 	}
 
 	if (active && Channel3->sound_on) {
@@ -536,7 +536,7 @@ uint8_t Sound::updateCh3() {
 			if (length <= 0) {
 				active = false;
 				Control->CH3_on = false;
-				printf("[ch3] stop\n");
+				//printf("[ch3] stop\n");
 			}
 		}
 	}
@@ -567,7 +567,7 @@ uint8_t Sound::updateCh4() {
 		vol = Channel4->env_volume << 4;
 
 		Control->CH4_on = true;
-		printf("[ch4] init\n");
+		//printf("[ch4] init\n");
 	}
 
 	if (active) {
@@ -587,7 +587,7 @@ uint8_t Sound::updateCh4() {
 			if (length <= 0) {
 				active = false;
 				Control->CH4_on = false;
-				printf("[ch4] stop\n");
+				//printf("[ch4] stop\n");
 			}
 		}
 
@@ -596,10 +596,10 @@ uint8_t Sound::updateCh4() {
 			if (env_ctr > env_step) {
 				env_ctr -= env_step;
 				if (Channel4->env_direction == Increase) {
-					printf("[ch4] vol=%02X env+\n", vol);
+					//printf("[ch4] vol=%02X env+\n", vol);
 					if (vol != 0xF0) vol += 0x10;
 				} else {
-					printf("[ch4] vol=%02X env-\n", vol);
+					//printf("[ch4] vol=%02X env-\n", vol);
 					if (vol & 0xF0) vol -= 0x10;
 				}
 			}

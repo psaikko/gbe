@@ -307,6 +307,9 @@ void Window::draw_buffer() {
 
       auto wait_start = high_resolution_clock::now();
 
+      // TODO: remove purkka
+      // wait after each frame if sound queue is too full
+      // to sync up sound and video. 
       if (!unlocked_frame_rate) {
         while (1) {
           while (SND_OUT.buffer_lock.test_and_set())
@@ -317,7 +320,7 @@ void Window::draw_buffer() {
             SND_OUT.buffer_lock.clear();
             break; 
           }
-          //this_thread::sleep_for(1ms);
+          this_thread::sleep_for(2ms);
           SND_OUT.buffer_lock.clear();
         }
       }

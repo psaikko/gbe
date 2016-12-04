@@ -64,7 +64,7 @@ void exit_al() {
 
 #define FORMAT AL_FORMAT_STEREO8
 #define N_BUFFERS 4
-#define BUFFER_LEN_MS 20
+#define BUFFER_LEN_MS 16
 
 OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0) {
 	init_al();
@@ -174,6 +174,6 @@ void OpenAL_Output::audio_worker() {
         if(val != AL_PLAYING) 
         	alSourcePlay(src);
     }
-		//this_thread::sleep_for(1ms);
+		this_thread::sleep_for(2ms);
 	}
 }
