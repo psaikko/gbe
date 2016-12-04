@@ -19,10 +19,16 @@ public:
 	void writeByte(uint16_t addr, uint8_t val);
 	uint8_t readByte(uint16_t addr);
 
+	bool mute_ch1;
+	bool mute_ch2;
+	bool mute_ch3;
+	bool mute_ch4;
+
 private:
 	bool sample_ready;
 	unsigned clock;
 	int8_t lsample, rsample;
+	int8_t wave_pattern_ram[16];
 
 	enum direction { Decrease, Increase };
 

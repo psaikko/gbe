@@ -103,8 +103,9 @@ uint8_t Memory::readByte(uint16_t addr) {
 
 	if (break_addr == addr) at_breakpoint = true;
 
-	if (addr >= 0xFF10 && addr <= 0xFF26)
+	if (addr >= 0xFF10 && addr <= 0xFF3F) {
 		return SND.readByte(addr);
+	}
 
 	uint8_t *ptr = getReadPtr(addr);
 
@@ -135,7 +136,7 @@ uint16_t Memory::readWord(uint16_t addr) {
 void Memory::writeByte(uint16_t addr, uint8_t val) {
 	if (break_addr == addr) at_breakpoint = true;
 
-	if (addr >= 0xFF10 && addr <= 0xFF26) {
+	if (addr >= 0xFF10 && addr <= 0xFF3F) {
 		SND.writeByte(addr, val);
 		return;
 	}

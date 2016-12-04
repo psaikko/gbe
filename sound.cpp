@@ -234,13 +234,23 @@ Sound::Sound() : clock(0), lsample(0), rsample(0) {
 		{0xFF25, &(Control->NR51)},
 		{0xFF26, &(Control->NR52)}
 	};
+
+	mute_ch1 = false;
+	mute_ch2 = false;
+	mute_ch3 = false;
+	mute_ch4 = false;
 }
 
 void Sound::writeByte(uint16_t addr, uint8_t val) {
 	// mask out readonly bits of FF26
 	if (addr == 0xFF26) val &= 0x80;
-	assert(reg_pointers.count(addr));
-	*reg_pointers[addr] = val;
+	
+	if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F))
+		printf("[snd] write %02X to unused register %04X\n", val, addr);
+	else if (addr >= 0xFF30 && addr <= 0xFF3F)
+		wave_pattern_ram[addr & 0x000F] = val;
+	else
+		*reg_pointers[addr] = val;
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
@@ -275,9 +285,15 @@ uint8_t Sound::readByte(uint16_t addr) {
 			break;
 	}
 	mask = ~mask;
-	assert(reg_pointers.count(addr));
-	uint8_t val = *reg_pointers[addr];
-	return val & mask;
+	if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
+		printf("[snd] read from unused register %04X\n", addr);
+		return 0;
+	} else if (addr >= 0xFF30 && addr <= 0xFF3F) {
+		return wave_pattern_ram[addr & 0x000F];
+	} else {
+		uint8_t val = *reg_pointers[addr];
+		return val & mask;
+	}
 }
 
 void Sound::update(unsigned tclk) {
@@ -293,24 +309,38 @@ void Sound::update(unsigned tclk) {
 		if (Control->sound_on) {
 			uint8_t ch1_sample = updateCh1();
 			uint8_t ch2_sample = updateCh2();
+			uint8_t ch3_sample = updateCh3();
 			uint8_t ch4_sample = updateCh4();
 
-			if (Control->CH1_SO1) new_lsample += ch1_sample;
-			if (Control->CH1_SO2) new_rsample += ch1_sample;
+			if (!mute_ch1) {
+				if (Control->CH1_SO1) new_lsample += ch1_sample;
+				if (Control->CH1_SO2) new_rsample += ch1_sample;
+			}
 
-			if (Control->CH2_SO1) new_lsample += ch2_sample;
-			if (Control->CH2_SO2) new_rsample += ch2_sample;
+			if (!mute_ch2) {
+				if (Control->CH2_SO1) new_lsample += ch2_sample;
+				if (Control->CH2_SO2) new_rsample += ch2_sample;
+			}
 
-			if (Control->CH4_SO1) new_lsample += ch4_sample;
-			if (Control->CH4_SO2) new_rsample += ch4_sample;
+			if (!mute_ch3) {
+				if (Control->CH3_SO1) new_lsample += ch3_sample;
+				if (Control->CH3_SO2) new_rsample += ch3_sample;
+			}
 
-			new_lsample = new_lsample > 255 ? 255 : new_lsample;
-			new_rsample = new_rsample > 255 ? 255 : new_rsample;
+			if (!mute_ch4) {
+				if (Control->CH4_SO1) new_lsample += ch4_sample;
+				if (Control->CH4_SO2) new_rsample += ch4_sample;
+			}
+			
+			new_rsample >>= 2;
+			new_lsample >>= 2;
 		}
 
 		// TODO: volume control
 		lsample = Control->SO1_vol ? uint8_t(new_lsample) : 0;
 		rsample = Control->SO2_vol ? uint8_t(new_rsample) : 0;
+
+		printf("[snd] %02X %02X\n", lsample, rsample);
 	}
 	
 }
@@ -351,6 +381,8 @@ uint8_t Sound::updateCh1() {
 	}
 
 	if (active) {
+		// TODO: sweep
+
 		unsigned gb_freq = unsigned(Channel1->freq_hi) << 8;
 		gb_freq |= Channel1->freq_lo;
 		unsigned hz = 131072 / (2048 - gb_freq);
@@ -455,7 +487,61 @@ uint8_t Sound::updateCh2() {
 }
 
 uint8_t Sound::updateCh3() {
-	return 0;	
+
+	static bool active = false;
+	static unsigned ctr = 0;
+	static float length = 0;
+	static uint8_t index = 0;
+
+	uint8_t sample = 0;
+
+	if (Channel3->init) {
+		active = true;
+		Channel3->init = false;
+		// TODO: counter starts immediately when written to even if channel not active
+		// see GBSOUND.txt
+		if (!Channel3->no_loop)
+			length = float(256 - Channel3->sound_length) / 256;
+		ctr = 0;
+		index = 0;
+		Control->CH3_on = true;
+		printf("[ch3] init\n");
+	}
+
+	if (active && Channel3->sound_on) {
+		unsigned gb_freq = unsigned(Channel3->freq_hi) << 8;
+		gb_freq |= Channel3->freq_lo;
+		unsigned hz = 131072 / (2048 - gb_freq);
+
+		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
+		if (wavelen == 0) wavelen = 1;
+
+		static bool tick = false;
+		bool tock = ((++ctr) % wavelen) > (wavelen / 2); 
+		if (tick && tick != tock) 
+			index = (index + 1) % 32;
+		tick = tock;
+
+		// 4-bit samples played high bits first
+		sample = wave_pattern_ram[index >> 1];
+		if (index % 2) sample <<= 4; // low 4 bytes
+		sample &= 0xF0;
+
+		static const uint8_t volume_shift_map[4] { 0, 0, 1, 2 };
+		if (!Channel3->volume) sample = 0;
+		else sample >>= volume_shift_map[Channel3->volume];
+
+		if (Channel3->no_loop) {
+			length -= 1.0f / float(SAMPLE_RATE);
+			if (length <= 0) {
+				active = false;
+				Control->CH3_on = false;
+				printf("[ch3] stop\n");
+			}
+		}
+	}
+
+	return sample;
 }
 
 uint8_t Sound::updateCh4() {
@@ -485,25 +571,13 @@ uint8_t Sound::updateCh4() {
 	}
 
 	if (active) {
-		/*
-	union {
-		struct {
-			uint8_t freq_div : 3; // r
-			uint8_t counter_step : 1; // 0=15 bits, 1=7 bits
-			uint8_t shift_clk_freq : 4; // s
-			// freq = 524288 / r / 2^(s+1) Hz  (assume r=0.5 when 0)
-		}; 
-		uint8_t NR43;
-	};
-
-		*/
 		float r = Channel4->freq_div;
 		if (r == 0) r = 0.5f;
 		unsigned s = Channel4->shift_clk_freq;
 		float hz = 524288.0f / r / (2 << (s + 1));
 		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
 		if (wavelen == 0) wavelen = 1;
-		// TODO: Channel5->counter_step
+		// TODO: Channel4->counter_step
 
 		if (((++ctr) % wavelen) > (wavelen / 2)) low = rand() % 2;
 		sample = low ? 0 : vol;
