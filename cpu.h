@@ -79,7 +79,7 @@ public:
 	void dec_rb(uint8_t * ptr) {
 		(*ptr)--;
 
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_H = ((*ptr & 0x0F) == 0x0F);
 		REG.FLAG_Z = (*ptr == 0);
 		REG.TCLK = 4;
@@ -89,7 +89,7 @@ public:
 		uint8_t val = readByte(REG.HL);
 		writeByte(REG.HL, val - 1);
 
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_H = ((val & 0x0F) == 0x00);
 		REG.FLAG_Z = ((val - 1) == 0);
 
@@ -199,7 +199,7 @@ public:
 
 		uint8_t e = *from;
 
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (e == REG.A);
 		REG.FLAG_C = (e > REG.A);
 		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
@@ -211,7 +211,7 @@ public:
 
 		uint8_t e = argbyte();
 
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (e == REG.A);
 		REG.FLAG_C = (e > REG.A);
 		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
@@ -223,7 +223,7 @@ public:
 
 		uint8_t e = readByte(REG.HL);
 
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (e == REG.A);
 		REG.FLAG_C = (e > REG.A);
 		REG.FLAG_H = ((e & 0x0F) > (REG.A & 0x0F));
@@ -328,7 +328,7 @@ public:
 		REG.FLAG_C = (REG.A < *ptr);
 		REG.FLAG_H = ((REG.A & 0x0F) < (*ptr & 0x0F));
 		REG.A -= *ptr;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
@@ -339,7 +339,7 @@ public:
 		REG.FLAG_C = (REG.A < val);
 		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
@@ -350,7 +350,7 @@ public:
 		REG.FLAG_C = (REG.A < val);
 		REG.FLAG_H = ((REG.A & 0x0F) < (val & 0x0F));
 		REG.A -= val;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
@@ -364,7 +364,7 @@ public:
 		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
 		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 4;
@@ -379,7 +379,7 @@ public:
 		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
 		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
@@ -394,7 +394,7 @@ public:
 		REG.FLAG_C = (REG.FLAG_C || (REG.A < carry));
 		REG.FLAG_H = (REG.FLAG_H || (((REG.A & 0x0F) < carry)));
 		REG.A -= carry;
-		REG.FLAG_N = 0;
+		REG.FLAG_N = 1;
 		REG.FLAG_Z = (REG.A == 0);
 
 		REG.TCLK = 8;
