@@ -30,7 +30,6 @@ public:
 	Sound &SND;
 	ALuint src;
 	ALuint *al_buffers;
-	sample_t *data_buffer;
 	sample_t *zero_buffer;
 
 	std::atomic_flag buffer_lock;

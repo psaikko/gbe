@@ -75,9 +75,6 @@ OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_
   zero_buffer = new sample_t[buffer_size];
   memset(zero_buffer, 0, buffer_size * sizeof(sample_t));
 
-  data_buffer = new sample_t[buffer_size];
-  memset(data_buffer, 0, buffer_size * sizeof(sample_t));
-
  	for (unsigned i = 0; i < N_AL_BUFFERS; ++i) {
  		alBufferData(al_buffers[i], FORMAT, zero_buffer, buffer_size, SAMPLE_RATE);
  		al_check_error();
@@ -101,7 +98,6 @@ OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_
 OpenAL_Output::~OpenAL_Output() {
 	/* Dealloc OpenAL */
 	delete zero_buffer;
-	delete data_buffer;
 	delete sample_queue;
   exit_al();
 }
@@ -161,7 +157,7 @@ void OpenAL_Output::audio_worker() {
         	printf("[buffer thread] no data\n");
         }
 
-        alBufferData(BufID, FORMAT, buffer, buffer_size, SAMPLE_RATE);
+        alBufferData(BufID, FORMAT, buffer, buffer_size * sizeof(sample_t), SAMPLE_RATE);
 
 				buffer_lock.clear();
 
