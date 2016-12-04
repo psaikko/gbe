@@ -321,7 +321,7 @@ void Sound::update(unsigned tclk) {
 
 		// TODO: volume control
 		lsample = Control->SO1_vol ? uint8_t(new_lsample) : 0;
-		rsample = Control->SO1_vol ? uint8_t(new_rsample) : 0;
+		rsample = Control->SO2_vol ? uint8_t(new_rsample) : 0;
 	}
 	
 }
@@ -356,6 +356,7 @@ uint8_t Sound::updateCh1() {
 		env_step = float(Channel1->env_sweep) / 64.0f;
 		env_ctr  = 0;
 		vol = Channel1->env_volume << 4;
+		printf("[ch1] init\n");
 	}
 
 	if (active) {
@@ -372,16 +373,20 @@ uint8_t Sound::updateCh1() {
 		if (Channel1->no_loop) {
 			length -= 1.0f / float(SAMPLE_RATE);
 			if (length <= 0) active = false;
+			printf("[ch1] stop\n");
 		}
 
 		if (Channel1->env_sweep != 0) {
 			env_ctr += 1.0f / float(SAMPLE_RATE);
 			if (env_ctr > env_step) {
 				env_ctr -= env_step;
+				
 				if (Channel1->env_direction == Increase) {
-					vol ++;
+					printf("[ch1] vol=%02X env+\n", vol);
+					if (vol != 0xF0) vol += 0x10;
 				} else {
-					vol --;
+					printf("[ch1] vol=%02X env-\n", vol);
+					if (vol & 0xF0) vol -= 0x10;
 				}
 			}
 		}
@@ -410,6 +415,7 @@ uint8_t Sound::updateCh2() {
 		env_step = float(Channel2->env_sweep) / 64.0f;
 		env_ctr  = 0;
 		vol = Channel2->env_volume << 4;
+		printf("[ch2] init\n");
 	}
 
 	if (active) {
@@ -426,6 +432,7 @@ uint8_t Sound::updateCh2() {
 		sample = low ? 0 : vol;
 
 		if (Channel2->no_loop) {
+			printf("[ch2] stop\n");
 			length -= 1.0f / float(SAMPLE_RATE);
 			if (length <= 0) active = false;
 		}
@@ -435,9 +442,11 @@ uint8_t Sound::updateCh2() {
 			if (env_ctr > env_step) {
 				env_ctr -= env_step;
 				if (Channel2->env_direction == Increase) {
-					vol ++;
+					printf("[ch2] vol=%02X env+\n", vol);
+					if (vol != 0xF0) vol += 0x10;
 				} else {
-					vol --;
+					printf("[ch2] vol=%02X env-\n", vol);
+					if (vol & 0xF0) vol -= 0x10;
 				}
 			}
 		}

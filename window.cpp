@@ -316,7 +316,7 @@ void Window::draw_buffer() {
             ; 
 
           if (SND_OUT.queueSize() < SND_OUT.buffer_size*3) {
-            printf("[window] waiting %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - wait_start).count());
+            //printf("[window] waiting %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - wait_start).count());
             SND_OUT.buffer_lock.clear();
             break; 
           }
@@ -325,7 +325,7 @@ void Window::draw_buffer() {
         }
       }
 
-      printf("[window] frame %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - prev_frame).count());
+      //printf("[window] frame %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - prev_frame).count());
       prev_frame = high_resolution_clock::now();
       
       // draw
