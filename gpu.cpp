@@ -33,12 +33,14 @@ void Gpu::set_status(uint8_t mode) {
 // refresh every 70224 cycles
 void Gpu::update(unsigned tclock) {
 	// lcd disabled?
+	/* TODO: this breaks dr mario
 	if (!(*MEM.LCD_CTRL & CTRL_ENABLE)) {
 		clk = 0;
 		*MEM.SCAN_LN = 0;
 		set_status(MODE_OAM);
 		return;
 	}
+	*/
 
 	clk += tclock;
 	switch (*MEM.LCD_STAT & MODE_MASK) {

@@ -347,7 +347,7 @@ void Sound::update(unsigned tclk) {
 		lsample = Control->SO1_vol ? sample_t(new_lsample) : 0;
 		rsample = Control->SO2_vol ? sample_t(new_rsample) : 0;
 
-		printf("[snd] %04X %04X\n", lsample, rsample);
+		//printf("[snd] %04X %04X\n", lsample, rsample);
 	}
 	
 }
@@ -512,7 +512,7 @@ uint8_t Sound::updateCh3() {
 		ctr = 0;
 		index = 0;
 		Control->CH3_on = true;
-		printf("[ch3] init\n");
+		//printf("[ch3] init\n");
 	}
 
 	if (active && Channel3->sound_on) {
@@ -543,7 +543,7 @@ uint8_t Sound::updateCh3() {
 			if (length <= 0) {
 				active = false;
 				Control->CH3_on = false;
-				printf("[ch3] stop\n");
+				//printf("[ch3] stop\n");
 			}
 		}
 		sample &= 0xF0;
