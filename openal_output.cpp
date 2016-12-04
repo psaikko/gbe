@@ -62,27 +62,23 @@ void exit_al() {
   alcCloseDevice(dev);
 }
 
-#define FORMAT AL_FORMAT_STEREO8
-#define N_BUFFERS 4
-#define BUFFER_LEN_MS 16
-
 OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0) {
 	init_al();
 
   /* Create buffer to store samples */
-  al_buffers = new ALuint[N_BUFFERS];
-  alGenBuffers(N_BUFFERS, al_buffers);
+  al_buffers = new ALuint[N_AL_BUFFERS];
+  alGenBuffers(N_AL_BUFFERS, al_buffers);
   al_check_error();
 
-  buffer_size = 2 * SAMPLE_RATE * BUFFER_LEN_MS / 1000;
+  buffer_size = 2 * SAMPLE_RATE * AL_BUFFER_LEN_MS / 1000;
 
-  zero_buffer = new uint8_t[buffer_size];
-  memset(zero_buffer, 0, buffer_size);
+  zero_buffer = new sample_t[buffer_size];
+  memset(zero_buffer, 0, buffer_size * sizeof(sample_t));
 
-  data_buffer = new uint8_t[buffer_size];
-  memset(data_buffer, 0, buffer_size);
+  data_buffer = new sample_t[buffer_size];
+  memset(data_buffer, 0, buffer_size * sizeof(sample_t));
 
- 	for (unsigned i = 0; i < N_BUFFERS; ++i) {
+ 	for (unsigned i = 0; i < N_AL_BUFFERS; ++i) {
  		alBufferData(al_buffers[i], FORMAT, zero_buffer, buffer_size, SAMPLE_RATE);
  		al_check_error();
  	}
@@ -91,14 +87,15 @@ OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_
   src = 0;
   alGenSources(1, &src);
 
-  for (unsigned i = 0; i < N_BUFFERS; ++i)
+  for (unsigned i = 0; i < N_AL_BUFFERS; ++i)
      alSourceQueueBuffers( src, 1, &al_buffers[i] );
   alSourcePlay(src);
 
   worker = std::thread(&OpenAL_Output::audio_worker, this);
 
   queue_capacity = SAMPLE_RATE * 2;
-  sample_queue = new uint8_t[SAMPLE_RATE * 2];
+  // add buffer size to queue for easier reads from end
+  sample_queue = new sample_t[queue_capacity + buffer_size];
 }
 
 OpenAL_Output::~OpenAL_Output() {
@@ -118,14 +115,18 @@ void OpenAL_Output::update_buffer() {
 			;	
 
 	if (SND.hasNewSample()) {
-		uint8_t left, right;
+		sample_t left, right;
 		SND.getSamples(&left, &right);
 		if ((queue_tail + 2) % queue_capacity == queue_head || (queue_tail + 1) % queue_capacity == queue_head ) {
-			printf("[al_output] sample queue full\n");
+			//printf("[al_output] sample queue full\n");
 		} else {
-			sample_queue[queue_tail++] = left;
-			sample_queue[queue_tail++] = right;
-			queue_tail %= queue_capacity;
+			sample_queue[queue_tail] = left;
+			sample_queue[queue_tail + 1] = right;
+      if (queue_tail < buffer_size) {
+        sample_queue[buffer_size + queue_tail] = left;
+        sample_queue[buffer_size + queue_tail + 1] = right;
+      }
+			queue_tail = (queue_tail + 2) % queue_capacity;
       if (queue_tail % 100 == 0) {
         //printf("[al_output] queue size %u (%u, %u)\n", queueSize(), queue_head, queue_tail);
       }
@@ -139,7 +140,7 @@ void OpenAL_Output::audio_worker() {
 		ALint Processed;
 	  alGetSourcei( src, AL_BUFFERS_PROCESSED, &Processed );
 	  al_check_error();
-
+    //printf("[buffer thread] processed %d\n", Processed);
     // Queue another buffer
     if (Processed) {
         ALuint BufID;
@@ -149,14 +150,11 @@ void OpenAL_Output::audio_worker() {
         	; 
 
         uint8_t *buffer;
-
+        //printf("[buffer thread] queue size %u\n", queueSize());
         if (queueSize() >= buffer_size) {
           unsigned old_size = queueSize();
-        	for (unsigned i = 0; i < buffer_size; ++i) {
-        		data_buffer[i] = sample_queue[(queue_head + i) % queue_capacity];
-        	}
+        	buffer = &sample_queue[queue_head];
         	queue_head = (queue_head + buffer_size) % queue_capacity;
-        	buffer = data_buffer;
         	//printf("[buffer thread] size %u -> %u (%u, %u)\n", old_size, queueSize(), queue_head, queue_tail);
         } else {
         	buffer = zero_buffer;

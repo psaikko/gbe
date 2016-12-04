@@ -4,6 +4,12 @@
 #include <thread>
 #include <AL/al.h>
 
+#define N_AL_BUFFERS 4
+#define AL_BUFFER_LEN_MS 16
+#define FORMAT AL_FORMAT_STEREO8
+
+typedef uint8_t sample_t;
+
 class Sound;
 
 class OpenAL_Output {
@@ -15,7 +21,7 @@ public:
 	
 	unsigned queueSize();
 
-	uint8_t *sample_queue;
+	sample_t *sample_queue;
 	unsigned queue_capacity;
 	unsigned queue_head;
 	unsigned queue_tail;
@@ -24,8 +30,8 @@ public:
 	Sound &SND;
 	ALuint src;
 	ALuint *al_buffers;
-	uint8_t *data_buffer;
-	uint8_t *zero_buffer;
+	sample_t *data_buffer;
+	sample_t *zero_buffer;
 
 	std::atomic_flag buffer_lock;
 	unsigned buffer_size;
