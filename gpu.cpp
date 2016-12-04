@@ -13,6 +13,8 @@
 
 #define STAT_LYC 0x04
 
+#define CTRL_ENABLE 0x80
+
 #define MODE_OAM 2
 #define MODE_VRAM 3
 #define MODE_HBLANK 0
@@ -30,6 +32,14 @@ void Gpu::set_status(uint8_t mode) {
 
 // refresh every 70224 cycles
 void Gpu::update(unsigned tclock) {
+	// lcd disabled?
+	if (!(*MEM.LCD_CTRL & CTRL_ENABLE)) {
+		clk = 0;
+		*MEM.SCAN_LN = 0;
+		set_status(MODE_OAM);
+		return;
+	}
+
 	clk += tclock;
 	switch (*MEM.LCD_STAT & MODE_MASK) {
 		case (MODE_OAM):
