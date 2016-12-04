@@ -6,6 +6,7 @@
 #include "mem.h"
 #include "buttons.h"
 #include "openal_output.h"
+#include "sound.h"
 
 #define FLAG_GPU_BG     0x01
 #define FLAG_GPU_SPR    0x02
@@ -59,6 +60,14 @@ void Window::poll_buttons() {
     BTN.state |= KEY_START;
   if (glfwGetKey(game_window, GLFW_KEY_V) == GLFW_PRESS)
     BTN.state |= KEY_SELECT;
+  if (glfwGetKey(game_window, GLFW_KEY_F1) == GLFW_PRESS)
+    SND.mute_ch1 = !SND.mute_ch1;
+  if (glfwGetKey(game_window, GLFW_KEY_F2) == GLFW_PRESS)
+    SND.mute_ch2 = !SND.mute_ch2;
+  if (glfwGetKey(game_window, GLFW_KEY_F3) == GLFW_PRESS)
+    SND.mute_ch3 = !SND.mute_ch3;
+  if (glfwGetKey(game_window, GLFW_KEY_F4) == GLFW_PRESS)
+    SND.mute_ch4 = !SND.mute_ch4;
 }
 
 void Window::debug_pixel(uint8_t *addr) {

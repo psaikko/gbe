@@ -36,14 +36,17 @@ using namespace glm;
 class Memory;
 class Buttons;
 class OpenAL_Output;
+class Sound;
 
 class Window {
 public:
-  Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, bool u) : MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), breakpoint(false),
+  Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, bool u) : 
+    MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), breakpoint(false),
       prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u) {}
 
   Memory &MEM;
   Buttons &BTN;
+  Sound &SND;
   OpenAL_Output &SND_OUT;
 
   GLFWwindow* game_window;

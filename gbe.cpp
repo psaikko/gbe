@@ -173,7 +173,7 @@ int main(int argc, char ** argv) {
 
   Registers REG;
   
-  Window WINDOW(MEM, BTN, SND_OUT, unlocked_frame_rate);
+  Window WINDOW(MEM, BTN, SND_OUT, SND, unlocked_frame_rate);
   Timer TIMER(MEM);
 
   Gpu GPU(MEM, WINDOW);
