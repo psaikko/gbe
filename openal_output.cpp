@@ -145,7 +145,7 @@ void OpenAL_Output::audio_worker() {
         while (buffer_lock.test_and_set())
         	; 
 
-        uint8_t *buffer;
+        sample_t *buffer;
         //printf("[buffer thread] queue size %u\n", queueSize());
         if (queueSize() >= buffer_size) {
           unsigned old_size = queueSize();

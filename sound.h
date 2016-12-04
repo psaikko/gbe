@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <unordered_map>
+#include "sound_defs.h"
 
 #define TCLK_HZ   4194304
 #define SAMPLE_RATE 44000
@@ -14,7 +15,7 @@ public:
 
 	bool hasNewSample();
 
-	void getSamples(uint8_t *left, uint8_t *right);
+	void getSamples(sample_t *left, sample_t *right);
 
 	void writeByte(uint16_t addr, uint8_t val);
 	uint8_t readByte(uint16_t addr);
@@ -27,7 +28,7 @@ public:
 private:
 	bool sample_ready;
 	unsigned clock;
-	int8_t lsample, rsample;
+	sample_t lsample, rsample;
 	int8_t wave_pattern_ram[16];
 
 	enum direction { Decrease, Increase };

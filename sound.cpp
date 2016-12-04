@@ -244,13 +244,14 @@ Sound::Sound() : clock(0), lsample(0), rsample(0) {
 void Sound::writeByte(uint16_t addr, uint8_t val) {
 	// mask out readonly bits of FF26
 	if (addr == 0xFF26) val &= 0x80;
-	
-	if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F))
+	if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
 		printf("[snd] write %02X to unused register %04X\n", val, addr);
-	else if (addr >= 0xFF30 && addr <= 0xFF3F)
+	} else if (addr >= 0xFF30 && addr <= 0xFF3F) {
 		wave_pattern_ram[addr & 0x000F] = val;
-	else
+	} else {
+		//printf("[snd] write %02X to register %04X\n", val, addr);
 		*reg_pointers[addr] = val;
+	}
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
@@ -291,6 +292,7 @@ uint8_t Sound::readByte(uint16_t addr) {
 	} else if (addr >= 0xFF30 && addr <= 0xFF3F) {
 		return wave_pattern_ram[addr & 0x000F];
 	} else {
+		//printf("[snd] read from register %04X\n", addr);
 		uint8_t val = *reg_pointers[addr];
 		return val & mask;
 	}
@@ -332,15 +334,20 @@ void Sound::update(unsigned tclk) {
 				if (Control->CH4_SO2) new_rsample += ch4_sample;
 			}
 
-			new_rsample >>= 2;
-			new_lsample >>= 2;
+			if (sizeof(sample_t) == 1) {
+				new_rsample >>= 2;
+				new_lsample >>= 2;
+			} else {
+				new_rsample <<= 4;
+				new_lsample <<= 4;
+			}
 		}
 
 		// TODO: volume control
-		lsample = Control->SO1_vol ? uint8_t(new_lsample) : 0;
-		rsample = Control->SO2_vol ? uint8_t(new_rsample) : 0;
+		lsample = Control->SO1_vol ? sample_t(new_lsample) : 0;
+		rsample = Control->SO2_vol ? sample_t(new_rsample) : 0;
 
-		//printf("[snd] %02X %02X\n", lsample, rsample);
+		printf("[snd] %04X %04X\n", lsample, rsample);
 	}
 	
 }
@@ -349,7 +356,7 @@ bool Sound::hasNewSample() {
 	return sample_ready;
 }
 
-void Sound::getSamples(uint8_t * left, uint8_t * right) {
+void Sound::getSamples(sample_t * left, sample_t * right) {
 	*left = lsample;
 	*right = rsample;
 	sample_ready = false;
@@ -505,7 +512,7 @@ uint8_t Sound::updateCh3() {
 		ctr = 0;
 		index = 0;
 		Control->CH3_on = true;
-		//printf("[ch3] init\n");
+		printf("[ch3] init\n");
 	}
 
 	if (active && Channel3->sound_on) {
@@ -536,9 +543,10 @@ uint8_t Sound::updateCh3() {
 			if (length <= 0) {
 				active = false;
 				Control->CH3_on = false;
-				//printf("[ch3] stop\n");
+				printf("[ch3] stop\n");
 			}
 		}
+		sample &= 0xF0;
 	}
 
 	return sample;

@@ -2,13 +2,7 @@
 #include <inttypes.h>
 #include <atomic>
 #include <thread>
-#include <AL/al.h>
-
-#define N_AL_BUFFERS 4
-#define AL_BUFFER_LEN_MS 16
-#define FORMAT AL_FORMAT_STEREO8
-
-typedef uint8_t sample_t;
+#include "sound_defs.h"
 
 class Sound;
 
