@@ -436,7 +436,7 @@ public:
 
 	void ld_rb_atHL(uint8_t *to) {
 		(*to) = readByte(REG.HL);
-		REG.TCLK = 12;	
+		REG.TCLK = 8;	
 	}
 
 	void ld_atHL_rb(uint8_t *from) {
@@ -534,11 +534,12 @@ public:
 
 		REG.HL = REG.SP + e;
 
-		// TODO fix H, C flags
 		REG.FLAG_H = (0x000F - (REG.SP & 0x000F) < (e & 0x000F) );
 		REG.FLAG_C = (0x00FF - (REG.SP & 0x00FF) < (e & 0x00FF) );
 		REG.FLAG_Z = 0;
 		REG.FLAG_N = 0;
+
+		REG.TCLK = 12;
 	}
 
 	void push_rw(uint16_t *at) {
@@ -805,7 +806,7 @@ public:
 		REG.FLAG_H = 0;
 		REG.FLAG_Z = (val == 0);
 
-		REG.TCLK = 8;
+		REG.TCLK = 16;
 	}
 
 	void swap_rb(uint8_t * at) {
@@ -973,13 +974,14 @@ public:
 		writeWord(REG.SP - 2, REG.PC);
 		REG.SP -= 2;
 		REG.PC = addr;
-		REG.TCLK = 12;
+		REG.TCLK = 16;
 	}
 
 	void rsti(uint8_t addr) {
 		writeWord(REG.SP - 2, REG.PC);
 		REG.SP -= 2;
 		REG.PC = addr;
+		REG.TCLK = 16;
 	}
 
 	// ret
