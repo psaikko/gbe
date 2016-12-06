@@ -62,6 +62,7 @@ void Gpu::update(unsigned tclock) {
 				clk = 0;
 				*MEM.SCAN_LN += 1;
 				if (*MEM.SCAN_LN == 144) {
+					*MEM.IF |= FLAG_IF_VBLANK;
 					set_status(MODE_VBLANK);
 					WINDOW.draw_buffer();
 				} else {
@@ -72,8 +73,6 @@ void Gpu::update(unsigned tclock) {
 		case (MODE_VBLANK):
 			if (clk >= 456) {
 				clk = 0;
-				if (*MEM.SCAN_LN == 144)
-					*MEM.IF |= FLAG_IF_VBLANK;
 				*MEM.SCAN_LN += 1;
 				if (*MEM.SCAN_LN == 153) {
 					set_status(MODE_OAM);
