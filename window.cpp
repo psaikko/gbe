@@ -316,25 +316,7 @@ void Window::draw_buffer() {
 
       auto wait_start = high_resolution_clock::now();
 
-      // TODO: remove purkka
-      // wait after each frame if sound queue is too full
-      // to sync up sound and video. 
-      if (!unlocked_frame_rate) {
-        while (1) {
-          while (SND_OUT.buffer_lock.test_and_set())
-            ; 
-
-          if (SND_OUT.queueSize() < SND_OUT.buffer_size*3) {
-            //printf("[window] waiting %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - wait_start).count());
-            SND_OUT.buffer_lock.clear();
-            break; 
-          }
-          this_thread::sleep_for(2ms);
-          SND_OUT.buffer_lock.clear();
-        }
-      }
-
-      //printf("[window] frame %lu ms\n", duration_cast<milliseconds>(high_resolution_clock::now() - prev_frame).count());
+      printf("[window] frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
       prev_frame = high_resolution_clock::now();
       
       // draw

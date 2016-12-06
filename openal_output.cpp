@@ -90,7 +90,7 @@ OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_
 
   worker = std::thread(&OpenAL_Output::audio_worker, this);
 
-  queue_capacity = SAMPLE_RATE * 2;
+  queue_capacity = SAMPLE_RATE / 10 * 2;
   // add buffer size to queue for easier reads from end
   sample_queue = new sample_t[queue_capacity + buffer_size];
 }
@@ -114,7 +114,8 @@ void OpenAL_Output::update_buffer() {
 		sample_t left, right;
 		SND.getSamples(&left, &right);
 		if ((queue_tail + 2) % queue_capacity == queue_head || (queue_tail + 1) % queue_capacity == queue_head ) {
-			//printf("[al_output] sample queue full\n");
+			static unsigned i = 0;
+      if (++i % 1000 == 0) printf("[al_output] sample queue full\n");
 		} else {
 			sample_queue[queue_tail] = left;
 			sample_queue[queue_tail + 1] = right;
