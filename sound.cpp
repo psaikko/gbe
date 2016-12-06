@@ -338,8 +338,8 @@ void Sound::update(unsigned tclk) {
 				new_rsample >>= 2;
 				new_lsample >>= 2;
 			} else {
-				new_rsample <<= 4;
-				new_lsample <<= 4;
+				new_rsample <<= 5;
+				new_lsample <<= 5;
 			}
 		}
 
@@ -368,6 +368,9 @@ uint8_t Sound::updateCh1() {
 	static float length = 0;
 	static float env_step = 0;
 	static float env_ctr = 0;
+	static float sweep_ctr = 0;
+	static float sweep_step = 0;
+	static unsigned sweep_freq = 0;
 	static uint8_t vol = 0;
 
 	uint8_t sample = 0;
@@ -381,17 +384,23 @@ uint8_t Sound::updateCh1() {
 
 		env_step = float(Channel1->env_sweep) / 64.0f;
 		env_ctr  = 0;
+
+		sweep_step = float(Channel1->sweep_time) / 128.0f;
+		sweep_ctr = 0;
+
 		vol = Channel1->env_volume << 4;
+
+		sweep_freq = unsigned(Channel1->freq_hi) << 8;
+		sweep_freq |= Channel1->freq_lo;
 
 		Control->CH1_on = true;
 		//printf("[ch1] init\n");
 	}
 
 	if (active) {
-		// TODO: sweep
-
 		unsigned gb_freq = unsigned(Channel1->freq_hi) << 8;
 		gb_freq |= Channel1->freq_lo;
+
 		unsigned hz = 131072 / (2048 - gb_freq);
 
 		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
@@ -407,6 +416,28 @@ uint8_t Sound::updateCh1() {
 				active = false;
 				Control->CH1_on = false;
 				//printf("[ch1] stop\n");
+			}
+		}
+
+		if (Channel1->sweep_time != 0) {
+			sweep_ctr += 1.0f / float(SAMPLE_RATE);
+			if (sweep_ctr > sweep_step) {
+				sweep_ctr -= sweep_step;
+				if (Channel1->sweep_mode == CH1::op::Addition) {
+					//printf("[ch1] sweep +\n");
+					sweep_freq += sweep_freq >> Channel1->sweep_number;
+				} else {
+					//printf("[ch1] sweep -\n");
+					sweep_freq -= sweep_freq >> Channel1->sweep_number;
+				}
+				if (sweep_freq & 0xF800) {
+					active = false;
+					Control->CH1_on = false;
+					//printf("[ch1] sweep stop\n");		
+				} else {
+					Channel1->freq_hi = sweep_freq >> 8;
+					Channel1->freq_lo = sweep_freq & 0xFF;
+				}
 			}
 		}
 
@@ -546,7 +577,6 @@ uint8_t Sound::updateCh3() {
 				//printf("[ch3] stop\n");
 			}
 		}
-		sample &= 0xF0;
 	}
 
 	return sample;
