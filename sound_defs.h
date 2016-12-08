@@ -6,4 +6,4 @@
 #define AL_BUFFER_LEN_MS 16
 #define FORMAT AL_FORMAT_STEREO16
 
-typedef uint16_t sample_t;
+typedef int16_t sample_t;

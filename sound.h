@@ -30,6 +30,8 @@ private:
 	unsigned clock;
 	sample_t lsample, rsample;
 	int8_t wave_pattern_ram[16];
+	sample_t sample_map[16];
+	sample_t square_map[33];
 
 	enum direction { Decrease, Increase };
 
@@ -47,10 +49,10 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t*> reg_pointers;
 
-	uint8_t updateCh1();
-	uint8_t updateCh2();
-	uint8_t updateCh3();
-	uint8_t updateCh4();
+	sample_t updateCh1();
+	sample_t updateCh2();
+	sample_t updateCh3(unsigned tclock);
+	sample_t updateCh4();
 };
 
 // 1 step = n/64 sec

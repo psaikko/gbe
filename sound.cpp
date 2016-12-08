@@ -1,5 +1,6 @@
 #include "sound.h"
 #include <cassert>
+#include <limits>
 
 struct Sound::CH1 {
 	enum op { Addition, Subtraction };
@@ -239,6 +240,17 @@ Sound::Sound() : clock(0), lsample(0), rsample(0) {
 	mute_ch2 = false;
 	mute_ch3 = false;
 	mute_ch4 = false;
+
+	sample_t max_sample = std::numeric_limits<sample_t>::max() / 4;
+	sample_t min_sample = std::numeric_limits<sample_t>::min() / 4;
+
+	for (unsigned i = 0; i < 16; ++i) {
+		sample_map[i] = max_sample - ((max_sample - min_sample) * i) / 15;
+	}
+
+	for (unsigned i = 0; i < 33; ++i) {
+		square_map[i] = max_sample - ((max_sample - min_sample) * i) / 32;
+	}
 }
 
 void Sound::writeByte(uint16_t addr, uint8_t val) {
@@ -249,7 +261,6 @@ void Sound::writeByte(uint16_t addr, uint8_t val) {
 	} else if (addr >= 0xFF30 && addr <= 0xFF3F) {
 		wave_pattern_ram[addr & 0x000F] = val;
 	} else {
-		//printf("[snd] write %02X to register %04X\n", val, addr);
 		*reg_pointers[addr] = val;
 	}
 }
@@ -301,55 +312,47 @@ uint8_t Sound::readByte(uint16_t addr) {
 void Sound::update(unsigned tclk) {
 	clock += tclk;
 
+	sample_t ch3_sample = updateCh3(tclk);
+
 	if (clock >= TCLK_HZ / SAMPLE_RATE) {
 		clock -= TCLK_HZ / SAMPLE_RATE;
 		sample_ready = true;
 
-		unsigned new_rsample = 0;
-		unsigned new_lsample = 0;
+		rsample = 0;
+		lsample = 0;
 
 		if (Control->sound_on) {
-			uint8_t ch1_sample = updateCh1();
-			uint8_t ch2_sample = updateCh2();
-			uint8_t ch3_sample = updateCh3();
-			uint8_t ch4_sample = updateCh4();
+			sample_t ch1_sample = updateCh1();
+			sample_t ch2_sample = updateCh2();
+			sample_t ch4_sample = updateCh4();
 
 			if (!mute_ch1) {
-				if (Control->CH1_SO1) new_lsample += ch1_sample;
-				if (Control->CH1_SO2) new_rsample += ch1_sample;
+				if (Control->CH1_SO1) lsample += ch1_sample;
+				if (Control->CH1_SO2) rsample += ch1_sample;
 			}
 
 			if (!mute_ch2) {
-				if (Control->CH2_SO1) new_lsample += ch2_sample;
-				if (Control->CH2_SO2) new_rsample += ch2_sample;
+				if (Control->CH2_SO1) lsample += ch2_sample;
+				if (Control->CH2_SO2) rsample += ch2_sample;
 			}
 
 			if (!mute_ch3) {
-				if (Control->CH3_SO1) new_lsample += ch3_sample;
-				if (Control->CH3_SO2) new_rsample += ch3_sample;
+				if (Control->CH3_SO1) lsample += ch3_sample;
+				if (Control->CH3_SO2) rsample += ch3_sample;
 			}
 
 			if (!mute_ch4) {
-				if (Control->CH4_SO1) new_lsample += ch4_sample;
-				if (Control->CH4_SO2) new_rsample += ch4_sample;
-			}
-
-			if (sizeof(sample_t) == 1) {
-				new_rsample >>= 2;
-				new_lsample >>= 2;
-			} else {
-				new_rsample <<= 5;
-				new_lsample <<= 5;
+				if (Control->CH4_SO1) lsample += ch4_sample;
+				if (Control->CH4_SO2) rsample += ch4_sample;
 			}
 		}
 
 		// TODO: volume control
-		lsample = Control->SO1_vol ? sample_t(new_lsample) : 0;
-		rsample = Control->SO2_vol ? sample_t(new_rsample) : 0;
+		lsample = Control->SO1_vol ? sample_t(lsample) : 0;
+		rsample = Control->SO2_vol ? sample_t(rsample) : 0;
 
-		//printf("[snd] %04X %04X\n", lsample, rsample);
+		//printf("[snd] %d\n", rsample);
 	}
-	
 }
 
 bool Sound::hasNewSample() {
@@ -362,7 +365,7 @@ void Sound::getSamples(sample_t * left, sample_t * right) {
 	sample_ready = false;
 }
 
-uint8_t Sound::updateCh1() {
+sample_t Sound::updateCh1() {
 	static bool active = false;
 	static unsigned ctr = 0;
 	static float length = 0;
@@ -373,7 +376,7 @@ uint8_t Sound::updateCh1() {
 	static unsigned sweep_freq = 0;
 	static uint8_t vol = 0;
 
-	uint8_t sample = 0;
+	sample_t sample = 0;
 
 	if (Channel1->init) {
 		active = true;
@@ -388,7 +391,7 @@ uint8_t Sound::updateCh1() {
 		sweep_step = float(Channel1->sweep_time) / 128.0f;
 		sweep_ctr = 0;
 
-		vol = Channel1->env_volume << 4;
+		vol = Channel1->env_volume;
 
 		sweep_freq = unsigned(Channel1->freq_hi) << 8;
 		sweep_freq |= Channel1->freq_lo;
@@ -406,9 +409,9 @@ uint8_t Sound::updateCh1() {
 		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
 		if (wavelen == 0) wavelen = 1;
 		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
-		bool low = ((++ctr) % wavelen) > (duty_map[Channel1->wave_duty] * wavelen);
 
-		sample = low ? 0 : vol;
+		bool low = ((++ctr) % wavelen) > (duty_map[Channel1->wave_duty] * wavelen);
+		sample = low ? square_map[16 + vol] : square_map[16 - vol];
 
 		if (Channel1->no_loop) {
 			length -= 1.0f / float(SAMPLE_RATE);
@@ -448,10 +451,10 @@ uint8_t Sound::updateCh1() {
 				
 				if (Channel1->env_direction == Increase) {
 					//printf("[ch1] vol=%02X env+\n", vol);
-					if (vol != 0xF0) vol += 0x10;
+					if (vol != 0x0F) vol ++;
 				} else {
 					//printf("[ch1] vol=%02X env-\n", vol);
-					if (vol & 0xF0) vol -= 0x10;
+					if (vol & 0x0F) vol --;
 				}
 			}
 		}
@@ -460,7 +463,7 @@ uint8_t Sound::updateCh1() {
 	return sample;
 }
 
-uint8_t Sound::updateCh2() {
+sample_t Sound::updateCh2() {
 	static bool active = false;
 	static unsigned ctr = 0;
 	static float length = 0;
@@ -468,7 +471,7 @@ uint8_t Sound::updateCh2() {
 	static float env_ctr = 0;
 	static uint8_t vol = 0;
 
-	uint8_t sample = 0;
+	sample_t sample = 0;
 
 	if (Channel2->init) {
 		active = true;
@@ -479,7 +482,8 @@ uint8_t Sound::updateCh2() {
 
 		env_step = float(Channel2->env_sweep) / 64.0f;
 		env_ctr  = 0;
-		vol = Channel2->env_volume << 4;
+
+		vol = Channel2->env_volume;
 
 		Control->CH2_on = true;
 		//printf("[ch2] init\n");
@@ -495,7 +499,7 @@ uint8_t Sound::updateCh2() {
 		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
 		bool low = ((++ctr) % wavelen) > (duty_map[Channel2->wave_duty] * wavelen);
 
-		sample = low ? 0 : vol;
+		sample = low ? square_map[16 + vol] : square_map[16 - vol];
 
 		if (Channel2->no_loop) {			
 			length -= 1.0f / float(SAMPLE_RATE);
@@ -512,10 +516,10 @@ uint8_t Sound::updateCh2() {
 				env_ctr -= env_step;
 				if (Channel2->env_direction == Increase) {
 					//printf("[ch2] vol=%02X env+\n", vol);
-					if (vol != 0xF0) vol += 0x10;
+					if (vol != 0xF) vol ++;
 				} else {
 					//printf("[ch2] vol=%02X env-\n", vol);
-					if (vol & 0xF0) vol -= 0x10;
+					if (vol & 0xF) vol --;
 				}
 			}
 		}
@@ -524,57 +528,58 @@ uint8_t Sound::updateCh2() {
 	return sample;
 }
 
-uint8_t Sound::updateCh3() {
+sample_t Sound::updateCh3(unsigned tclock) {
+
+	static unsigned cpu_clock = 0;
+	static unsigned freq_clock = 0;
+	static uint8_t index = 0;
+
+	freq_clock += tclock;
 
 	static bool active = false;
 	static unsigned ctr = 0;
 	static float length = 0;
-	static uint8_t index = 0;
-
-	uint8_t sample = 0;
+	static uint8_t vol = 0;
 
 	if (Channel3->init) {
+		freq_clock = 0;
 		active = true;
 		Channel3->init = false;
-		// TODO: counter starts immediately when written to even if channel not active
-		// see GBSOUND.txt
 		if (!Channel3->no_loop)
 			length = float(256 - Channel3->sound_length) / 256;
 		ctr = 0;
 		index = 0;
 		Control->CH3_on = true;
+		vol = Channel3->volume;
 		//printf("[ch3] init\n");
 	}
 
-	if (active && Channel3->sound_on) {
-		unsigned gb_freq = unsigned(Channel3->freq_hi) << 8;
-		gb_freq |= Channel3->freq_lo;
-		unsigned hz = 131072 / (2048 - gb_freq);
+	static sample_t sample = 0;
 
-		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
-		if (wavelen == 0) wavelen = 1;
+	unsigned gb_freq = 2048 - (unsigned(Channel3->freq_lo) + (unsigned(Channel3->freq_hi) << 8));
 
-		static bool tick = false;
-		bool tock = ((++ctr) % wavelen) > (wavelen / 2); 
-		if (tick && tick != tock) 
+	if (freq_clock >= gb_freq) {
+		freq_clock -= gb_freq;
+
+		if (active && Channel3->sound_on) {
 			index = (index + 1) % 32;
-		tick = tock;
+			// 4-bit samples played high bits first
+			uint8_t wave_sample = wave_pattern_ram[index >> 1];
+			if (index % 2) wave_sample &= 0x0F; // low 4 bytes
+			else 					 wave_sample >>= 4;
 
-		// 4-bit samples played high bits first
-		sample = wave_pattern_ram[index >> 1];
-		if (index % 2) sample <<= 4; // low 4 bytes
-		sample &= 0xF0;
+			static const uint8_t volume_shift_map[4] { 4, 0, 1, 2 };
+			wave_sample >>= volume_shift_map[vol];
+			sample = sample_map[wave_sample];
 
-		static const uint8_t volume_shift_map[4] { 0, 0, 1, 2 };
-		if (!Channel3->volume) sample = 0;
-		else sample >>= volume_shift_map[Channel3->volume];
-
-		if (Channel3->no_loop) {
-			length -= 1.0f / float(SAMPLE_RATE);
-			if (length <= 0) {
-				active = false;
-				Control->CH3_on = false;
-				//printf("[ch3] stop\n");
+			//printf("[ch3] %1X\n", wave_sample);
+			if (Channel3->no_loop) {
+				length -= float(gb_freq) / float(TCLK_HZ);
+				if (length <= 0) {
+					active = false;
+					Control->CH3_on = false;
+					//printf("[ch3] stop\n");
+				}
 			}
 		}
 	}
@@ -582,7 +587,7 @@ uint8_t Sound::updateCh3() {
 	return sample;
 }
 
-uint8_t Sound::updateCh4() {
+sample_t Sound::updateCh4() {
 	static bool active = false;
 	static unsigned ctr = 0;
 	static float length = 0;
@@ -591,7 +596,7 @@ uint8_t Sound::updateCh4() {
 	static uint8_t vol = 0;
 	static bool low = 0;
 
-	uint8_t sample = 0;
+	sample_t sample = 0;
 
 	if (Channel4->init) {
 		active = true;
@@ -602,7 +607,7 @@ uint8_t Sound::updateCh4() {
 
 		env_step = float(Channel4->env_sweep) / 64.0f;
 		env_ctr  = 0;
-		vol = Channel4->env_volume << 4;
+		vol = Channel4->env_volume;
 
 		Control->CH4_on = true;
 		//printf("[ch4] init\n");
@@ -618,7 +623,7 @@ uint8_t Sound::updateCh4() {
 		// TODO: Channel4->counter_step
 
 		if (((++ctr) % wavelen) > (wavelen / 2)) low = rand() % 2;
-		sample = low ? 0 : vol;
+		sample = low ? square_map[16 - vol] : square_map[16 + vol];
 
 		if (Channel4->no_loop) {
 			length -= 1.0f / float(SAMPLE_RATE);
@@ -635,10 +640,10 @@ uint8_t Sound::updateCh4() {
 				env_ctr -= env_step;
 				if (Channel4->env_direction == Increase) {
 					//printf("[ch4] vol=%02X env+\n", vol);
-					if (vol != 0xF0) vol += 0x10;
+					if (vol != 0xF) vol ++;
 				} else {
 					//printf("[ch4] vol=%02X env-\n", vol);
-					if (vol & 0xF0) vol -= 0x10;
+					if (vol & 0xF) vol --;
 				}
 			}
 		}
