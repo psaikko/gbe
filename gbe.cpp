@@ -196,6 +196,9 @@ int main(int argc, char ** argv) {
 
 	WINDOW.init();
 
+	// enable LCD
+	*MEM.LCD_CTRL = 0x80;
+
 	while (1) {
 
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
