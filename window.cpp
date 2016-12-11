@@ -61,13 +61,13 @@ void Window::poll_buttons() {
   if (glfwGetKey(game_window, GLFW_KEY_V) == GLFW_PRESS)
     BTN.state |= KEY_SELECT;
   if (glfwGetKey(game_window, GLFW_KEY_F1) == GLFW_PRESS)
-    SND.mute_ch1 = !SND.mute_ch1;
+    SND.mute_ch1 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
   if (glfwGetKey(game_window, GLFW_KEY_F2) == GLFW_PRESS)
-    SND.mute_ch2 = !SND.mute_ch2;
+    SND.mute_ch2 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
   if (glfwGetKey(game_window, GLFW_KEY_F3) == GLFW_PRESS)
-    SND.mute_ch3 = !SND.mute_ch3;
+    SND.mute_ch3 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
   if (glfwGetKey(game_window, GLFW_KEY_F4) == GLFW_PRESS)
-    SND.mute_ch4 = !SND.mute_ch4;
+    SND.mute_ch4 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 }
 
 void Window::debug_pixel(uint8_t *addr) {
@@ -306,17 +306,18 @@ void Window::draw_buffer() {
 
     // sleep until 16750 microseconds have passed since previous frame was drawn
     // (~ 59.7 fps)
+    static int purkka_factor = 80;
     unsigned frame_target = 16750;
     if (frame_us < frame_target && !unlocked_frame_rate) {
-      unsigned sleep_us = frame_target - frame_us;
+      unsigned sleep_us = frame_target - frame_us - purkka_factor;
       this_thread::sleep_for(microseconds(sleep_us));
     }
     
     if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > frame_target) {
-
-      auto wait_start = high_resolution_clock::now();
-
-      printf("[window] frame %lu us\n", duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count());
+      unsigned frame_time = duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count();
+      if (frame_time > frame_target) ++purkka_factor;
+      else                           --purkka_factor;
+      //printf("[window] frame %u us\n", frame_time);
       prev_frame = high_resolution_clock::now();
       
       // draw

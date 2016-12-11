@@ -90,7 +90,7 @@ OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_
 
   worker = std::thread(&OpenAL_Output::audio_worker, this);
 
-  queue_capacity = SAMPLE_RATE / 10 * 2;
+  queue_capacity = 2* SAMPLE_RATE * QUEUE_LEN_MS / 1000;
   // add buffer size to queue for easier reads from end
   sample_queue = new sample_t[queue_capacity + buffer_size];
 }
