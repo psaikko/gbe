@@ -44,20 +44,20 @@ void Gpu::update(unsigned tclock) {
 	switch (*MEM.LCD_STAT & MODE_MASK) {
 		case (MODE_OAM):
 			if (clk >= 80) {
-				clk = 0;
+				clk -= 80;
 				set_status(MODE_VRAM);
 			}
 			break;
 		case (MODE_VRAM):
 			if (clk >= 172) {
-				clk = 0;
+				clk -= 172;
 				set_status(MODE_HBLANK);
 				WINDOW.render_buffer_line();
 			}
 			break;
 		case (MODE_HBLANK):
 			if (clk >= 204) {
-				clk = 0;
+				clk -= 204;
 				*MEM.SCAN_LN += 1;
 				if (*MEM.SCAN_LN == 144) {
 					*MEM.IF |= FLAG_IF_VBLANK;
@@ -70,7 +70,7 @@ void Gpu::update(unsigned tclock) {
 			break;
 		case (MODE_VBLANK):
 			if (clk >= 456) {
-				clk = 0;
+				clk -= 456;
 				*MEM.SCAN_LN += 1;
 				if (*MEM.SCAN_LN == 153) {
 					set_status(MODE_OAM);
