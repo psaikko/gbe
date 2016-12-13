@@ -110,6 +110,7 @@ void Window::render_buffer_line() {
   if (! (*MEM.LCD_CTRL & FLAG_GPU_DISP) ) return;
 
   uint8_t lcd_y = *MEM.SCAN_LN;
+  assert(lcd_y < 144);
 
 	uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 

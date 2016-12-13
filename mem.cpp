@@ -136,6 +136,11 @@ uint16_t Memory::readWord(uint16_t addr) {
 void Memory::writeByte(uint16_t addr, uint8_t val) {
 	if (break_addr == addr) at_breakpoint = true;
 
+	if (addr == 0xFF41) {
+		*LCD_STAT = (val & ~7) || (*LCD_STAT & 7); 
+		return;
+	}
+
 	if (addr >= 0xFF10 && addr <= 0xFF3F) {
 		SND.writeByte(addr, val);
 		return;
