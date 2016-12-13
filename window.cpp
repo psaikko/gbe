@@ -310,8 +310,9 @@ void Window::draw_buffer() {
     static int purkka_factor = 80;
     unsigned frame_target = 16750;
     if (frame_us < frame_target && !unlocked_frame_rate) {
-      unsigned sleep_us = frame_target - frame_us - purkka_factor;
-      this_thread::sleep_for(microseconds(sleep_us));
+      long long sleep_us = frame_target - frame_us - purkka_factor;
+      if (sleep_us > 0)
+        this_thread::sleep_for(microseconds(sleep_us));
     }
     
     if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > frame_target) {
@@ -320,10 +321,8 @@ void Window::draw_buffer() {
       else                           --purkka_factor;
       //printf("[window] frame %u us\n", frame_time);
       prev_frame = high_resolution_clock::now();
-      
       // draw
       poll_buttons();
-
       glfwMakeContextCurrent(game_window);
       glfwSwapInterval(0);
       glClear( GL_COLOR_BUFFER_BIT );
