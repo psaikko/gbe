@@ -1,7 +1,5 @@
 #pragma once
 #include <inttypes.h>
-#include <atomic>
-#include <thread>
 #include "sound_defs.h"
 
 class Sound;
@@ -19,14 +17,9 @@ public:
 	unsigned queue_capacity;
 	unsigned queue_head;
 	unsigned queue_tail;
-	std::thread worker;
 
 	Sound &SND;
 	ALuint src;
-	ALuint *al_buffers;
-	sample_t *zero_buffer;
 
-	std::atomic_flag buffer_lock;
 	unsigned buffer_size;
-	void audio_worker();
 };
