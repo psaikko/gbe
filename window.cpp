@@ -308,13 +308,14 @@ void Window::draw_buffer() {
     // sleep until 16750 microseconds have passed since previous frame was drawn
     // (~ 59.7 fps)
     static int purkka_factor = 80;
-    unsigned frame_target = 16750;
+    unsigned frame_target = 16900; // sleep a bit more than 16750us so sound buffers don't back up in openal...
     if (frame_us < frame_target && !unlocked_frame_rate) {
       long long sleep_us = frame_target - frame_us - purkka_factor;
+      //printf("[window] sleeping %lld us\n", sleep_us);
       if (sleep_us > 0)
         this_thread::sleep_for(microseconds(sleep_us));
     }
-    
+
     if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > frame_target) {
       unsigned frame_time = duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count();
       if (frame_time > frame_target) ++purkka_factor;

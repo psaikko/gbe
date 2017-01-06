@@ -530,14 +530,12 @@ sample_t Sound::updateCh2() {
 
 sample_t Sound::updateCh3(unsigned tclock) {
 
-	static unsigned cpu_clock = 0;
 	static unsigned freq_clock = 0;
 	static uint8_t index = 0;
 
 	freq_clock += tclock;
 
 	static bool active = false;
-	static unsigned ctr = 0;
 	static float length = 0;
 	static uint8_t vol = 0;
 
@@ -547,7 +545,6 @@ sample_t Sound::updateCh3(unsigned tclock) {
 		Channel3->init = false;
 		if (!Channel3->no_loop)
 			length = float(256 - Channel3->sound_length) / 256;
-		ctr = 0;
 		index = 0;
 		Control->CH3_on = true;
 		vol = Channel3->volume;
