@@ -5,10 +5,11 @@ class Window;
 
 class Gpu {
 public:
-	Gpu(Memory &MemRef, Window &WindowRef) : clk(0), MEM(MemRef), WINDOW(WindowRef) {}
+	Gpu(Memory &MemRef, Window &WindowRef) : clk(0), enabled(true), MEM(MemRef), WINDOW(WindowRef) {}
 
 	void update(unsigned tclock);
-	uint16_t clk;
+	unsigned clk;
+	bool enabled;
 
 private:
 	Memory &MEM;

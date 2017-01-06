@@ -1,4 +1,5 @@
 #include <thread>
+#include <chrono>
 
 #include "gpu.h"
 #include "mem.h"
@@ -32,13 +33,30 @@ void Gpu::set_status(uint8_t mode) {
 
 // refresh every 70224 cycles
 void Gpu::update(unsigned tclock) {
-	// lcd disabled?
-	if (!(*MEM.LCD_CTRL & CTRL_ENABLE)) {
+	bool disable = !(*MEM.LCD_CTRL & CTRL_ENABLE);
+
+	if (!enabled) {
+		if (!disable) {
+			// LCD is turned ON
+			clk = 0;
+			enabled = true;
+		} else {
+			// LCD is OFF
+			clk += tclock;
+			if (clk >= 70224) {
+				clk -= 70224;
+				this_thread::sleep_for(chrono::milliseconds(16));
+			}
+			return;
+		}
+	} else if (disable) {
+		// LCD is turned OFF
 		clk = 0;
+		enabled = false;
 		*MEM.SCAN_LN = 0;
 		set_status(MODE_HBLANK);
-		return;
-	}
+		return;		
+	} 
 
 	clk += tclock;
 	static unsigned frameclock = 0;
