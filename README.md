@@ -2,7 +2,7 @@
 
 Work in progress .. simple games like tetris playable
 ````
-install libalut-dev, libopenal-dev
+install libalut-dev libopenal-dev libglew-dev libglm-dev
 make
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
