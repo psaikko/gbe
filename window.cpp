@@ -297,45 +297,16 @@ void Window::render_tileset() {
 }
 
 void Window::draw_buffer() {
-	//static long frame = 0;
-  
-  {
-    using namespace std::chrono;
-    auto time = high_resolution_clock::now();
-    auto frame_time = time - prev_frame;
-    long long frame_us = duration_cast<microseconds>(frame_time).count();
+  // draw
+  poll_buttons();
+  glfwMakeContextCurrent(game_window);
+  glfwSwapInterval(0);
+  glClear( GL_COLOR_BUFFER_BIT );
+  glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
+  glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
+  glfwSwapBuffers(game_window);
 
-    // sleep until 16750 microseconds have passed since previous frame was drawn
-    // (~ 59.7 fps)
-    static int purkka_factor = 80;
-    unsigned frame_target = 16900; // sleep a bit more than 16750us so sound buffers don't back up in openal...
-    if (frame_us < frame_target && !unlocked_frame_rate) {
-      long long sleep_us = frame_target - frame_us - purkka_factor;
-      //printf("[window] sleeping %lld us\n", sleep_us);
-      if (sleep_us > 0)
-        this_thread::sleep_for(microseconds(sleep_us));
-    }
-
-    if (!unlocked_frame_rate || duration_cast<microseconds>(time - prev_frame).count() > frame_target) {
-      unsigned frame_time = duration_cast<microseconds>(high_resolution_clock::now() - prev_frame).count();
-      if (frame_time > frame_target) ++purkka_factor;
-      else                           --purkka_factor;
-      //printf("[window] frame %u us\n", frame_time);
-      prev_frame = high_resolution_clock::now();
-      // draw
-      poll_buttons();
-      glfwMakeContextCurrent(game_window);
-      glfwSwapInterval(0);
-      glClear( GL_COLOR_BUFFER_BIT );
-      glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
-      glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
-      glfwSwapBuffers(game_window);
-
-      refresh_debug();
-    }
-
-  }
-  //printf("Frame #%ld\n", frame++);
+  refresh_debug();
 }
 
 void Window::refresh_debug() {
