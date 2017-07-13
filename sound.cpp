@@ -391,15 +391,15 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		Channel1->init = false;
 
 		if (!Channel1->no_loop) {
-			length = Channel1->sound_length * TCLK_HZ / 64;
+			length = (64 - Channel1->sound_length) * TCLK_HZ / 256;
 		}
 		ctr = 0;
 
-		//env_step = float(Channel1->env_sweep) / 64.0f;
+		// hz = env_step / 64
 		env_step = Channel1->env_sweep * TCLK_HZ / 64;
 		env_ctr  = 0;
 
-		//sweep_step = float(Channel1->sweep_time) / 128.0f;
+		// hz = env_step / 128
 		sweep_step = Channel1->sweep_time * TCLK_HZ / 128;
 		sweep_ctr = 0;
 
