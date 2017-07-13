@@ -374,7 +374,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 	static bool active = false;
 
 	static unsigned ctr = 0;
-	static unsigned length = 0;
+	static int length = 0;
 	static unsigned env_step = 0;
 	static unsigned env_ctr = 0;
 	static unsigned sweep_ctr = 0;
@@ -390,7 +390,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		active = true;
 		Channel1->init = false;
 
-		if (!Channel1->no_loop)
+		if (Channel1->no_loop)
 			length = (64 - Channel1->sound_length) * TCLK_HZ / 256;
 		ctr = 0;
 
@@ -439,7 +439,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		// frequency sweep control
 		if (sweep_step != 0) {
 			sweep_ctr += tclock;
-			if (sweep_ctr > sweep_step) {
+			if (sweep_ctr >= sweep_step) {
 				sweep_ctr -= sweep_step;
 				if (Channel1->sweep_mode == CH1::op::Addition) {
 					//printf("[ch1] sweep +\n");
@@ -463,7 +463,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		if (env_step != 0) {
 			env_ctr += tclock;
 			
-			if (env_ctr > env_step) {
+			if (env_ctr >= env_step) {
 				env_ctr -= env_step;
 				
 				if (Channel1->env_direction == Increase) {
@@ -489,7 +489,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 	static bool active = false;
 
 	static unsigned ctr = 0;
-	static unsigned length = 0;
+	static int length = 0;
 	static unsigned env_step = 0;
 	static unsigned env_ctr = 0;
 
@@ -502,7 +502,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 		active = true;
 		Channel2->init = false;
 
-		if (!Channel2->no_loop)
+		if (Channel2->no_loop)
 			length = (64 - Channel2->sound_length) * TCLK_HZ / 256;
 
 		ctr = 0;
@@ -546,7 +546,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 		if (env_step != 0) {
 			env_ctr += tclock;
 			
-			if (env_ctr > env_step) {
+			if (env_ctr >= env_step) {
 				env_ctr -= env_step;
 
 				if (Channel2->env_direction == Increase) {
@@ -578,7 +578,7 @@ sample_t Sound::updateCh3(unsigned tclock) {
 		freq_clock = 0;
 		active = true;
 		Channel3->init = false;
-		if (!Channel3->no_loop)
+		if (Channel3->no_loop)
 			length = Channel3->sound_length;
 			//length = float(256 - Channel3->sound_length) / 256;
 		index = 0;
@@ -628,7 +628,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 
 	static bool active = false;
 
-	static unsigned length = 0;
+	static int length = 0;
 	static unsigned env_step = 0;
 	static unsigned env_ctr = 0;
 
@@ -643,7 +643,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 		active = true;
 		Channel4->init = false;
 
-		if (!Channel4->no_loop)
+		if (Channel4->no_loop)
 			length = (64 - Channel4->sound_length) * TCLK_HZ / 256;
 
 		// hz = env_step / 64
@@ -683,7 +683,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 				counter &= ~(1 << 14);
 				counter |= (1 << 14);
 
-				// also feedback to bit 6
+				// also feedback to bit 6?
 				if (Channel4->counter_step) {
 					counter &= ~(1 << 6);
 					counter |= (1 << 6);					
@@ -695,11 +695,11 @@ sample_t Sound::updateCh4(unsigned tclock) {
 			low = rand() & 1;
 			sample = low ? square_map[16 - vol] : square_map[16 + vol];
 
-			printf("%02X %02X %02X %02X\n", Channel4->NR41, 
-				Channel4->NR42, Channel4->NR43, Channel4->NR44);
+			//printf("%02X %02X %02X %02X\n", Channel4->NR41, 
+			//	Channel4->NR42, Channel4->NR43, Channel4->NR44);
 		}
 
-		if (!Channel4->no_loop) {
+		if (Channel4->no_loop) {
 			length -= tclock;
 			if (length <= 0) {
 				active = false;
