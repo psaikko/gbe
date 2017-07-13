@@ -6,12 +6,20 @@ install libalut-dev libopenal-dev libglew-dev libglm-dev
 make
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
-gbe displays the main game window, tilesets, and tilemaps.
 
+Features
+---
+gbe displays the main game window, tilesets, and tilemaps.
 Esc closes the emulator.
 Shift+[F1-F4] disables sound channels.
 [F1-F4] enable sound channels.
 
+Screenshots
+---
+Game view:
+[Game window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Game_screenshot.png)
+Tileset view:
+[Tileset window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Tileset_screenshot.png)
 
 TODOs
 ---
