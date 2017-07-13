@@ -313,6 +313,7 @@ void Sound::update(unsigned tclk) {
 	clock += tclk;
 
 	sample_t ch3_sample = updateCh3(tclk);
+	sample_t ch1_sample = updateCh1(tclk);
 
 	if (clock >= TCLK_HZ / SAMPLE_RATE) {
 		clock -= TCLK_HZ / SAMPLE_RATE;
@@ -322,7 +323,6 @@ void Sound::update(unsigned tclk) {
 		lsample = 0;
 
 		if (Control->sound_on) {
-			sample_t ch1_sample = updateCh1();
 			sample_t ch2_sample = updateCh2();
 			sample_t ch4_sample = updateCh4();
 
@@ -365,30 +365,42 @@ void Sound::getSamples(sample_t * left, sample_t * right) {
 	sample_ready = false;
 }
 
-sample_t Sound::updateCh1() {
+sample_t Sound::updateCh1(unsigned tclock) {
+
+	static unsigned freq_clock = 0;
+
+	freq_clock += tclock;
+
 	static bool active = false;
+
 	static unsigned ctr = 0;
-	static float length = 0;
-	static float env_step = 0;
-	static float env_ctr = 0;
-	static float sweep_ctr = 0;
-	static float sweep_step = 0;
+	static unsigned length = 0;
+	static unsigned env_step = 0;
+	static unsigned env_ctr = 0;
+	static unsigned sweep_ctr = 0;
+	static unsigned sweep_step = 0;
 	static unsigned sweep_freq = 0;
+
 	static uint8_t vol = 0;
 
-	sample_t sample = 0;
+	static sample_t sample = 0;
 
 	if (Channel1->init) {
+		freq_clock = 0;
 		active = true;
 		Channel1->init = false;
-		if (!Channel1->no_loop)
-			length = float(64 - Channel1->sound_length) / 256;
+
+		if (!Channel1->no_loop) {
+			length = Channel1->sound_length * TCLK_HZ / 64;
+		}
 		ctr = 0;
 
-		env_step = float(Channel1->env_sweep) / 64.0f;
+		//env_step = float(Channel1->env_sweep) / 64.0f;
+		env_step = Channel1->env_sweep * TCLK_HZ / 64;
 		env_ctr  = 0;
 
-		sweep_step = float(Channel1->sweep_time) / 128.0f;
+		//sweep_step = float(Channel1->sweep_time) / 128.0f;
+		sweep_step = Channel1->sweep_time * TCLK_HZ / 128;
 		sweep_ctr = 0;
 
 		vol = Channel1->env_volume;
@@ -401,29 +413,33 @@ sample_t Sound::updateCh1() {
 	}
 
 	if (active) {
-		unsigned gb_freq = unsigned(Channel1->freq_hi) << 8;
-		gb_freq |= Channel1->freq_lo;
+		// waveform control
+		unsigned gb_freq = 2048 - (unsigned(Channel1->freq_lo) + (unsigned(Channel1->freq_hi) << 8));
+		if (freq_clock >= gb_freq) {
+			freq_clock -= gb_freq;
 
-		unsigned hz = 131072 / (2048 - gb_freq);
+			// gb_freq = frequency in tclocks / 32
+			// i.e. 32 ticks per wavelength
 
-		unsigned wavelen = unsigned(SAMPLE_RATE / hz);
-		if (wavelen == 0) wavelen = 1;
-		const static float duty_map[4] { 1.0f/8, 1.0f/4, 1.0f/2, 3.0f/4 };
+			const static unsigned duty_map[4] { 4, 8, 16, 24 };
 
-		bool low = ((++ctr) % wavelen) > (duty_map[Channel1->wave_duty] * wavelen);
-		sample = low ? square_map[16 + vol] : square_map[16 - vol];
+			bool low = ((++ctr) % 32) > (duty_map[Channel1->wave_duty]);
 
-		if (Channel1->no_loop) {
-			length -= 1.0f / float(SAMPLE_RATE);
-			if (length <= 0) {
-				active = false;
-				Control->CH1_on = false;
-				//printf("[ch1] stop\n");
+			sample = low ? square_map[16 + vol] : square_map[16 - vol];
+
+			if (Channel1->no_loop) {
+				length -= tclock;
+				if (length <= 0) {
+					active = false;
+					Control->CH1_on = false;
+					//printf("[ch1] stop\n");
+				}
 			}
 		}
 
-		if (Channel1->sweep_time != 0) {
-			sweep_ctr += 1.0f / float(SAMPLE_RATE);
+		// frequency sweep control
+		if (sweep_step != 0) {
+			sweep_ctr += tclock;
 			if (sweep_ctr > sweep_step) {
 				sweep_ctr -= sweep_step;
 				if (Channel1->sweep_mode == CH1::op::Addition) {
@@ -444,8 +460,9 @@ sample_t Sound::updateCh1() {
 			}
 		}
 
-		if (Channel1->env_sweep != 0) {
-			env_ctr += 1.0f / float(SAMPLE_RATE);
+		// volume envelope control
+		if (env_step != 0) {
+			env_ctr += tclock;
 			if (env_ctr > env_step) {
 				env_ctr -= env_step;
 				
@@ -458,7 +475,11 @@ sample_t Sound::updateCh1() {
 				}
 			}
 		}
+	} else {
+		// not producing sound
+		sample = 0;
 	}
+
 
 	return sample;
 }
@@ -536,7 +557,7 @@ sample_t Sound::updateCh3(unsigned tclock) {
 	freq_clock += tclock;
 
 	static bool active = false;
-	static float length = 0;
+	static int length = 0;
 	static uint8_t vol = 0;
 
 	if (Channel3->init) {
@@ -544,7 +565,8 @@ sample_t Sound::updateCh3(unsigned tclock) {
 		active = true;
 		Channel3->init = false;
 		if (!Channel3->no_loop)
-			length = float(256 - Channel3->sound_length) / 256;
+			length = Channel3->sound_length;
+			//length = float(256 - Channel3->sound_length) / 256;
 		index = 0;
 		Control->CH3_on = true;
 		vol = Channel3->volume;
@@ -571,7 +593,7 @@ sample_t Sound::updateCh3(unsigned tclock) {
 
 			//printf("[ch3] %1X\n", wave_sample);
 			if (Channel3->no_loop) {
-				length -= float(gb_freq) / float(TCLK_HZ);
+				length -= gb_freq;
 				if (length <= 0) {
 					active = false;
 					Control->CH3_on = false;

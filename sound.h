@@ -49,7 +49,7 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t*> reg_pointers;
 
-	sample_t updateCh1();
+	sample_t updateCh1(unsigned tclock);
 	sample_t updateCh2();
 	sample_t updateCh3(unsigned tclock);
 	sample_t updateCh4();
