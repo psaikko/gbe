@@ -579,8 +579,7 @@ sample_t Sound::updateCh3(unsigned tclock) {
 		active = true;
 		Channel3->init = false;
 		if (Channel3->no_loop)
-			length = Channel3->sound_length;
-			//length = float(256 - Channel3->sound_length) / 256;
+			length = Channel3->sound_length * TCLK_HZ / 256;
 		index = 0;
 		Control->CH3_on = true;
 		vol = Channel3->volume;
@@ -590,22 +589,40 @@ sample_t Sound::updateCh3(unsigned tclock) {
 	static sample_t sample = 0;
 
 	unsigned gb_freq = 2048 - (unsigned(Channel3->freq_lo) + (unsigned(Channel3->freq_hi) << 8));
+	gb_freq = gb_freq * TCLK_HZ / 65536; // sample played at freq * 65536 hz
 
-	if (freq_clock >= gb_freq) {
-		freq_clock -= gb_freq;
+	if (freq_clock >= gb_freq / 32) {
+		freq_clock -= gb_freq / 32;
 
 		if (active && Channel3->sound_on) {
 			index = (index + 1) % 32;
+
+			printf("%3d ", index);
+
 			// 4-bit samples played high bits first
-			uint8_t wave_sample = wave_pattern_ram[index >> 1];
-			if (index % 2) wave_sample &= 0x0F; // low 4 bytes
-			else 					 wave_sample >>= 4;
+			uint8_t wave_sample = wave_pattern_ram[(31 - index) >> 1];
+			// (index flip changes parity!)
+			if (!(index % 2)) wave_sample &= 0x0F; // low 4 bytes
+			else 		   wave_sample >>= 4;   // high 4 bytes
 
+			printf("%3d ", wave_sample);
+
+			// center waveform on 0
+			int wave_sample_signed = int(wave_sample) - 8;
+
+			printf("%3d ", wave_sample_signed);
+
+			// apply volume shift
 			static const uint8_t volume_shift_map[4] { 4, 0, 1, 2 };
-			wave_sample >>= volume_shift_map[vol];
-			sample = sample_map[wave_sample];
+			wave_sample_signed >>= volume_shift_map[vol];
 
-			//printf("[ch3] %1X\n", wave_sample);
+			printf("%3d ", wave_sample_signed);
+
+			sample = sample_map[wave_sample_signed + 8];
+
+			printf("%3d\n", sample);
+
+			//printf("[ch3] %d %d\n", wave_sample << volume_shift_map[vol], wave_sample);
 			if (Channel3->no_loop) {
 				length -= gb_freq;
 				if (length <= 0) {
