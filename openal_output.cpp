@@ -97,6 +97,8 @@ void OpenAL_Output::update_buffer() {
     if (queue_tail < buffer_size) {
       sample_queue[buffer_size + queue_tail] = left;
       sample_queue[buffer_size + queue_tail + 1] = right;
+    } else {
+      //printf("[snd] queue full\n");
     }
 		queue_tail = (queue_tail + 2) % queue_capacity;
     

@@ -118,13 +118,13 @@ void Gpu::update(unsigned tclock) {
 		}
 	}
 	
-	// synchronize gpu to 59 fps
+	// synchronize gpu to 59.7 fps
 	if (sync_clk >= 70224)
 	{
 		sync_clk -= 70224;
 		++frames;
 
-		long long expected_time_ms = frames * 1000 / 59;
+		long long expected_time_ms = frames * 10000 / 597; 
 		long long actual_time_ms = duration_cast<milliseconds>(high_resolution_clock::now() - start_time).count();
 
 		long long delta_ms = expected_time_ms - actual_time_ms;
