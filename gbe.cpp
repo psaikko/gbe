@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "sync.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "cart.h"
