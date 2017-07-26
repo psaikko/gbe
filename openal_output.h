@@ -22,4 +22,6 @@ public:
 	ALuint src;
 
 	unsigned buffer_size;
+
+	unsigned long samples;
 };

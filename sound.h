@@ -25,6 +25,8 @@ public:
 	bool mute_ch3;
 	bool mute_ch4;
 
+	unsigned long samples;
+
 private:
 	bool sample_ready;
 	unsigned clock;

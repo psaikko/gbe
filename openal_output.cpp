@@ -60,7 +60,7 @@ void exit_al() {
   alcCloseDevice(dev);
 }
 
-OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0) {
+OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0), samples(0) {
 	init_al();
 
   buffer_size = 2 * SAMPLE_RATE * AL_BUFFER_LEN_MS / 1000;
@@ -87,6 +87,9 @@ unsigned OpenAL_Output::queueSize() {
 void OpenAL_Output::update_buffer() {
 
 	if (SND.hasNewSample()) {
+
+    samples++;
+
 		sample_t left, right;
 		SND.getSamples(&left, &right);
 

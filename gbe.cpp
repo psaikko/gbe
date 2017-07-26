@@ -154,52 +154,57 @@ int main(int argc, char ** argv) {
        }
     }
 
-  if (optind < argc) {
-    fprintf(stderr, "[warning]: Unhandled args");
-    while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
-    fprintf(stderr, "\n");
-  }
+	  if (optind < argc) {
+	    fprintf(stderr, "[warning]: Unhandled args");
+	    while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
+	    fprintf(stderr, "\n");
+	  }
 
-  if (!load_rom) {
-  	printf("load ROM with -R <file>\n");
-  	exit(0);
-  }
+	  if (!load_rom) {
+	  	printf("load ROM with -R <file>\n");
+	  	exit(0);
+	  }
 
-  Buttons BTN;
-  Sound SND;
-  OpenAL_Output SND_OUT(SND);
-  Cart CART(romfile);
-  Memory MEM(CART, BTN, SND);
+	  Buttons BTN;
+	  Sound SND;
+	  OpenAL_Output SND_OUT(SND);
+	  Cart CART(romfile);
+	  Memory MEM(CART, BTN, SND);
 
-  Registers REG;
-  
-  Window WINDOW(MEM, BTN, SND_OUT, SND, unlocked_frame_rate);
-  Timer TIMER(MEM);
+	  Registers REG;
+	  
+	  Window WINDOW(MEM, BTN, SND_OUT, SND, unlocked_frame_rate);
+	  Timer TIMER(MEM);
 
-  Gpu GPU(MEM, WINDOW);
-  Cpu CPU(MEM, REG);
-  SerialPortInterface SERIAL(MEM);
+	  Gpu GPU(MEM, WINDOW);
+	  Cpu CPU(MEM, REG);
+	  SerialPortInterface SERIAL(MEM);
 
-  if (load_bios) {
-  	readBIOSFile(MEM, biosfile);
-  } else {
-  	REG.AF = 0x01B0;
-  	REG.BC = 0x0013;
-  	REG.DE = 0x00D8;
-  	REG.HL = 0x014D;
-  	REG.SP = 0xFFFE;
-  	REG.PC = 0x0100;
-  	*MEM.BIOS_OFF = 1;
-  }
+	  if (load_bios) {
+	  	readBIOSFile(MEM, biosfile);
+	  } else {
+	  	REG.AF = 0x01B0;
+	  	REG.BC = 0x0013;
+	  	REG.DE = 0x00D8;
+	  	REG.HL = 0x014D;
+	  	REG.SP = 0xFFFE;
+	  	REG.PC = 0x0100;
+	  	*MEM.BIOS_OFF = 1;
+	  }
 
-  MEM.break_addr = mem_breakpoint_addr;
+	  MEM.break_addr = mem_breakpoint_addr;
 
 	WINDOW.init();
 
 	// enable LCD
 	*MEM.LCD_CTRL = 0x80;
 
-	while (1) {
+	// start audio/video sync timer 
+	SyncTimer::get().start();
+
+	unsigned long clk = 0;
+
+	while (!WINDOW.close) {
 
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
 												 (mem_breakpoint && (MEM.at_breakpoint)) ||
@@ -320,6 +325,8 @@ int main(int argc, char ** argv) {
 		SERIAL.update(REG.TCLK);
 		SND.update(REG.TCLK);
 
+		clk += REG.TCLK;
+
 		REG.TCLK = 0;
 		CPU.handle_interrupts();
 
@@ -329,6 +336,14 @@ int main(int argc, char ** argv) {
 		SND.update(REG.TCLK);
 
 		SND_OUT.update_buffer();
+
+		clk += REG.TCLK;
 	}	
+
+	printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());
+	printf("Clk: %ld\n", clk);
+	printf("Frames: %lu\n", GPU.frames);
+	printf("Samples generated: %lu\n", SND.samples);
+	printf("Samples played: %lu\n", SND_OUT.samples);
 
 }

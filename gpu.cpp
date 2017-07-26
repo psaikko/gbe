@@ -1,6 +1,6 @@
 #include <thread>
-#include <chrono>
 
+#include "sync.h"
 #include "gpu.h"
 #include "mem.h"
 #include "window.h"
@@ -54,8 +54,7 @@ void Gpu::update(unsigned tclock) {
 	} 
 
 	static unsigned sync_clk = 0;
-	static unsigned long frames = 0;
-	static auto start_time = high_resolution_clock::now();
+
 	sync_clk += tclock;
 
 	if (enabled) {
@@ -125,7 +124,7 @@ void Gpu::update(unsigned tclock) {
 		++frames;
 
 		long long expected_time_ms = frames * 10000 / 597; 
-		long long actual_time_ms = duration_cast<milliseconds>(high_resolution_clock::now() - start_time).count();
+		long long actual_time_ms = SyncTimer::get().elapsed_ms();
 
 		long long delta_ms = expected_time_ms - actual_time_ms;
 
