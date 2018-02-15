@@ -1,11 +1,8 @@
-GLFWDIR = glfw
-GLFWLIBS = -lGL -lGLU -lGLEW -lglfw3 -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXcursor -lXinerama
-
+GLFWLIBS = -lGL -lGLU -lGLEW -lglfw
 ALLIBS = -lalut -lopenal
 
-CXX = g++-5 -fdiagnostics-color=always
 CXXFLAGS = --std=c++14 -O3 -Wall -Wextra -MMD -Wno-format-security -Wno-reorder
-CPPFLAGS = -I$(GLFWDIR)/include -L$(GLFWDIR)/lib $(GLFWLIBS) $(ALLIBS)
+CPPFLAGS = $(GLFWLIBS) $(ALLIBS)
 
 SRCS=gpu.cpp window.cpp mem.cpp timer.cpp cpu.cpp serial.cpp gbe.cpp sound.cpp openal_output.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
@@ -14,7 +11,7 @@ all: $(OBJS)
 	@echo "Linking gbe"
 	@$(CXX) $(OBJS) $(CXXFLAGS) $(CPPFLAGS) -o gbe
 
-clean: 
+clean:
 	rm -f *.o *.d
 
 %.o: %.cpp
