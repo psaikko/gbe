@@ -41,7 +41,7 @@ class Sound;
 class Window {
 public:
   Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, bool u) : 
-    MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), breakpoint(false),
+    MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), breakpoint(false), close(false),
       prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u) {}
 
   Memory &MEM;
@@ -58,6 +58,7 @@ public:
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 
   bool breakpoint;
+  bool close;
 
   void poll_buttons();
 

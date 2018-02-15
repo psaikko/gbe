@@ -38,7 +38,7 @@ void Window::poll_buttons() {
   // Check if the ESC key was pressed or the window was closed
   if (glfwGetKey(game_window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
       glfwWindowShouldClose(game_window) == 1) {
-    exit(1);
+    close = true;
   }
 
   breakpoint = glfwGetKey(game_window, GLFW_KEY_B) == GLFW_PRESS;
