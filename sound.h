@@ -42,12 +42,18 @@ private:
 	struct CH3;
 	struct CH4;
 	struct CTRL;
+	struct LengthCounter;
 
 	CH1* Channel1;
 	CH2* Channel2;
 	CH3* Channel3;
 	CH4* Channel4;
 	CTRL* Control;
+
+	LengthCounter* Ch1_Length;
+	LengthCounter* Ch2_Length;
+	LengthCounter* Ch3_Length;
+	LengthCounter* Ch4_Length;
 
 	std::unordered_map<uint16_t, uint8_t*> reg_pointers;
 
