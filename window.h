@@ -13,8 +13,8 @@
 
 using namespace glm;
 
-#define WINDOW_W 160
-#define WINDOW_H 144
+#define GBE_WINDOW_W 160
+#define GBE_WINDOW_H 144
 
 #define TILESET_WINDOW_W 128
 #define TILESET_WINDOW_H 192
@@ -42,7 +42,7 @@ class Window {
 public:
   Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, bool u) : 
     MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), breakpoint(false), close(false),
-      prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u) {}
+      prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u), window_scale(3) {}
 
   Memory &MEM;
   Buttons &BTN;
@@ -50,10 +50,16 @@ public:
   OpenAL_Output &SND_OUT;
 
   GLFWwindow* game_window;
+
+
+  unsigned window_scale;
+
   GLFWwindow* tilemap_window;
   GLFWwindow* tileset_window;
 
-  uint8_t game_buffer[WINDOW_H * WINDOW_W * 3];
+  uint8_t *window_buffer;
+
+  uint8_t gbe_buffer[GBE_WINDOW_H * GBE_WINDOW_W * 3];
   uint8_t tilemap_buffer[TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3];
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 
@@ -89,6 +95,8 @@ public:
   void draw_tilemap();
 
   void draw_tileset();
+
+  void on_resize_game(unsigned w, unsigned h);
 
   void init();
 private:

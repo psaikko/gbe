@@ -131,7 +131,7 @@ void Window::render_buffer_line() {
   int win_map_tile_y  = win_map_pixel_y / TILE_H;
   int win_tile_y  = win_map_pixel_y % TILE_H;
 
-	for (uint8_t lcd_x = 0; lcd_x < WINDOW_W; ++lcd_x) {
+	for (uint8_t lcd_x = 0; lcd_x < GBE_WINDOW_W; ++lcd_x) {
     uint8_t color_id = 0;
     uint8_t color = 0;
 
@@ -200,8 +200,8 @@ void Window::render_buffer_line() {
       }  
     }
 
-    unsigned i = rgb_buffer_index(lcd_x, lcd_y, WINDOW_W, WINDOW_H);
-    draw_pixel(&game_buffer[i], color);
+    unsigned i = rgb_buffer_index(lcd_x, lcd_y, GBE_WINDOW_W, GBE_WINDOW_H);
+    draw_pixel(&gbe_buffer[i], color);
 	} 
 }
 
@@ -223,7 +223,7 @@ uint8_t Window::apply_palette(uint8_t color_id, uint8_t palette) {
 uint8_t Window::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
 
 	assert(x <= 7);
-	assert(y <= (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 15 : 7);
+	assert(y <= ((*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 15 : 7));
 
 	uint8_t *row_y    = tile + 2*y; // tiles have 2 bytes per row
 	uint8_t bitmask_x = 0x80 >> x;
@@ -297,13 +297,30 @@ void Window::render_tileset() {
 }
 
 void Window::draw_buffer() {
+
+  // copy gbe buffer to window buffer
+  const unsigned win_buffer_row_width = GBE_WINDOW_W*window_scale*3;
+  const unsigned gbe_buffer_row_width = GBE_WINDOW_W*3;
+  for (unsigned y = 0; y < GBE_WINDOW_H; ++y) {
+    for (unsigned y_i = 0; y_i < window_scale; ++y_i) {
+      for (unsigned x = 0; x < gbe_buffer_row_width; x += 3) {
+        for (unsigned x_i = 0; x_i < window_scale*3; x_i += 3) {
+          for (unsigned c = 0; c < 3; c++) {
+            window_buffer[(y * window_scale + y_i) * win_buffer_row_width + (x * window_scale + x_i) + c] =
+                    gbe_buffer[y * gbe_buffer_row_width + x + c];
+          }
+        }
+      }
+    }
+  }
+
   // draw
   poll_buttons();
   glfwMakeContextCurrent(game_window);
   glfwSwapInterval(0);
   glClear( GL_COLOR_BUFFER_BIT );
   glClearColor(0.0f, 0.0f, 0.4f, 0.5f);
-  glDrawPixels(WINDOW_W, WINDOW_H, GL_RGB, GL_UNSIGNED_BYTE, game_buffer);
+  glDrawPixels(GBE_WINDOW_W * window_scale, GBE_WINDOW_H * window_scale, GL_RGB, GL_UNSIGNED_BYTE, window_buffer);
   glfwSwapBuffers(game_window);
 
   refresh_debug();
@@ -335,8 +352,9 @@ void Window::draw_tileset() {
 }
 
 void Window::init() {
+  window_buffer = (uint8_t*)calloc(GBE_WINDOW_H * window_scale * GBE_WINDOW_W * window_scale * 3, sizeof(uint8_t));
 
-	memset(game_buffer, 0, WINDOW_H * WINDOW_W * 3);
+	memset(gbe_buffer, 0, GBE_WINDOW_H * GBE_WINDOW_W * 3);
 	memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3);
 	memset(tileset_buffer, 0, TILESET_WINDOW_H * TILESET_WINDOW_W * 3);
 
@@ -349,7 +367,7 @@ void Window::init() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 
   // Open a window and create its OpenGL context
-  game_window = glfwCreateWindow(WINDOW_W, WINDOW_H, "gbe buffer", NULL, NULL);
+  game_window = glfwCreateWindow(GBE_WINDOW_W * window_scale, GBE_WINDOW_H * window_scale, "gbe buffer", NULL, NULL);
   tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, "gbe tilemap", NULL, NULL);
   tileset_window = glfwCreateWindow(TILESET_WINDOW_W, TILESET_WINDOW_H, "gbe tileset", NULL, NULL);
 
@@ -357,4 +375,25 @@ void Window::init() {
   glfwMakeContextCurrent(game_window);
   glewExperimental = GL_TRUE;
   glewInit();
+
+  glfwSetWindowUserPointer(game_window, this);
+
+  auto func = [](GLFWwindow* win, int w, int h)
+  {
+    static_cast<Window*>(glfwGetWindowUserPointer(win))->on_resize_game( w, h );
+  };
+
+  glfwSetWindowSizeCallback(game_window, func);
+}
+
+void Window::on_resize_game(unsigned w, unsigned h) {
+
+  unsigned new_scale = std::min(w / GBE_WINDOW_W, h / GBE_WINDOW_H);
+
+  if (window_scale != new_scale) {
+    free(window_buffer);
+    window_scale = new_scale;
+    window_buffer = (uint8_t *)
+            calloc(GBE_WINDOW_H * window_scale * GBE_WINDOW_W * window_scale * 3, sizeof(uint8_t));
+  }
 }
