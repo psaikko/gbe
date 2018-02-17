@@ -14,6 +14,7 @@ uint8_t* Memory::getReadPtr(uint16_t addr) {
 			if ( ( ! *BIOS_OFF ) && addr < 0x0100) {
 				return &BIOS[addr];
 			}
+            [[fallthrough]];
 		case 0x1: case 0x2: case 0x3:
 			return &ROM0[addr]; // ROM0
 		case 0x4: case 0x5:

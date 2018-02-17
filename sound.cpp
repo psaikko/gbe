@@ -204,9 +204,9 @@ struct Sound::CTRL {
 struct Sound::LengthCounter {
 	LengthCounter(unsigned max) : max_length(max) {}
 
-	void start(unsigned length) {
-		assert(length >= 0 && length <= max_length);
-		length = (max_length - length) * TCLK_HZ / 256;
+	void start(unsigned sound_len) {
+		assert(sound_len <= max_length);
+		length = (max_length - sound_len) * TCLK_HZ / 256;
 	}
 
 	bool tick(unsigned clk) {
@@ -516,7 +516,6 @@ sample_t Sound::updateCh2(unsigned tclock) {
 	static bool active = false;
 
 	static unsigned ctr = 0;
-	static int length = 0;
 	static unsigned env_step = 0;
 	static unsigned env_ctr = 0;
 
@@ -530,7 +529,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 		Channel2->init = false;
 
 		if (Channel2->disable_loop)
-			Ch3_Length->start(Channel2->sound_length);
+			Ch2_Length->start(Channel2->sound_length);
 
 		ctr = 0;
 

@@ -36,7 +36,7 @@ void printInstruction(Memory &MEM, Registers &REG, Cpu &CPU) {
 	Cpu::Instruction instr = CPU.instructions[opcode];
 	printf("Instruction 0x%02X at 0x%04X: ", opcode, REG.PC);
 	if (instr.argw == 0)
-		printf(instr.name);
+		printf("%s", instr.name);
 	else if (instr.argw == 1)
 		printf(instr.name, MEM.readByte(REG.PC+1));
 	else if (instr.argw == 2)
@@ -46,7 +46,7 @@ void printInstruction(Memory &MEM, Registers &REG, Cpu &CPU) {
 	if (opcode == 0xCB) {
 		uint8_t ext_opcode = MEM.readByte(REG.PC+1);
 		printf("        Ext 0x%02X at 0x%04X: ", ext_opcode, REG.PC+1);
-		printf(CPU.ext_instructions[MEM.readByte(REG.PC+1)].name);
+		printf("%s", CPU.ext_instructions[MEM.readByte(REG.PC+1)].name);
 		printf("\n");
 	}
 }
