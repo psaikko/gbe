@@ -3,7 +3,7 @@
 Work in progress .. most games correctly emulated
 ````
 install libalut-dev libglfw3-dev
-make
+cmake . && make
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
 
@@ -17,6 +17,10 @@ Shift+[F1-F4] disable individual sound channels.
 
 [F1-F4] enable individual sound channels.
 
+[F5] Saves state.
+
+[F6] Loads state.
+
 Screenshots
 ---
 Game view:
@@ -29,12 +33,13 @@ Tileset view:
 
 TODOs
 ---
-- Savestates
+- Full savestates
 - Usable UI
-- Display scaling
+- GPU display scaling
 - Noise channel accuracy
 - Sprite display limits
 - Intra-scanline timing
 - Joypad interrupts
+- Serial I/O
 - Some memory bank controllers
 - ... and more
