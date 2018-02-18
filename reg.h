@@ -11,6 +11,8 @@
 
 class Registers {
 public:
+  Registers() = default;
+
 	union {
 		uint16_t AF;
 		struct {

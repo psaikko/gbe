@@ -15,8 +15,7 @@ public:
 
   long long elapsed_ms() {
   	auto current_time = high_resolution_clock::now();
-  	auto time_difference = current_time - start_time;
-  	return duration_cast<milliseconds>(time_difference).count();
+  	return duration_cast<milliseconds>(current_time - start_time).count();
   }
 
   void start() {

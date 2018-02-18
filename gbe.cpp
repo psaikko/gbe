@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
 #include <getopt.h>
 #include <string>
 #include <iostream>
@@ -78,7 +77,7 @@ int main(int argc, char ** argv) {
 
   int c;
 
-  while (1)
+  while (true)
     {
       static struct option long_options[] =
         {
@@ -86,15 +85,15 @@ int main(int argc, char ** argv) {
           {"rb",     no_argument, &log_register_bytes, 1},
           {"gpu",    no_argument, &log_gpu, 1},
 
-          {"instructions", no_argument, 0, 'i'},
-          {"flags", no_argument, 0, 'f'},
-          {"unlockfps", no_argument, 0, 'u'},
-          {"bios", required_argument, 0, 'B'},
-          {"rom", required_argument, 0, 'R'},
-          {"breakpoint", required_argument, 0, 'b'},
-          {"step",       required_argument, 0, 's'},
-          {"memory-breakpoint",     required_argument, 0, 'M'},
-          {0, 0, 0, 0}
+          {"instructions", no_argument, nullptr, 'i'},
+          {"flags", 			 no_argument, nullptr, 'f'},
+          {"unlockfps",		 no_argument, nullptr, 'u'},
+          {"bios", 		   required_argument, nullptr, 'B'},
+          {"rom", 			 required_argument, nullptr, 'R'},
+          {"breakpoint", required_argument, nullptr, 'b'},
+          {"step",       required_argument, nullptr, 's'},
+          {"memory-breakpoint", required_argument, nullptr, 'M'},
+          {nullptr, 0, nullptr, 0}
         };
 
       int option_index = 0;
@@ -306,7 +305,7 @@ int main(int argc, char ** argv) {
 						log_flags = !log_flags;
 						break;
 					case '\n':
-						parsing = more ? true : false;
+						parsing = more;
 						more = false;
 						if (parsing) printf("%04X> ", REG.PC);
 						break;

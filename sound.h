@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include "sound_defs.h"
 
-#define TCLK_HZ   4194304
-#define SAMPLE_RATE 44000
+#define TCLK_HZ   4194304u
+#define SAMPLE_RATE 44000u
 
 class Sound {
 public:

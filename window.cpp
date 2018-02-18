@@ -1,4 +1,4 @@
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <thread>
 
@@ -68,6 +68,10 @@ void Window::poll_buttons() {
     SND.mute_ch3 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
   if (glfwGetKey(game_window, GLFW_KEY_F4) == GLFW_PRESS)
     SND.mute_ch4 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+  if (glfwGetKey(game_window, GLFW_KEY_F5) == GLFW_PRESS)
+    ;
+  if (glfwGetKey(game_window, GLFW_KEY_F6) == GLFW_PRESS)
+    ;
 }
 
 void Window::debug_pixel(uint8_t *addr) {
@@ -367,9 +371,10 @@ void Window::init() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 
   // Open a window and create its OpenGL context
-  game_window = glfwCreateWindow(GBE_WINDOW_W * window_scale, GBE_WINDOW_H * window_scale, "gbe buffer", NULL, NULL);
-  tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, "gbe tilemap", NULL, NULL);
-  tileset_window = glfwCreateWindow(TILESET_WINDOW_W, TILESET_WINDOW_H, "gbe tileset", NULL, NULL);
+  tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, "gbe tilemap", nullptr, nullptr);
+  tileset_window = glfwCreateWindow(TILESET_WINDOW_W, TILESET_WINDOW_H, "gbe tileset", nullptr, nullptr);
+  game_window = glfwCreateWindow(GBE_WINDOW_W * window_scale, GBE_WINDOW_H * window_scale, "gbe buffer", nullptr, nullptr);
+
 
   glfwSetInputMode(game_window, GLFW_STICKY_KEYS, GL_TRUE);
   glfwMakeContextCurrent(game_window);
@@ -386,7 +391,7 @@ void Window::init() {
   glfwSetWindowSizeCallback(game_window, func);
 }
 
-void Window::on_resize_game(unsigned w, unsigned h) {
+void Window::on_resize_game(int w, int h) {
 
   unsigned new_scale = std::min(w / GBE_WINDOW_W, h / GBE_WINDOW_H);
 

@@ -30,7 +30,7 @@ const char* al_err_str(ALenum err) {
     do { \
         ALenum err = alGetError(); \
         for(; err!=AL_NO_ERROR; err=alGetError()) { \
-            std::cerr << "AL Error " << al_err_str(err) << " at " << file << ":" << line << std::endl; \
+            std::cerr << "AL Error " << al_err_str(err) << " at " << (file) << ":" << (line) << std::endl; \
         } \
     }while(0)
 
@@ -38,24 +38,24 @@ const char* al_err_str(ALenum err) {
     __al_check_error(__FILE__, __LINE__)
 
 void init_al() {
-  ALCdevice *dev = NULL;
-  ALCcontext *ctx = NULL;
+  ALCdevice *dev = nullptr;
+  ALCcontext *ctx = nullptr;
 
-  const char *defname = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+  const char *defname = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
   std::cout << "Default device: " << defname << std::endl;
 
   dev = alcOpenDevice(defname);
-  ctx = alcCreateContext(dev, NULL);
+  ctx = alcCreateContext(dev, nullptr);
   alcMakeContextCurrent(ctx);
 }
 
 void exit_al() {
-  ALCdevice *dev = NULL;
-  ALCcontext *ctx = NULL;
+  ALCdevice *dev = nullptr;
+  ALCcontext *ctx = nullptr;
   ctx = alcGetCurrentContext();
   dev = alcGetContextsDevice(ctx);
 
-  alcMakeContextCurrent(NULL);
+  alcMakeContextCurrent(nullptr);
   alcDestroyContext(ctx);
   alcCloseDevice(dev);
 }

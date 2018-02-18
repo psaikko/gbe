@@ -1,6 +1,5 @@
 #include "sound.h"
 #include <cassert>
-#include <limits>
 
 struct Sound::CH1 {
 	enum op { Addition, Subtraction };
@@ -202,7 +201,7 @@ struct Sound::CTRL {
 };
 
 struct Sound::LengthCounter {
-	LengthCounter(unsigned max) : max_length(max) {}
+	LengthCounter(unsigned max) : max_length(max), length(0) {}
 
 	void start(unsigned sound_len) {
 		assert(sound_len <= max_length);
@@ -415,7 +414,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 	if (Channel1->init) {
 		freq_clock = 0;
 		active = true;
-		Channel1->init = false;
+		Channel1->init = 0;
 
 		if (Channel1->disable_loop)
 			length = (64 - Channel1->sound_length) * TCLK_HZ / 256;
@@ -434,7 +433,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		sweep_freq = unsigned(Channel1->freq_hi) << 8;
 		sweep_freq |= Channel1->freq_lo;
 
-		Control->CH1_on = true;
+		Control->CH1_on = 1;
 		//printf("[ch1] init\n");
 	}
 
@@ -457,7 +456,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 				length -= tclock;
 				if (length <= 0) {
 					active = false;
-					Control->CH1_on = false;
+					Control->CH1_on = 0;
 					//printf("[ch1] stop\n");
 				}
 			}
@@ -477,7 +476,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 				}
 				if (sweep_freq & 0xF800) {
 					active = false;
-					Control->CH1_on = false;
+					Control->CH1_on = 0;
 					//printf("[ch1] sweep stop\n");
 				} else {
 					Channel1->freq_hi = sweep_freq >> 8;
@@ -526,7 +525,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 	if (Channel2->init) {
 		freq_clock = 0;
 		active = true;
-		Channel2->init = false;
+		Channel2->init = 0;
 
 		if (Channel2->disable_loop)
 			Ch2_Length->start(Channel2->sound_length);
@@ -539,7 +538,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 
 		vol = Channel2->env_volume;
 
-		Control->CH2_on = true;
+		Control->CH2_on = 1;
 		//printf("[ch2] init\n");
 	}
 
@@ -561,7 +560,7 @@ sample_t Sound::updateCh2(unsigned tclock) {
 			if (Channel2->disable_loop) {
 				if (Ch2_Length->tick(tclock)) {
 					active = false;
-					Control->CH2_on = false;
+					Control->CH2_on = 0;
 					//printf("[ch2] stop\n");
 				}
 			}
@@ -601,11 +600,11 @@ sample_t Sound::updateCh3(unsigned tclock) {
 	if (Channel3->init) {
 		freq_clock = 0;
 		active = true;
-		Channel3->init = false;
+		Channel3->init = 0;
 		if (Channel3->disable_loop)
 			Ch3_Length->start(Channel3->sound_length);
 		index = 0;
-		Control->CH3_on = true;
+		Control->CH3_on = 1;
 		vol = Channel3->volume;
 		//printf("[ch3] init\n");
 	}
@@ -640,7 +639,7 @@ sample_t Sound::updateCh3(unsigned tclock) {
 			if (Channel3->disable_loop) {
 				if (Ch3_Length->tick(tclock)) {
 					active = false;
-					Control->CH3_on = false;
+					Control->CH3_on = 0;
 					//printf("[ch3] stop\n");
 				}
 			}
@@ -670,7 +669,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 	if (Channel4->init) {
 		freq_clock = 0;
 		active = true;
-		Channel4->init = false;
+		Channel4->init = 0;
 
 		if (Channel4->disable_loop)
 			Ch4_Length->start(Channel4->sound_length);
@@ -685,7 +684,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 		*/
 		vol = Channel4->env_volume;
 
-		Control->CH4_on = true;
+		Control->CH4_on = 1;
 		//printf("[ch4] init\n");
 
 		// initialize counter with 15 1-bits
@@ -736,7 +735,7 @@ sample_t Sound::updateCh4(unsigned tclock) {
 		if (Channel4->disable_loop) {
 			if (Ch4_Length->tick(tclock)) {
 				active = false;
-				Control->CH4_on = false;
+				Control->CH4_on = 0;
 				//printf("[ch4] stop\n");
 			}
 		}
