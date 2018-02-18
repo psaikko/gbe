@@ -68,10 +68,22 @@ void Window::poll_buttons() {
     SND.mute_ch3 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
   if (glfwGetKey(game_window, GLFW_KEY_F4) == GLFW_PRESS)
     SND.mute_ch4 = glfwGetKey(game_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
-  if (glfwGetKey(game_window, GLFW_KEY_F5) == GLFW_PRESS)
-    ;
-  if (glfwGetKey(game_window, GLFW_KEY_F6) == GLFW_PRESS)
-    ;
+
+  if (glfwGetKey(game_window, GLFW_KEY_F5) == GLFW_PRESS && !f5_down) {
+    f5_down = true;
+  }
+  if (glfwGetKey(game_window, GLFW_KEY_F6) == GLFW_PRESS && !f6_down) {
+    f6_down = true;
+  }
+
+  if (glfwGetKey(game_window, GLFW_KEY_F5) == GLFW_RELEASE && f5_down) {
+    save_state = true;
+    f5_down = false;
+  }
+  if (glfwGetKey(game_window, GLFW_KEY_F6) == GLFW_RELEASE && f6_down) {
+    load_state = true;
+    f6_down = false;
+  }
 }
 
 void Window::debug_pixel(uint8_t *addr) {
@@ -83,17 +95,17 @@ void Window::debug_pixel(uint8_t *addr) {
 void Window::draw_pixel(uint8_t *addr, uint8_t color_id) {
 	assert(color_id <= 3);
 	switch (color_id) {
-		case 0:
+		case COLOR_WHITE:
 			memset(addr, 255, 3);
 			break;
-		case 1:
+		case COLOR_GRAY1:
 			memset(addr, 192, 3);
 			break;
-		case 2:
+		case COLOR_GRAY2:
 			memset(addr, 96, 3);
 			break;
 		default:
-		case 3:
+		case COLOR_BLACK:
 			memset(addr, 0, 3);
 			break;
 	}

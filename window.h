@@ -39,7 +39,8 @@ class Window {
 public:
   Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, bool u) : 
     MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), breakpoint(false), close(false),
-    prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u), window_scale(3) {}
+    prev_frame(std::chrono::high_resolution_clock::now()), unlocked_frame_rate(u), window_scale(3),
+    save_state(false), load_state(false), f5_down(false), f6_down(false) {}
 
   Memory &MEM;
   Buttons &BTN;
@@ -61,6 +62,10 @@ public:
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 
   bool breakpoint;
+  bool save_state;
+  bool load_state;
+  bool f5_down;
+  bool f6_down;
   bool close;
 
   void poll_buttons();

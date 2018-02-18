@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cassert>
 #include <cstdlib>
+#include <iostream>
 
 #include "mem.h"
 #include "sound.h"
@@ -262,4 +263,27 @@ void Memory::writeWord(uint16_t addr, uint16_t val) {
 	}
 	uint16_t *wptr = reinterpret_cast<uint16_t*>(ptr); 
 	*wptr = val;
+}
+
+uint64_t Memory::checksum() const {
+  uint64_t sum = 0;
+
+  for (uint8_t ch : RAW)
+    sum += ch;
+
+  return sum;
+}
+
+ostream & operator << (ostream & out, const Memory & mem)
+{
+  cout << "Write " << mem.checksum() << endl;
+	out.write(reinterpret_cast<const char*>(mem.RAW), sizeof(mem.RAW));
+	return out;
+}
+
+istream & operator >> (istream & in, Memory & mem)
+{
+  cout << "State " << mem.checksum() << endl;
+	in.read(reinterpret_cast<char*>(mem.RAW), sizeof(mem.RAW));
+  cout << "Read " << mem.checksum() << endl;
 }

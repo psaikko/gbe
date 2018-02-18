@@ -114,4 +114,8 @@ public:
 
 	void writeWord(uint16_t addr, uint16_t val);
 
+  uint64_t checksum() const;
+
+	friend std::ostream & operator << (std::ostream & out, const Memory & mem);
+	friend std::istream & operator >> (std::istream & in, Memory & mem);
 };

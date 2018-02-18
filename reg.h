@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #define BIT_0 0x01
 #define BIT_1 0x02
 #define BIT_2 0x04
@@ -57,7 +59,10 @@ public:
 	uint16_t SP;
 	uint16_t PC;
 	uint64_t TCLK;
-	bool IME;
 
+	bool IME;
 	bool HALT;
+
+  friend std::ostream & operator << (std::ostream & out, const Registers & reg);
+  friend std::istream & operator >> (std::istream & in, Registers & reg);
 };

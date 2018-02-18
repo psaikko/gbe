@@ -210,6 +210,23 @@ int main(int argc, char ** argv) {
 												 (mem_breakpoint && (MEM.at_breakpoint)) ||
 												 WINDOW.breakpoint;
 
+    if (WINDOW.save_state) {
+      ofstream file("gbe.state", ifstream::binary);
+      file << REG;
+      file << MEM;
+      file.close();
+    }
+
+    if (WINDOW.load_state) {
+      ifstream file("gbe.state", ifstream::binary);
+      file >> REG;
+      file >> MEM;
+      file.close();
+    }
+
+    WINDOW.load_state = false;
+    WINDOW.save_state = false;
+
 		WINDOW.breakpoint = false;
 
 		MEM.at_breakpoint = false;
