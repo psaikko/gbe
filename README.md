@@ -2,7 +2,7 @@
 
 Work in progress .. most games correctly emulated
 ````
-install libalut-dev libglfw3-dev
+install libalut-dev libglfw3-dev libglm-dev libglew-dev
 cmake . && make
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
