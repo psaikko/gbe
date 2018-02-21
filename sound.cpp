@@ -1,5 +1,6 @@
 #include "sound.h"
 #include <cassert>
+#include <limits>
 
 struct Sound::CH1 {
 	enum op { Addition, Subtraction };
