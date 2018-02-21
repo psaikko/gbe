@@ -278,6 +278,8 @@ ostream & operator << (ostream & out, const Memory & mem)
 {
   cout << "Write " << mem.checksum() << endl;
 	out.write(reinterpret_cast<const char*>(mem.RAW), sizeof(mem.RAW));
+	out.write(reinterpret_cast<const char*>(&mem.ram_bank), sizeof(int));
+  out.write(reinterpret_cast<const char*>(&mem.rom_bank), sizeof(int));
 	return out;
 }
 
@@ -285,5 +287,8 @@ istream & operator >> (istream & in, Memory & mem)
 {
   cout << "State " << mem.checksum() << endl;
 	in.read(reinterpret_cast<char*>(mem.RAW), sizeof(mem.RAW));
+  in.read(reinterpret_cast<char*>(&mem.ram_bank), sizeof(int));
+  in.read(reinterpret_cast<char*>(&mem.rom_bank), sizeof(int));
   cout << "Read " << mem.checksum() << endl;
+  return in;
 }

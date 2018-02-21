@@ -36,48 +36,44 @@ void Gpu::set_status(uint8_t mode) {
 void Gpu::update(unsigned tclock) {
 	bool disable = !(*MEM.LCD_CTRL & CTRL_ENABLE);
 
-	if (!enabled) {
+	if (!state.enabled) {
 		if (!disable) {
 			// LCD is turned ON
-			clk = 0;
-			enabled = true;
+			state.clk = 0;
+			state.enabled = true;
 		} else {
 			// LCD is OFF
 		}
 	} else if (disable) {
 		// LCD is turned OFF
-		clk = 0;
-		enabled = false;
+		state.clk = 0;
+		state.enabled = false;
 		*MEM.SCAN_LN = 0;
 		set_status(MODE_HBLANK);
 		return;		
-	} 
+	}
 
-	static unsigned sync_clk = 0;
+	state.sync_clk += tclock;
 
-	sync_clk += tclock;
-
-	if (enabled) {
-		clk += tclock;
-		static unsigned frameclock = 0;
-		frameclock += tclock;
+	if (state.enabled) {
+		state.clk += tclock;
 		switch (*MEM.LCD_STAT & MODE_MASK) {
 			case (MODE_OAM):
-				if (clk >= 80) {
-					clk -= 80;
+				if (state.clk >= 80) {
+					state.clk -= 80;
 					set_status(MODE_VRAM);
 				}
 				break;
 			case (MODE_VRAM):
-				if (clk >= 172) {
-					clk -= 172;
+				if (state.clk >= 172) {
+					state.clk -= 172;
 					set_status(MODE_HBLANK);
 					WINDOW.render_buffer_line();
 				}
 				break;
 			case (MODE_HBLANK):
-				if (clk >= 204) {
-					clk -= 204;
+				if (state.clk >= 204) {
+					state.clk -= 204;
 					*MEM.SCAN_LN += 1;
 					if (*MEM.SCAN_LN == 144) {
 						*MEM.IF |= FLAG_IF_VBLANK;
@@ -89,8 +85,8 @@ void Gpu::update(unsigned tclock) {
 				}
 				break;
 			case (MODE_VBLANK):
-				if (clk >= 456) {
-					clk -= 456;
+				if (state.clk >= 456) {
+					state.clk -= 456;
 					if (*MEM.SCAN_LN == 152) {
 						*MEM.SCAN_LN = 0;
 					} else if (*MEM.SCAN_LN == 0) {
@@ -118,21 +114,33 @@ void Gpu::update(unsigned tclock) {
 	}
 	
 	// synchronize gpu to 59.7 fps
-	if (sync_clk >= 70224)
+	if (state.sync_clk >= 70224)
 	{
-		sync_clk -= 70224;
-		++frames;
+		state.sync_clk -= 70224;
+		++state.frames;
 
-		long long expected_time_ms = frames * 10000 / 597; 
+		long long expected_time_ms = state.frames * 10000 / 597;
 		long long actual_time_ms = SyncTimer::get().elapsed_ms();
 
 		long long delta_ms = expected_time_ms - actual_time_ms;
 
 		if (delta_ms > 0) {
-			//printf("[gpu] %ld ms frame time delta\n", delta_ms);
+			//printf("[gpu] %lld ms frame time delta\n", delta_ms);
 			this_thread::sleep_for(milliseconds(delta_ms));
 		} else {
 			//printf("[gpu] render lagging by %ld ms\n", delta_ms);
 		}
 	}
+}
+
+std::ostream & operator<<(std::ostream &out, const Gpu &gpu) {
+	out.write(reinterpret_cast<const char*>(&gpu.state), sizeof(gpu.state));
+  out << SyncTimer::get();
+	return out;
+}
+
+std::istream & operator>>(std::istream &in, Gpu &gpu) {
+  in.read(reinterpret_cast<char*>(&gpu.state), sizeof(gpu.state));
+  in >> SyncTimer::get();
+	return in;
 }

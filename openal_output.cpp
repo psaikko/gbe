@@ -29,10 +29,10 @@ const char* al_err_str(ALenum err) {
 #define __al_check_error(file,line) \
     do { \
         ALenum err = alGetError(); \
-        for(; err!=AL_NO_ERROR; err=alGetError()) { \
+        for(; err != AL_NO_ERROR; err = alGetError()) { \
             std::cerr << "AL Error " << al_err_str(err) << " at " << (file) << ":" << (line) << std::endl; \
         } \
-    }while(0)
+    }while(false)
 
 #define al_check_error() \
     __al_check_error(__FILE__, __LINE__)
@@ -60,7 +60,8 @@ void exit_al() {
   alcCloseDevice(dev);
 }
 
-OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0), samples(0) {
+OpenAL_Output::OpenAL_Output(Sound &SndRef) : SND(SndRef), queue_head(0), queue_tail(0), samples(0),
+  queued_buffers(0) {
 	init_al();
 
   buffer_size = 2 * SAMPLE_RATE * AL_BUFFER_LEN_MS / 1000;
@@ -107,7 +108,7 @@ void OpenAL_Output::update_buffer() {
     
 
     if (queueSize() >= buffer_size) {
-      //static long queued_buffers = 0;
+
       sample_t *buffer = &sample_queue[queue_head];
       queue_head = (queue_head + buffer_size) % queue_capacity;
       
@@ -117,7 +118,7 @@ void OpenAL_Output::update_buffer() {
 
       alBufferData(new_buffer, FORMAT, buffer, buffer_size * sizeof(sample_t), SAMPLE_RATE);
 
-      //++queued_buffers;
+      ++queued_buffers;
       alSourceQueueBuffers( src, 1, &new_buffer );
 
       ALint val;
@@ -130,7 +131,7 @@ void OpenAL_Output::update_buffer() {
 
       while (Processed--) {
         ALuint BufID;
-        //--queued_buffers;
+        --queued_buffers;
         alSourceUnqueueBuffers( src, 1, &BufID );
         alDeleteBuffers(src, &BufID);
         al_check_error();
@@ -140,4 +141,47 @@ void OpenAL_Output::update_buffer() {
       //  printf("%ld\n", queued_buffers);
     }
 	}
+}
+
+ostream &operator<<(ostream &out, const OpenAL_Output & oa) {
+
+  out.write(reinterpret_cast<const char*>(oa.sample_queue), sizeof(sample_t) * oa.queue_capacity);
+  out.write(reinterpret_cast<const char*>(&oa.queue_head), sizeof(unsigned));
+  out.write(reinterpret_cast<const char*>(&oa.queue_tail), sizeof(unsigned));
+
+  //out.write(reinterpret_cast<const char*>(&oa.queued_buffers), sizeof(unsigned));
+  return out;
+}
+
+istream &operator>>(istream &in, OpenAL_Output & oa) {
+
+  in.read(reinterpret_cast<char*>(oa.sample_queue), sizeof(sample_t) * oa.queue_capacity);
+  in.read(reinterpret_cast<char*>(&oa.queue_head), sizeof(unsigned));
+  in.read(reinterpret_cast<char*>(&oa.queue_tail), sizeof(unsigned));
+
+
+  //unsigned old_buffers = oa.queued_buffers;
+  //in.read(reinterpret_cast<char*>(&oa.queued_buffers), sizeof(unsigned));
+
+  /*
+
+  ALuint new_buffer;
+  alGenBuffers(1, &new_buffer);
+  al_check_error();
+
+  sample_t *buffer = &oa.sample_queue[oa.queue_head];
+  alBufferData(new_buffer, FORMAT, buffer, oa.buffer_size * sizeof(sample_t), SAMPLE_RATE);
+
+  for (unsigned i = 0; i < oa.queued_buffers - old_buffers; ++i) {
+    alSourceQueueBuffers( oa.src, 1, &new_buffer );
+  }
+
+  ALint val;
+  alGetSourcei(oa.src, AL_SOURCE_STATE, &val);
+  if(val != AL_PLAYING)
+    alSourcePlay(oa.src);
+
+  */
+
+  return in;
 }

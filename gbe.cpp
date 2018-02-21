@@ -180,6 +180,8 @@ int main(int argc, char ** argv) {
 	  Cpu CPU(MEM, REG);
 	  SerialPortInterface SERIAL(MEM);
 
+
+
 	  if (load_bios) {
 	  	readBIOSFile(MEM, biosfile);
 	  } else {
@@ -214,6 +216,8 @@ int main(int argc, char ** argv) {
       ofstream file("gbe.state", ifstream::binary);
       file << REG;
       file << MEM;
+      file << SND_OUT;
+      file << GPU;
       file.close();
     }
 
@@ -221,6 +225,8 @@ int main(int argc, char ** argv) {
       ifstream file("gbe.state", ifstream::binary);
       file >> REG;
       file >> MEM;
+      file >> SND_OUT;
+      file >> GPU;
       file.close();
     }
 
@@ -245,7 +251,7 @@ int main(int argc, char ** argv) {
 				printf("IME %X IE %02X IF %02X ROM%d RAM%d\n", REG.IME, *MEM.IE, *MEM.IF, MEM.rom_bank, MEM.ram_bank);
 			}
 			if (log_gpu) {
-				printf("GPU CLK: 0x%04X LINE: 0x%02X\n", GPU.clk, *MEM.SCAN_LN);
+				printf("GPU CLK: 0x%04X LINE: 0x%02X\n", GPU.state.clk, *MEM.SCAN_LN);
 			}
 
 			if (log_instructions) printInstruction(MEM, REG, CPU);
@@ -359,7 +365,7 @@ int main(int argc, char ** argv) {
 
 	printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());
 	printf("Clk: %ld\n", clk);
-	printf("Frames: %lu\n", GPU.frames);
+	printf("Frames: %lu\n", GPU.state.frames);
 	printf("Samples generated: %lu\n", SND.samples);
 	printf("Samples played: %lu\n", SND_OUT.samples);
 
