@@ -313,20 +313,19 @@ void Window::render_tileset() {
 }
 
 void Window::draw_buffer() {
-
+  
   // copy gbe buffer to window buffer
   const unsigned win_buffer_row_width = GBE_WINDOW_W*window_scale*3;
   const unsigned gbe_buffer_row_width = GBE_WINDOW_W*3;
   for (unsigned y = 0; y < GBE_WINDOW_H; ++y) {
-    for (unsigned y_i = 0; y_i < window_scale; ++y_i) {
-      for (unsigned x = 0; x < gbe_buffer_row_width; x += 3) {
-        for (unsigned x_i = 0; x_i < window_scale*3; x_i += 3) {
-          for (unsigned c = 0; c < 3; c++) {
-            window_buffer[(y * window_scale + y_i) * win_buffer_row_width + (x * window_scale + x_i) + c] =
-                    gbe_buffer[y * gbe_buffer_row_width + x + c];
-          }
-        }
-      }
+    for (unsigned x = 0; x < gbe_buffer_row_width; x += 3) {
+      memset(&window_buffer[(y * window_scale) * win_buffer_row_width + x * window_scale], gbe_buffer[y * gbe_buffer_row_width + x], 3*window_scale);
+    }
+
+    for (unsigned y_i = 1; y_i < window_scale; ++y_i) {
+      memcpy(&window_buffer[(y * window_scale + y_i) * win_buffer_row_width],
+             &window_buffer[(y * window_scale) * win_buffer_row_width],
+             win_buffer_row_width);
     }
   }
 
