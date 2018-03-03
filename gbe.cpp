@@ -196,8 +196,6 @@ int main(int argc, char ** argv) {
 
 	  MEM.break_addr = mem_breakpoint_addr;
 
-	WINDOW.init();
-
 	// enable LCD
 	*MEM.LCD_CTRL = 0x80;
 

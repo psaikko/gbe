@@ -2,8 +2,8 @@
 #include <iostream>
 #include <cstring>
 
-#define GBE_WINDOW_W 160u
-#define GBE_WINDOW_H 144u
+#define LCD_W 160u
+#define LCD_H 144u
 
 #define TILESET_WINDOW_W 128u
 #define TILESET_WINDOW_H 192u
@@ -22,7 +22,7 @@ class Memory;
 class Gpu {
 public:
 	Gpu(Memory &MemRef) : state({0, false}), MEM(MemRef) {
-    memset(gbe_buffer, 0, GBE_WINDOW_H * GBE_WINDOW_W * 3);
+    memset(gbe_buffer, 0, LCD_H * LCD_W * 3);
     memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3);
     memset(tileset_buffer, 0, TILESET_WINDOW_H * TILESET_WINDOW_W * 3);
   }
@@ -34,7 +34,7 @@ public:
     bool enabled;
   } state;
 
-  uint8_t gbe_buffer[GBE_WINDOW_H * GBE_WINDOW_W * 3];
+  uint8_t gbe_buffer[LCD_H * LCD_W * 3];
   uint8_t tilemap_buffer[TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3];
   uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
 

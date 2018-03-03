@@ -121,7 +121,7 @@ void Gpu::render_buffer_line() {
   int win_map_tile_y  = win_map_pixel_y / TILE_H;
   int win_tile_y  = win_map_pixel_y % TILE_H;
 
-  for (uint8_t lcd_x = 0; lcd_x < GBE_WINDOW_W; ++lcd_x) {
+  for (uint8_t lcd_x = 0; lcd_x < LCD_W; ++lcd_x) {
     uint8_t color_id = 0;
     uint8_t color = 0;
 
@@ -190,7 +190,7 @@ void Gpu::render_buffer_line() {
       }
     }
 
-    unsigned i = rgb_buffer_index(lcd_x, lcd_y, GBE_WINDOW_W, GBE_WINDOW_H);
+    unsigned i = rgb_buffer_index(lcd_x, lcd_y, LCD_W, LCD_H);
     draw_pixel(&gbe_buffer[i], color);
   }
 }
