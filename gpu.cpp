@@ -56,7 +56,7 @@ void Gpu::render_tileset() {
       uint8_t lcd_x = xoff * TILE_W;
       uint8_t lcd_y = yoff * TILE_H;
 
-      render_tile(tileset_buffer, tile, lcd_x, lcd_y, TILESET_WINDOW_W, TILESET_WINDOW_H);
+      render_tile(tileset_buffer.data(), tile, lcd_x, lcd_y, TILESET_WINDOW_W, TILESET_WINDOW_H);
     }
   }
 }
@@ -186,7 +186,7 @@ void Gpu::render_buffer_line() {
     }
 
     unsigned i = rgb_buffer_index(lcd_x, lcd_y, LCD_W, LCD_H);
-    draw_pixel(&gbe_buffer[i], color);
+    draw_pixel(&write_buffer[i], color);
   }
 }
 
@@ -245,7 +245,7 @@ void Gpu::render_tilemap() {
       unsigned lcd_x = xoff * TILE_W;
       unsigned lcd_y = yoff * TILE_H;
 
-      render_tile(tilemap_buffer, tile, lcd_x, lcd_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
+      render_tile(tilemap_buffer.data(), tile, lcd_x, lcd_y, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
     }
   }
 
@@ -259,7 +259,7 @@ void Gpu::render_tilemap() {
       unsigned lcd_x = xoff * TILE_W;
       uint8_t lcd_y = yoff * TILE_H;
 
-      render_tile(tilemap_buffer, tile, lcd_x, lcd_y + TILEMAP_WINDOW_H, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
+      render_tile(tilemap_buffer.data(), tile, lcd_x, lcd_y + TILEMAP_WINDOW_H, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H*2);
     }
   }
 }
@@ -308,7 +308,7 @@ void Gpu::update(unsigned tclock) {
 					if (*MEM.SCAN_LN == 144) {
 						*MEM.IF |= FLAG_IF_VBLANK;
 						set_status(MODE_VBLANK);
-						//WINDOW.draw_buffer();
+						lcd_buffer.swap(write_buffer);
 					} else {
 						set_status(MODE_OAM);
 					}

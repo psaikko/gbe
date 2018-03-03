@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstring>
+#include <array>
 
 #define LCD_W 160u
 #define LCD_H 144u
@@ -27,9 +28,10 @@ class Memory;
 class Gpu {
 public:
 	Gpu(Memory &MemRef) : state({0, false}), MEM(MemRef) {
-    memset(gbe_buffer, 0, sizeof(gbe_buffer));
-    memset(tilemap_buffer, 0, sizeof(tilemap_buffer));
-    memset(tileset_buffer, 0, sizeof(tileset_buffer));
+    lcd_buffer.fill(0);
+    write_buffer.fill(0);
+    tilemap_buffer.fill(0);
+    tilemap_buffer.fill(0);
   }
 
 	void update(unsigned tclock);
@@ -39,15 +41,17 @@ public:
     bool enabled;
   } state;
 
-  uint8_t gbe_buffer[LCD_H * LCD_W * 3];
-  uint8_t tilemap_buffer[TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3];
-  uint8_t tileset_buffer[TILESET_WINDOW_H * TILESET_WINDOW_W * 3];
+  std::array<uint8_t, LCD_H * LCD_W * 3>  lcd_buffer;
+  std::array<uint8_t, TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3> tilemap_buffer;
+  std::array<uint8_t, TILESET_WINDOW_H * TILESET_WINDOW_W * 3> tileset_buffer;
 
   void render_tilemap();
 
   void render_tileset();
 
 private:
+
+  std::array<uint8_t, LCD_H * LCD_W * 3> write_buffer;
 
   void render_buffer_line();
 

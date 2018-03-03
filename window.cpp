@@ -85,7 +85,7 @@ void Window::scale_buffer(uint8_t * source, uint8_t * target, unsigned w, unsign
 void Window::draw_buffer() {
 
   // copy gbe buffer to window buffer
-  scale_buffer(GPU.gbe_buffer, game_window_buffer, LCD_W, LCD_H, game_scale);
+  scale_buffer(GPU.lcd_buffer.data(), game_window_buffer, LCD_W, LCD_H, game_scale);
 
   // draw
   poll_buttons();
@@ -99,7 +99,7 @@ void Window::draw_buffer() {
 }
 
 void Window::draw_tilemap() {
-  scale_buffer(GPU.tilemap_buffer, tilemap_window_buffer, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, tilemap_scale);
+  scale_buffer(GPU.tilemap_buffer.data(), tilemap_window_buffer, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2, tilemap_scale);
 
 	glfwMakeContextCurrent(tilemap_window);
   glfwSwapInterval(0);
@@ -110,7 +110,7 @@ void Window::draw_tilemap() {
 }
 
 void Window::draw_tileset() {
-  scale_buffer(GPU.tileset_buffer, tileset_window_buffer, TILESET_WINDOW_W, TILESET_WINDOW_H, tileset_scale);
+  scale_buffer(GPU.tileset_buffer.data(), tileset_window_buffer, TILESET_WINDOW_W, TILESET_WINDOW_H, tileset_scale);
 
 	glfwMakeContextCurrent(tileset_window);
   glfwSwapInterval(0);
