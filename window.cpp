@@ -9,15 +9,6 @@
 #include "sound.h"
 #include "sync.h"
 
-#define KEY_RIGHT  0x01
-#define KEY_LEFT   0x02
-#define KEY_UP     0x04
-#define KEY_DOWN   0x08
-#define KEY_A      0x10
-#define KEY_B      0x20
-#define KEY_START  0x40
-#define KEY_SELECT 0x80
-
 void Window::poll_buttons() {
 
   glfwPollEvents();
@@ -105,14 +96,6 @@ void Window::draw_buffer() {
   glDrawPixels(LCD_W * game_scale, LCD_H * game_scale, GL_RGB, GL_UNSIGNED_BYTE, game_window_buffer);
   glfwSwapBuffers(game_window);
 
-  refresh_debug();
-}
-
-void Window::refresh_debug() {
-  GPU.render_tileset();
-  draw_tileset();
-  GPU.render_tilemap();
-  draw_tilemap();
 }
 
 void Window::draw_tilemap() {
@@ -141,7 +124,7 @@ void Window::update(unsigned tclock) {
   state.sync_clk += tclock;
 
   // synchronize gpu to 59.7 fps
-  if (state.sync_clk >= 70224)
+  if (state.sync_clk >= 70224 || unlocked_frame_rate)
   {
     state.sync_clk -= 70224;
     ++state.frames;
@@ -159,6 +142,11 @@ void Window::update(unsigned tclock) {
     }
 
     draw_buffer();
+
+    GPU.render_tileset();
+    draw_tileset();
+    GPU.render_tilemap();
+    draw_tilemap();
   }
 }
 
@@ -198,12 +186,10 @@ void Window::on_resize_tilemap(int w, int h) {
   }
 }
 
-std::ostream &operator<<(std::ostream &out, const Window &win) {
-  out.write(reinterpret_cast<const char*>(&win.state) , sizeof(win.state));
-  return out;
+void Window::write(std::ostream &out) const {
+  out.write(reinterpret_cast<const char*>(&state) , sizeof(state));
 }
 
-std::istream &operator>>(std::istream &in, Window &win) {
-  in.read(reinterpret_cast<char*>(&win.state) , sizeof(win.state));
-  return in;
+void Window::read(std::istream &in) {
+  in.read(reinterpret_cast<char*>(&state) , sizeof(state));
 }

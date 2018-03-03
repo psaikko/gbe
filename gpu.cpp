@@ -36,11 +36,6 @@
 #define PLT_COLOR2 0x30
 #define PLT_COLOR3 0xC0
 
-#define COLOR_WHITE 0
-#define COLOR_GRAY1 1
-#define COLOR_GRAY2 2
-#define COLOR_BLACK 3
-
 using namespace std;
 using namespace std::chrono;
 

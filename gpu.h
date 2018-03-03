@@ -17,14 +17,19 @@
 #define TILE_W 8u
 #define TILE_H 8u
 
+#define COLOR_WHITE 0
+#define COLOR_GRAY1 1
+#define COLOR_GRAY2 2
+#define COLOR_BLACK 3
+
 class Memory;
 
 class Gpu {
 public:
 	Gpu(Memory &MemRef) : state({0, false}), MEM(MemRef) {
-    memset(gbe_buffer, 0, LCD_H * LCD_W * 3);
-    memset(tilemap_buffer, 0, TILEMAP_WINDOW_H * 2 * TILEMAP_WINDOW_W * 3);
-    memset(tileset_buffer, 0, TILESET_WINDOW_H * TILESET_WINDOW_W * 3);
+    memset(gbe_buffer, 0, sizeof(gbe_buffer));
+    memset(tilemap_buffer, 0, sizeof(tilemap_buffer));
+    memset(tileset_buffer, 0, sizeof(tileset_buffer));
   }
 
 	void update(unsigned tclock);

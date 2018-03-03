@@ -17,6 +17,7 @@
 #include "buttons.h"
 #include "mem.h"
 #include "reg.h"
+#include "console_io.h"
 
 using namespace std;
 
@@ -68,7 +69,8 @@ int main(int argc, char ** argv) {
 			stepping = false,
 			load_bios = false,
 			load_rom = false,
-			unlocked_frame_rate = false;
+			unlocked_frame_rate = false,
+      console_mode = false;
 
 	string romfile, biosfile;
 
@@ -77,124 +79,130 @@ int main(int argc, char ** argv) {
 
   int c;
 
-  while (true)
+  while (true) {
+    static struct option long_options[] =
     {
-      static struct option long_options[] =
-        {
-          {"rw",     no_argument, &log_register_words, 1},
-          {"rb",     no_argument, &log_register_bytes, 1},
-          {"gpu",    no_argument, &log_gpu, 1},
+      {"rw",     no_argument, &log_register_words, 1},
+      {"rb",     no_argument, &log_register_bytes, 1},
+      {"gpu",    no_argument, &log_gpu, 1},
 
-          {"instructions", no_argument, nullptr, 'i'},
-          {"flags", 			 no_argument, nullptr, 'f'},
-          {"unlockfps",		 no_argument, nullptr, 'u'},
-          {"bios", 		   required_argument, nullptr, 'B'},
-          {"rom", 			 required_argument, nullptr, 'R'},
-          {"breakpoint", required_argument, nullptr, 'b'},
-          {"step",       required_argument, nullptr, 's'},
-          {"memory-breakpoint", required_argument, nullptr, 'M'},
-          {nullptr, 0, nullptr, 0}
-        };
+      {"instructions", no_argument, nullptr, 'i'},
+      {"flags", 			 no_argument, nullptr, 'f'},
+      {"unlockfps",		 no_argument, nullptr, 'u'},
+      {"console",		 no_argument, nullptr, 'c'},
+      {"bios", 		   required_argument, nullptr, 'B'},
+      {"rom", 			 required_argument, nullptr, 'R'},
+      {"breakpoint", required_argument, nullptr, 'b'},
+      {"step",       required_argument, nullptr, 's'},
+      {"memory-breakpoint", required_argument, nullptr, 'M'},
+      {nullptr, 0, nullptr, 0}
+    };
 
-      int option_index = 0;
-      c = getopt_long (argc, argv, "s:b:ifuB:R:M:", long_options, &option_index);
+    int option_index = 0;
+    c = getopt_long (argc, argv, "s:b:ifucB:R:M:", long_options, &option_index);
 
-      // Detect the end of the options. 
-      if (c == -1) break;
+    // Detect the end of the options.
+    if (c == -1) break;
 
-      switch (c) {
-        case 0:
-          // If this option set a flag, do nothing else now. 
-          if (long_options[option_index].flag != 0) break;
-          printf ("option %s", long_options[option_index].name);
-          if (optarg) printf (" with arg %s", optarg);
-          printf ("\n");
-          break;
+    switch (c) {
+      case 0:
+        // If this option set a flag, do nothing else now.
+        if (long_options[option_index].flag != 0) break;
+        printf ("option %s", long_options[option_index].name);
+        if (optarg) printf (" with arg %s", optarg);
+        printf ("\n");
+        break;
 
-        case 'B':
-        	load_bios = true;
-        	biosfile = string(optarg);
-        	break;
+      case 'B':
+        load_bios = true;
+        biosfile = string(optarg);
+        break;
 
-        case 'R':
-        	load_rom = true;
-        	romfile = string(optarg);
-        	break;
+      case 'R':
+        load_rom = true;
+        romfile = string(optarg);
+        break;
 
-        case 'b':
-        	breakpoint = true;
-          printf ("option -b with value `%s'\n", optarg);
-          breakpoint_addr = std::stoi(optarg,0,0);
-          break;
+      case 'b':
+        breakpoint = true;
+        printf ("option -b with value `%s'\n", optarg);
+        breakpoint_addr = std::stoi(optarg,0,0);
+        break;
 
-        case 'M':
-        	printf ("option -M with value `%s'\n", optarg);
-          mem_breakpoint = true;
-          mem_breakpoint_addr = std::stoi(optarg,0,0);
-          break;	
+      case 'M':
+        printf ("option -M with value `%s'\n", optarg);
+        mem_breakpoint = true;
+        mem_breakpoint_addr = std::stoi(optarg,0,0);
+        break;
 
-        case 'f':
-        	log_flags = true;
-        	break;
+      case 'f':
+        log_flags = true;
+        break;
 
-        case 'i':
-        	log_instructions = true;
-        	break;
+      case 'i':
+        log_instructions = true;
+        break;
 
-        case 'u':
-        	unlocked_frame_rate = true;
-        	break;
+      case 'u':
+        unlocked_frame_rate = true;
+        break;
 
-        case '?':
-          // getopt_long already printed an error message.
-          break;
+      case 'c':
+        console_mode = true;
+        break;
 
-        default:
-          abort ();
-       }
+      case '?':
+        // getopt_long already printed an error message.
+        break;
+
+      default:
+        abort ();
     }
+  }
 
-	  if (optind < argc) {
-	    fprintf(stderr, "[warning]: Unhandled args");
-	    while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
-	    fprintf(stderr, "\n");
-	  }
+  if (optind < argc) {
+    fprintf(stderr, "[warning]: Unhandled args");
+    while (optind < argc) fprintf (stderr, " %s", argv[optind++]);
+    fprintf(stderr, "\n");
+  }
 
-	  if (!load_rom) {
-	  	printf("load ROM with -R <file>\n");
-	  	exit(0);
-	  }
+  if (!load_rom) {
+    printf("load ROM with -R <file>\n");
+    exit(0);
+  }
 
-	  Buttons BTN;
-	  Sound SND;
-	  OpenAL_Output SND_OUT(SND);
-	  Cart CART(romfile);
-	  Memory MEM(CART, BTN, SND);
+  Buttons BTN;
+  Sound SND;
+  OpenAL_Output SND_OUT(SND);
+  Cart CART(romfile);
+  Memory MEM(CART, BTN, SND);
 
-	  Registers REG;
+  Registers REG;
 
-    Gpu GPU(MEM);
-	  Window WINDOW(MEM, BTN, SND_OUT, SND, GPU, unlocked_frame_rate);
-	  Timer TIMER(MEM);
+  Gpu GPU(MEM);
 
-	  Cpu CPU(MEM, REG);
-	  SerialPortInterface SERIAL(MEM);
+  UI * interface = console_mode ?
+                   dynamic_cast<UI *>(new Console_IO(MEM, BTN, SND_OUT, SND, GPU)) :
+                   dynamic_cast<UI *>(new Window(MEM, BTN, SND_OUT, SND, GPU, unlocked_frame_rate));
 
+  Timer TIMER(MEM);
 
+  Cpu CPU(MEM, REG);
+  SerialPortInterface SERIAL(MEM);
 
-	  if (load_bios) {
-	  	readBIOSFile(MEM, biosfile);
-	  } else {
-	  	REG.AF = 0x01B0;
-	  	REG.BC = 0x0013;
-	  	REG.DE = 0x00D8;
-	  	REG.HL = 0x014D;
-	  	REG.SP = 0xFFFE;
-	  	REG.PC = 0x0100;
-	  	*MEM.BIOS_OFF = 1;
-	  }
+  if (load_bios) {
+    readBIOSFile(MEM, biosfile);
+  } else {
+    REG.AF = 0x01B0;
+    REG.BC = 0x0013;
+    REG.DE = 0x00D8;
+    REG.HL = 0x014D;
+    REG.SP = 0xFFFE;
+    REG.PC = 0x0100;
+    *MEM.BIOS_OFF = 1;
+  }
 
-	  MEM.break_addr = mem_breakpoint_addr;
+  MEM.break_addr = mem_breakpoint_addr;
 
 	// enable LCD
 	*MEM.LCD_CTRL = 0x80;
@@ -204,38 +212,38 @@ int main(int argc, char ** argv) {
 
 	unsigned long clk = 0;
 
-	while (!WINDOW.close) {
+	while (!interface->close) {
 
 		bool is_breakpoint = (breakpoint && (REG.PC == breakpoint_addr)) ||
 												 (mem_breakpoint && (MEM.at_breakpoint)) ||
-												 WINDOW.breakpoint;
+            interface->breakpoint;
 
-    if (WINDOW.save_state) {
+
+    if (interface->save_state) {
       ofstream file("gbe.state", ifstream::binary);
       file << REG;
       file << MEM;
       file << SND_OUT;
       file << GPU;
-			file << WINDOW;
+			file << *interface;
 			file << SyncTimer::get();
       file.close();
     }
 
-    if (WINDOW.load_state) {
+    if (interface->load_state) {
       ifstream file("gbe.state", ifstream::binary);
       file >> REG;
       file >> MEM;
       file >> SND_OUT;
       file >> GPU;
-			file >> WINDOW;
+			file >> *interface;
 			file >> SyncTimer::get();
       file.close();
     }
 
-    WINDOW.load_state = false;
-    WINDOW.save_state = false;
-
-		WINDOW.breakpoint = false;
+    interface->load_state = false;
+    interface->save_state = false;
+    interface->breakpoint = false;
 
 		MEM.at_breakpoint = false;
 		
@@ -260,7 +268,7 @@ int main(int argc, char ** argv) {
 		}
 
 		if (stepping || is_breakpoint) {
-			WINDOW.draw_buffer();
+
 			stepping = true;
 			bool parsing = true;
 			bool more = false;
@@ -349,7 +357,8 @@ int main(int argc, char ** argv) {
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
 		SND.update(REG.TCLK);
-    WINDOW.update(REG.TCLK);
+
+    interface->update(REG.TCLK);
 
 		clk += REG.TCLK;
 
@@ -360,7 +369,8 @@ int main(int argc, char ** argv) {
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
 		SND.update(REG.TCLK);
-    WINDOW.update(REG.TCLK);
+
+    interface->update(REG.TCLK);
 
 		SND_OUT.update_buffer();
 
@@ -369,7 +379,7 @@ int main(int argc, char ** argv) {
 
 	printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());
 	printf("Clk: %ld\n", clk);
-	printf("Frames: %lu\n", WINDOW.state.frames);
+	//printf("Frames: %lu\n", WINDOW.state.frames);
 	printf("Samples generated: %lu\n", SND.samples);
 	printf("Samples played: %lu\n", SND_OUT.samples);
 

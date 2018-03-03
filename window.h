@@ -7,7 +7,9 @@
 
 // timing
 #include <chrono>
+
 #include "gpu.h"
+#include "UI.h"
 
 using namespace glm;
 
@@ -15,14 +17,13 @@ class Memory;
 class Buttons;
 class OpenAL_Output;
 class Sound;
-class GPU;
 
-class Window {
+class Window : public UI {
 public:
   Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, Gpu &GPU, bool u) :
-    MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), GPU(GPU), breakpoint(false), close(false),
-    unlocked_frame_rate(u), game_scale(4), tileset_scale(2), tilemap_scale(1), save_state(false), load_state(false), f5_down(false), f6_down(false),
-    state({0,0})
+    MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), GPU(GPU),
+    unlocked_frame_rate(u), game_scale(4), tileset_scale(2), tilemap_scale(1), f5_down(false), f6_down(false),
+    state({0,0}), UI()
   {
     if (!glfwInit()) {
       printf("Failed to initialize GLFW\n");
@@ -67,33 +68,6 @@ public:
     );
   }
 
-  Memory &MEM;
-  Buttons &BTN;
-  Sound &SND;
-  OpenAL_Output &SND_OUT;
-  Gpu &GPU;
-
-  GLFWwindow* game_window;
-  GLFWwindow* tilemap_window;
-  GLFWwindow* tileset_window;
-
-  unsigned game_scale;
-  unsigned tileset_scale;
-  unsigned tilemap_scale;
-
-  uint8_t *game_window_buffer;
-  uint8_t *tileset_window_buffer;
-  uint8_t *tilemap_window_buffer;
-
-  bool breakpoint;
-  bool save_state;
-  bool load_state;
-  bool f5_down;
-  bool f6_down;
-  bool close;
-
-  void draw_buffer();
-
   void update(unsigned tclock);
 
   struct {
@@ -103,11 +77,14 @@ public:
 
 private:
 
-  void scale_buffer(uint8_t * source, uint8_t * target, unsigned w, unsigned h, unsigned scale);
+  bool f5_down;
+  bool f6_down;
+
+  void draw_buffer();
 
   void poll_buttons();
 
-  void refresh_debug();
+  void scale_buffer(uint8_t * source, uint8_t * target, unsigned w, unsigned h, unsigned scale);
 
   void on_resize_game(int w, int h);
 
@@ -121,6 +98,24 @@ private:
 
   bool unlocked_frame_rate;
 
-  friend std::ostream & operator << (std::ostream & out, const Window & win);
-  friend std::istream & operator >> (std::istream & in, Window & win);
+  GLFWwindow* game_window;
+  GLFWwindow* tilemap_window;
+  GLFWwindow* tileset_window;
+
+  unsigned game_scale;
+  unsigned tileset_scale;
+  unsigned tilemap_scale;
+
+  uint8_t *game_window_buffer;
+  uint8_t *tileset_window_buffer;
+  uint8_t *tilemap_window_buffer;
+
+  Memory &MEM;
+  Buttons &BTN;
+  Sound &SND;
+  OpenAL_Output &SND_OUT;
+  Gpu &GPU;
+
+  void write(std::ostream & out) const;
+  void read(std::istream & in);
 };
