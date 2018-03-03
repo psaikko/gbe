@@ -172,11 +172,11 @@ int main(int argc, char ** argv) {
 	  Memory MEM(CART, BTN, SND);
 
 	  Registers REG;
-	  
-	  Window WINDOW(MEM, BTN, SND_OUT, SND, unlocked_frame_rate);
+
+    Gpu GPU(MEM);
+	  Window WINDOW(MEM, BTN, SND_OUT, SND, GPU, unlocked_frame_rate);
 	  Timer TIMER(MEM);
 
-	  Gpu GPU(MEM, WINDOW);
 	  Cpu CPU(MEM, REG);
 	  SerialPortInterface SERIAL(MEM);
 
@@ -218,6 +218,8 @@ int main(int argc, char ** argv) {
       file << MEM;
       file << SND_OUT;
       file << GPU;
+			file << WINDOW;
+			file << SyncTimer::get();
       file.close();
     }
 
@@ -227,6 +229,8 @@ int main(int argc, char ** argv) {
       file >> MEM;
       file >> SND_OUT;
       file >> GPU;
+			file >> WINDOW;
+			file >> SyncTimer::get();
       file.close();
     }
 
@@ -347,6 +351,7 @@ int main(int argc, char ** argv) {
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
 		SND.update(REG.TCLK);
+    WINDOW.update(REG.TCLK);
 
 		clk += REG.TCLK;
 
@@ -357,6 +362,7 @@ int main(int argc, char ** argv) {
 		TIMER.update(REG.TCLK);
 		SERIAL.update(REG.TCLK);
 		SND.update(REG.TCLK);
+    WINDOW.update(REG.TCLK);
 
 		SND_OUT.update_buffer();
 
@@ -365,7 +371,7 @@ int main(int argc, char ** argv) {
 
 	printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());
 	printf("Clk: %ld\n", clk);
-	printf("Frames: %lu\n", GPU.state.frames);
+	printf("Frames: %lu\n", WINDOW.state.frames);
 	printf("Samples generated: %lu\n", SND.samples);
 	printf("Samples played: %lu\n", SND_OUT.samples);
 
