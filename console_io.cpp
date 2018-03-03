@@ -1,5 +1,6 @@
 #include "console_io.h"
 #include "buttons.h"
+#include "mem.h"
 
 using namespace std;
 
@@ -34,6 +35,8 @@ void Console_IO::update(unsigned tclock) {
       }
       cout << "\n";
     }
+
+    cout << int(MEM.RAW[0xC0A0]) << " " << int(MEM.RAW[0xC0A1]) << " " << int(MEM.RAW[0xC0A2]) << endl;
 
     int up, down, left, right, a, b, start, select;
     std::cin >> up >> down >> left >> right >> a >> b >> start >> select;
