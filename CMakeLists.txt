@@ -9,7 +9,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O3 -Wall -Wextra -Wno-reord
 file(GLOB SOURCES "*.cpp")
 file(GLOB HEADERS "*.h")
 
+set(LIB_SOURCES ${SOURCES})
+list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
 add_executable(gbe ${SOURCES} ${HEADERS})
+add_library(libgbe SHARED ${LIB_SOURCES} ${HEADERS})
+set_target_properties(libgbe PROPERTIES OUTPUT_NAME "gbe")
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
