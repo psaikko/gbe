@@ -32,7 +32,7 @@ class Console_IO : public UI {
 
   unsigned clock;
 
-  void write(std::ostream & out) const {};
-  void read(std::istream & in) {};
+  void write(std::ostream & ) const {};
+  void read(std::istream & ) {};
 };
 

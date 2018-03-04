@@ -13,9 +13,9 @@ void Console_IO::update(unsigned tclock) {
   {
     clock -= 70224;
 
-    for (int h = LCD_H-1; h >= 0; --h) {
-      for (int w = 0; w < LCD_W; ++w) {
-        uint8_t rgb_val = GPU.lcd_buffer[h * (LCD_W * 3) + w*3];
+    for (unsigned h = 0; h < LCD_H; --h) {
+      for (unsigned w = 0; w < LCD_W; ++w) {
+        uint8_t rgb_val = GPU.lcd_buffer[(LCD_H - h) * (LCD_W * 3) + w*3];
         switch (rgb_val) {
           case 255:
             cout << "0";
