@@ -186,10 +186,12 @@ void Window::on_resize_tilemap(int w, int h) {
   }
 }
 
-void Window::write(std::ostream &out) const {
-  out.write(reinterpret_cast<const char*>(&state) , sizeof(state));
+std::ostream & operator << (std::ostream &out, const Window & win) {
+  out.write(reinterpret_cast<const char*>(&win.state) , sizeof(win.state));
+  return out;
 }
 
-void Window::read(std::istream &in) {
-  in.read(reinterpret_cast<char*>(&state) , sizeof(state));
+std::istream & operator >> (std::istream &in, Window & win) {
+  in.read(reinterpret_cast<char*>(&win.state) , sizeof(win.state));
+  return in;
 }

@@ -9,7 +9,6 @@
 #include <chrono>
 
 #include "gpu.h"
-#include "UI.h"
 
 using namespace glm;
 
@@ -18,12 +17,12 @@ class Buttons;
 class OpenAL_Output;
 class Sound;
 
-class Window : public UI {
+class Window {
 public:
   Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, Gpu &GPU, bool u) :
     MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), GPU(GPU),
     unlocked_frame_rate(u), game_scale(4), tileset_scale(2), tilemap_scale(1), f5_down(false), f6_down(false),
-    state({0,0}), UI()
+    state({0,0}), breakpoint(false), save_state(false), load_state(false), close(false)
   {
     if (!glfwInit()) {
       printf("Failed to initialize GLFW\n");
@@ -75,6 +74,11 @@ public:
     unsigned long frames;
   } state;
 
+  bool breakpoint;
+  bool save_state;
+  bool load_state;
+  bool close;
+
 private:
 
   bool f5_down;
@@ -116,6 +120,6 @@ private:
   OpenAL_Output &SND_OUT;
   Gpu &GPU;
 
-  void write(std::ostream & out) const;
-  void read(std::istream & in);
+  friend std::ostream & operator << (std::ostream & out, const Window & win);
+  friend std::istream & operator >> (std::istream & in, Window & win);
 };
