@@ -401,7 +401,6 @@ sample_t Sound::updateCh1(unsigned tclock) {
 	static bool active = false;
 
 	static unsigned ctr = 0;
-	static int length = 0;
 	static unsigned env_step = 0;
 	static unsigned env_ctr = 0;
 	static unsigned sweep_ctr = 0;
@@ -418,7 +417,8 @@ sample_t Sound::updateCh1(unsigned tclock) {
 		Channel1->init = 0;
 
 		if (Channel1->disable_loop)
-			length = (64 - Channel1->sound_length) * TCLK_HZ / 256;
+      Ch1_Length->start(Channel1->sound_length);
+
 		ctr = 0;
 
 		// hz = env_step / 64
@@ -454,8 +454,7 @@ sample_t Sound::updateCh1(unsigned tclock) {
 			sample = low ? square_map[16 + vol] : square_map[16 - vol];
 
 			if (Channel1->disable_loop) {
-				length -= tclock;
-				if (length <= 0) {
+				if (Ch1_Length->tick(tclock)) {
 					active = false;
 					Control->CH1_on = 0;
 					//printf("[ch1] stop\n");
@@ -697,9 +696,9 @@ sample_t Sound::updateCh4(unsigned tclock) {
 
 	if (active) {
 		// compute frequency
-   		const static uint8_t divisor_lookup[8] { 8, 16, 32, 48, 64, 80, 96, 112 };
+		const static uint8_t divisor_lookup[8] { 8, 16, 32, 48, 64, 80, 96, 112 };
 
-   		unsigned counter_clk = (TCLK_HZ / 8) / divisor_lookup[Channel4->freq_div];
+		unsigned counter_clk = (TCLK_HZ / 8) / divisor_lookup[Channel4->freq_div];
 		unsigned gb_freq = counter_clk >> (Channel4->shift_clk_freq + 1);
 
 		gb_freq >>= 4; // TODO: magic constant --- fixme
