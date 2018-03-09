@@ -5,7 +5,7 @@ project (gbe)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O3 -Wall -Wextra -Wno-reorder")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O3 -fPIC -Wall -Wextra -Wno-reorder")
 file(GLOB SOURCES "*.cpp")
 file(GLOB HEADERS "*.h")
 
@@ -13,7 +13,7 @@ set(LIB_SOURCES ${SOURCES})
 list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 add_executable(gbe ${SOURCES} ${HEADERS})
-add_library(libgbe SHARED ${LIB_SOURCES} ${HEADERS})
+add_library(libgbe STATIC ${LIB_SOURCES} ${HEADERS})
 set_target_properties(libgbe PROPERTIES OUTPUT_NAME "gbe")
 
 find_package(PkgConfig REQUIRED)
