@@ -19,9 +19,7 @@ void SerialPortInterface::finish() {
 	*MEM.SC &= ~START;
 	//*MEM.IF |= SERIAL_INT;
 
-	// log transfer
-	// printf("[serial] 0x%02X\n", *MEM.SB);
-	// printf("%c", (char)(*MEM.SB));
+	transfer_callback(*MEM.SB);
 
 	// receive 0xFF when not connected
 	*MEM.SB = 0xFF;
