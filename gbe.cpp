@@ -36,8 +36,8 @@ gbe::gbe(std::string romfile) : clock_overflow(0) {
   *MEM->LCD_CTRL = 0x80;
 }
 
-uint8_t * gbe::display() {
-  return GPU->lcd_buffer.data();
+std::array<uint8_t, 160*3*144> gbe::display() {
+  return GPU->lcd_buffer;
 }
 
 void gbe::run(long clock_cycles) {

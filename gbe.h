@@ -26,7 +26,7 @@ class gbe {
   gbe (std::string romfile);
 
   // get current contents of lcd display (160 * RGB * 144 bytes)
-  uint8_t* display();
+  std::array<uint8_t, 160*3*144> display();
 
   // run emulator for some clock cycles (70224 cycles per frame when LCD is enabled)
   void run(long clock_cycles);
