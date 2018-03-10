@@ -6,8 +6,8 @@ class Headless : public UI {
  public:
   Headless() : UI() {};
 
-  void update(unsigned tclock) {};
+  void update(unsigned) {};
 
-  void read(std::istream & in) {};
-  void write(std::ostream & in) const {};
+  void read(std::istream &) {};
+  void write(std::ostream &) const {};
 };
