@@ -15,19 +15,19 @@ uint8_t* Memory::getReadPtr(uint16_t addr) {
 			if ( ( ! *BIOS_OFF ) && addr < 0x0100) {
 				return &BIOS[addr];
 			}
-            [[fallthrough]];
+			[[fallthrough]];
 		case 0x1: case 0x2: case 0x3:
-			return &ROM0[addr]; // ROM0
+			//return &ROM0[addr]; // ROM0
+      return CART.rom0Ptr(addr);
 		case 0x4: case 0x5:
 		case 0x6: case 0x7:
-			return &ROM1[addr - 0x4000]; // ROM1
+			//return &ROM1[addr - 0x4000]; // ROM1
+      return CART.rom1Ptr(addr - 0x4000);
 		case 0x8:  case 0x9: 
 			return &RAW[addr]; // grRAM
-		case 0xA: case 0xB: 
-			if (extRAM != nullptr)
-				return &extRAM[addr - 0xA000]; // extRAM
-			else
-				return nullptr;
+		case 0xA: case 0xB:
+      // extRAM or RTC
+      return CART.ramPtr(addr - 0xA000);
 		case 0xC: case 0xD:
 			return &RAW[addr]; // RAM
 		default: // E, F
@@ -65,11 +65,8 @@ uint8_t* Memory::getWritePtr(uint16_t addr) {
 			// grRAM
 			return &RAW[addr];
 		case 0xA: case 0xB: 
-			// extRAM
-			if (extRAM != nullptr)
-				return &extRAM[addr - 0xA000];
-			else 
-				return nullptr;
+			// extRAM or RTC
+      return CART.ramPtr(addr - 0xA000);
 		case 0xC: case 0xD: 
 			// RAM
 			return &RAW[addr];
@@ -193,6 +190,11 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 			break;
 		case Cart::mbc_type::MBC1:
 			if (addr <= 0x1FFF) {
+				if (val & 0x0A) {
+          printf("[cart] ram enable\n");
+        } else {
+          printf("[cart] ram disable\n");
+        }
 				//printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
 				return;
 			}
@@ -200,24 +202,27 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 				//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x1F;
 				if (val == 0) val = 1;
-				ROM1 = CART.romBank(val);
+				//ROM1 = CART.romBank(val);
+        CART.rom_bank = val;
 				return;
 			}
 			else if (0x4000 <= addr && addr <= 0x5FFF) {
 				//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x03;
-				if (mbc_mode == controller_mode::RAM_banking) {
-					extRAM = CART.ramBank(val);
+				if (CART.mbc_mode == Cart::controller_mode::RAM_banking) {
+          assert(val <= 4);
+					CART.ram_bank = val;
 				} else {
-					ROM1 = CART.romBank((CART.rom_bank & 0x1F) | (val << 5));
+					//ROM1 = CART.romBank((CART.rom_bank & 0x1F) | (val << 5));
+          CART.rom_bank = (CART.rom_bank & 0x1F) | (val << 5);
 				}
 				return;
 			}
 			else if (0x6000 <= addr && addr <= 0x7FFF) {
 				if (val == 1) {
-					mbc_mode = controller_mode::RAM_banking;
+          CART.mbc_mode = Cart::controller_mode::RAM_banking;
 				} else {
-					mbc_mode = controller_mode::ROM_banking;
+          CART.mbc_mode = Cart::controller_mode::ROM_banking;
 				}
 			}
 			break;
@@ -230,15 +235,29 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
 				//printf("ROM bank selection 0x%02X at 0x%04X\n", val, addr);
 				val &= 0x7F;
 				if (val == 0) val = 1;
-				ROM1 = CART.romBank(val);
+				//ROM1 = CART.romBank(val);
+        CART.rom_bank = val;
 				return;
 			}
 			if (0x4000 <= addr && addr <= 0x5FFF) {
-				//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr);
+				//printf("RAM bank selection 0x%02X at 0x%04X\n", val, addr)
 				val &= 0x1F;
-				extRAM = CART.ramBank(val);
+        if (val <= 0x04) {
+          CART.ram_bank = val;
+          CART.RTC_access = false;
+        } else if (val >= 0x08 && val <= 0x0C) {
+          // RTC register select
+          CART.RTC_reg_select = unsigned(val - 0x08);
+          CART.RTC_access = true;
+        } else {
+          assert(false);
+        }
 				return;
 			}
+      if (0x6000 <= addr && addr <= 0x7FFF) {
+        //printf("[cart] RTC latch %d\n", val);
+        return;
+      }
 			break;
 		default:
 			printf("Unimplemented memory bank controller type.");
@@ -278,8 +297,6 @@ ostream & operator << (ostream & out, const Memory & mem)
 {
   cout << "Write " << mem.checksum() << endl;
 	out.write(reinterpret_cast<const char*>(mem.RAW), sizeof(mem.RAW));
-	out.write(reinterpret_cast<const char*>(&mem.ram_bank), sizeof(int));
-  out.write(reinterpret_cast<const char*>(&mem.rom_bank), sizeof(int));
 	return out;
 }
 
@@ -287,8 +304,6 @@ istream & operator >> (istream & in, Memory & mem)
 {
   cout << "State " << mem.checksum() << endl;
 	in.read(reinterpret_cast<char*>(mem.RAW), sizeof(mem.RAW));
-  in.read(reinterpret_cast<char*>(&mem.ram_bank), sizeof(int));
-  in.read(reinterpret_cast<char*>(&mem.rom_bank), sizeof(int));
   cout << "Read " << mem.checksum() << endl;
   return in;
 }

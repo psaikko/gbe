@@ -28,41 +28,23 @@ class Sound;
 
 class Memory {
 
-	enum controller_mode { ROM_banking, RAM_banking }; // MBC1 mode switch
-	controller_mode mbc_mode;
 
 public:
-	Memory(Cart &CartRef, Buttons &BtnRef, Sound &SndRef) : 
-			mbc_mode(controller_mode::ROM_banking), 
+	Memory(Cart &CartRef, Buttons &BtnRef, Sound &SndRef) :
 			BTN(BtnRef), CART(CartRef), SND(SndRef) {
+
 		// Don't read ROM or cart RAM from RAW
 		// Fill with sentinel value (unused instruction 0xDD)
 		memset(&RAW[0x0000], 0xDD, 0x4000);
 		memset(&RAW[0x4000], 0xDD, 0x4000);
 		memset(&RAW[0xA000], 0xDD, 0x2000);
-
-		ROM0 = CART.romBank(0);
-		ROM1 = CART.romBank(1);
-
-		if (CART.ram_banks)
-			extRAM = CART.ramBank(0);
 	}
 
 	Buttons &BTN;
 	Cart &CART;
 	Sound &SND;
 
-	uint8_t *ROM_BANKS; // Max ROM size 8 MB
-	uint8_t *RAM_BANKS;  // Max RAM size 128 KB
-	int rom_size;
-	int ram_bank;
-	int rom_bank;
-
 	uint8_t RAW[65536]; // TODO
-
-	uint8_t * ROM0   = nullptr;
-	uint8_t * ROM1   = nullptr;
-	uint8_t * extRAM = nullptr;
 
 	uint8_t * const RAM    = &RAW[0xC000];
 	uint8_t * const _RAM   = &RAW[0xE000];

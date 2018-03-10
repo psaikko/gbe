@@ -13,31 +13,43 @@ public:
 	enum mbc_type { NONE, MBC1, MBC2, MBC3, MBC5 };
 	mbc_type bank_controller;
 
+  enum controller_mode { ROM_banking, RAM_banking }; // MBC1 mode switch
+  controller_mode mbc_mode;
+
 	uint8_t *ROM;
 	uint8_t *RAM;
 
-	unsigned rom_size;
-	unsigned ram_size;
+  uint8_t RTC_registers[5];
+  unsigned RTC_reg_select;
+  bool RTC_access;
 
 	unsigned rom_bank;
 	unsigned ram_bank;
 
-	unsigned rom_banks;
-	unsigned ram_banks;
+  uint8_t *rom0Ptr(uint16_t addr) {
+    assert(addr < 0x4000);
+    return &ROM[addr];
+  }
 
-	uint8_t *romBank(unsigned bank) {
-		assert(bank < rom_banks);
-		rom_bank = bank;
-		return &ROM[0x4000 * bank]; 
-	}
+  uint8_t *rom1Ptr(uint16_t addr) {
+    assert(addr < 0x4000);
+    return &ROM[0x4000 * rom_bank + addr];
+  }
 
-	uint8_t *ramBank(unsigned bank) {
-		assert(bank < ram_banks);
-		ram_bank = bank;
-		return &RAM[0x2000 * bank];
-	}
+  uint8_t *ramPtr(uint16_t addr) {
+    assert(addr < 0x2000); // 8K ram banks
+    if (RTC_access) {
+      return &RTC_registers[RTC_reg_select];
+    } else if (ram_banks){
+      return &RAM[0x2000 * ram_bank + addr];
+    } else {
+      return nullptr;
+    }
+  }
 
-	Cart(string &filename) {
+	explicit Cart(string &filename) : mbc_mode(controller_mode::ROM_banking),
+                                    rom_bank(1), ram_bank(0) {
+
 		ifstream romfile(filename, ios::binary);
 		if (!romfile.good()) {
 			printf("could not open ROM file\n");
@@ -121,6 +133,13 @@ public:
 	}
 
 private:
+
+  unsigned rom_size;
+  unsigned ram_size;
+
+  unsigned rom_banks; // Max ROM size 8 MB
+  unsigned ram_banks; // Max RAM size 128 KB
+
 	map<uint8_t, string> cart_types{
 		{0x00, "ROM ONLY"},
 		{0x01, "ROM+MBC1"},
@@ -170,4 +189,34 @@ private:
 	  {0x03, {"32KB", 4}},
 	  {0x04, {"128KB", 16}}
 	};
+
+  friend std::ostream & operator << (std::ostream & out, const Cart & c) {
+    out.write(reinterpret_cast<const char*>(&c.rom_size), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.ram_size), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.ram_banks), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.rom_banks), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.ram_bank), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.rom_bank), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(&c.RTC_access), sizeof(bool));
+    out.write(reinterpret_cast<const char*>(&c.RTC_reg_select), sizeof(unsigned));
+    out.write(reinterpret_cast<const char*>(c.RTC_registers), sizeof(c.RTC_registers));
+    out.write(reinterpret_cast<const char*>(c.RAM), c.ram_size * sizeof(uint8_t));
+
+    return out;
+  }
+
+  friend std::istream & operator >> (std::istream & in, Cart & c) {
+    in.read(reinterpret_cast<char*>(&c.rom_size), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.ram_size), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.ram_banks), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.rom_banks), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.ram_bank), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.rom_bank), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(&c.RTC_access), sizeof(bool));
+    in.read(reinterpret_cast<char*>(&c.RTC_reg_select), sizeof(unsigned));
+    in.read(reinterpret_cast<char*>(c.RTC_registers), sizeof(c.RTC_registers));
+    in.read(reinterpret_cast<char*>(c.RAM), c.ram_size * sizeof(uint8_t));
+
+    return in;
+  }
 };
