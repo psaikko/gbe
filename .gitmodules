@@ -1,0 +1,3 @@
+[submodule "py-wrapper/pybind11"]
+	path = py-wrapper/pybind11
+	url = https://github.com/pybind/pybind11

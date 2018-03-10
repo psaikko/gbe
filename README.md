@@ -31,6 +31,23 @@ Tileset view:
 
 ![Tileset window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Tileset_screenshot.png)
 
+Python wrapper
+---
+To install
+1. `git clone --recursive https://github.com/psaikko/gbe/` 
+2. `cmake . && make libgbe`
+3. `cp {gbe.h,libgbe.a} py-wrapper/`
+4. `pip install py-wrapper/`
+
+Usage
+
+```
+import libgbe
+gbe = GBE("path/to/rom")
+gbe.run(70224)
+gbe.display()
+```
+
 TODOs
 ---
 - Cartridge saves
