@@ -33,10 +33,10 @@ Tileset view:
 
 TODOs
 ---
-- Full savestates
+- Cartridge saves
+- Multiple savestates
 - Usable UI
 - GPU display scaling
-- Noise channel accuracy
 - Sprite display limits
 - Intra-scanline timing
 - Joypad interrupts
