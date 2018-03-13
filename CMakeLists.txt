@@ -11,6 +11,7 @@ file(GLOB HEADERS "*.h")
 
 set(LIB_SOURCES ${SOURCES})
 list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/wrapper.cpp)
 
 add_executable(gbe ${SOURCES} ${HEADERS})
 add_library(libgbe STATIC ${LIB_SOURCES} ${HEADERS})

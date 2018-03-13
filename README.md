@@ -31,6 +31,21 @@ Tileset view:
 
 ![Tileset window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Tileset_screenshot.png)
 
+Python wrapper
+---
+To install
+1. `pip install pybind11`
+2. `pip install ./`
+
+Usage
+
+```
+import libgbe
+gbe = GBE("path/to/rom")
+gbe.run(70224)
+gbe.display()
+```
+
 TODOs
 ---
 - Cartridge saves
