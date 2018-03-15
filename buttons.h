@@ -8,8 +8,8 @@
 #define KEY_DOWN   0x08
 #define KEY_A      0x10
 #define KEY_B      0x20
-#define KEY_START  0x40
-#define KEY_SELECT 0x80
+#define KEY_START  0x80
+#define KEY_SELECT 0x40
 
 class Buttons {
 public:
