@@ -55,17 +55,17 @@ private:
 
   void render_buffer_line();
 
-  void draw_pixel(uint8_t *addr, uint8_t color_id);
+  inline void draw_pixel(uint8_t *addr, uint8_t color_id);
 
   uint8_t * get_tile(uint8_t tile_id, bool tileset0);
 
-  uint8_t apply_palette(uint8_t color_id, uint8_t palette);
+  inline uint8_t apply_palette(uint8_t color_id, uint8_t palette);
 
-  uint8_t get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y);
+  inline uint8_t get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y);
 
-  unsigned rgb_buffer_index(unsigned x, unsigned y, unsigned w, unsigned h);
+  inline unsigned rgb_buffer_index(unsigned x, unsigned y, unsigned w, unsigned h);
 
-  void render_tile(uint8_t *buffer, uint8_t *tile, unsigned lcd_x, unsigned lcd_y, unsigned buffer_w, unsigned buffer_h);
+  inline void render_tile(uint8_t *buffer, uint8_t *tile, unsigned lcd_x, unsigned lcd_y, unsigned buffer_w, unsigned buffer_h);
 
 	Memory &MEM;
 

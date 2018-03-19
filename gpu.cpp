@@ -1,4 +1,5 @@
 #include <thread>
+#include <algorithm> // sort
 
 #include "gpu.h"
 #include "mem.h"
@@ -61,7 +62,7 @@ void Gpu::render_tileset() {
   }
 }
 
-void Gpu::draw_pixel(uint8_t *addr, uint8_t color_id) {
+inline void Gpu::draw_pixel(uint8_t *addr, uint8_t color_id) {
   assert(color_id <= 3);
   switch (color_id) {
     case COLOR_WHITE:
@@ -80,7 +81,7 @@ void Gpu::draw_pixel(uint8_t *addr, uint8_t color_id) {
   }
 }
 
-uint8_t * Gpu::get_tile(const uint8_t tile_id, const bool tileset1) {
+inline uint8_t * Gpu::get_tile(const uint8_t tile_id, const bool tileset1) {
   uint8_t *tile;
   if (tileset1) {
     tile = &MEM.TILESET1[tile_id * 16];
@@ -115,6 +116,30 @@ void Gpu::render_buffer_line() {
   int win_map_pixel_y = lcd_y - window_y;
   int win_map_tile_y  = win_map_pixel_y / TILE_H;
   int win_tile_y  = win_map_pixel_y % TILE_H;
+
+  int n_visible_sprites = 0;
+  pair<int,int> visible_sprites[40]; // <x-coordinate, oam-index> pairs 
+
+  // precompute visible sprites
+  for (int spr_id = 0; spr_id < 40; ++spr_id) {
+    oam_entry spr = MEM.OAM[spr_id];
+    const uint8_t spr_w = 8;
+    uint8_t spr_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
+    // x and y coords offset in memory..
+    int spr_y = ((int)spr.y) - 16;
+    int spr_x = ((int)spr.x) - 8;
+
+    // does not intersect current scanline (lcd_y)
+    if (lcd_y < spr_y || lcd_y >= spr_y + spr_h) continue;
+
+    // not onscreen in x direction
+    if (spr_x == -spr_w) continue;
+
+    visible_sprites[n_visible_sprites] = { -spr_x, spr_id };
+    n_visible_sprites++;
+  }
+
+  sort(visible_sprites, visible_sprites + n_visible_sprites);
 
   for (uint8_t lcd_x = 0; lcd_x < LCD_W; ++lcd_x) {
     uint8_t color_id = 0;
@@ -151,20 +176,20 @@ void Gpu::render_buffer_line() {
     }
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
-      for (int spr_id = 0; spr_id < 40; ++spr_id) {
+      for (int spr_priority = min(n_visible_sprites, 10); spr_priority > 0; --spr_priority) {
+        
+        int spr_x  = -visible_sprites[spr_priority - 1].first;
+
+        // does not hit current x pixel?
+        if ((lcd_x > spr_x + 7) || (lcd_x < spr_x)) continue;
+
+        int spr_id = visible_sprites[spr_priority - 1].second;
+
         oam_entry spr = MEM.OAM[spr_id];
         const uint8_t spr_w = 8;
         uint8_t spr_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
         // x and y coords offset in memory..
-        int spr_y = ((int)spr.y) - 16;
-        int spr_x = ((int)spr.x) - 8;
-
-        // does not intersect current scanline (lcd_y)
-        if (lcd_y < spr_y || lcd_y >= spr_y + spr_h) continue;
-        // not onscreen in x direction
-        if (spr_x == -spr_w) continue;
-        // does not hit current x pixel
-        if ((lcd_x > spr_x + 7) || (lcd_x < spr_x)) continue;
+        int spr_y = ((int)spr.y) - 16;        
 
         uint8_t spr_tile_y = lcd_y - spr_y;
         if (spr.yflip) spr_tile_y = (spr_h - 1) - spr_tile_y;
@@ -190,7 +215,7 @@ void Gpu::render_buffer_line() {
   }
 }
 
-uint8_t Gpu::apply_palette(uint8_t color_id, uint8_t palette) {
+inline uint8_t Gpu::apply_palette(uint8_t color_id, uint8_t palette) {
   assert(color_id <= 3);
   switch (color_id) {
     case 0:
@@ -205,7 +230,7 @@ uint8_t Gpu::apply_palette(uint8_t color_id, uint8_t palette) {
   }
 }
 
-uint8_t Gpu::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
+inline uint8_t Gpu::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
 
   assert(x <= 7);
   assert(y <= ((*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 15 : 7));
@@ -219,7 +244,7 @@ uint8_t Gpu::get_tile_pixel(uint8_t *tile, uint8_t x, uint8_t y) {
   return color_id;
 }
 
-unsigned Gpu::rgb_buffer_index(unsigned x, unsigned y, unsigned w, unsigned h) {
+inline unsigned Gpu::rgb_buffer_index(unsigned x, unsigned y, unsigned w, unsigned h) {
   return x*3 + (h - 1 - y)*w*3;
 }
 
