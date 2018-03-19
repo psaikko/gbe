@@ -37,7 +37,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 find_package(OpenAL REQUIRED)
 include_directories(${OPENAL_INCLUDE_DIRS})
 
-target_link_libraries(gbe ${GLFW_LIBRARIES})
+target_link_libraries(gbe ${GLFW_STATIC_LIBRARIES})
 target_link_libraries(gbe ${GLEW_LIBRARIES})
 target_link_libraries(gbe ${OPENGL_LIBRARIES})
 target_link_libraries(gbe openal)
