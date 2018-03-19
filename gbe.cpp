@@ -59,7 +59,6 @@ void gbe::run(long clock_cycles) {
     GPU->update(REG->TCLK);
     TIMER->update(REG->TCLK);
     SERIAL->update(REG->TCLK);
-    SND->update(REG->TCLK);
 
     clock_cycles -= REG->TCLK;
 
@@ -69,7 +68,6 @@ void gbe::run(long clock_cycles) {
     GPU->update(REG->TCLK);
     TIMER->update(REG->TCLK);
     SERIAL->update(REG->TCLK);
-    SND->update(REG->TCLK);
 
     clock_cycles -= REG->TCLK;
   }
