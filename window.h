@@ -41,11 +41,13 @@ public:
     tilemap_window = glfwCreateWindow(TILEMAP_WINDOW_W * tilemap_scale, TILEMAP_WINDOW_H * tilemap_scale * 2, "gbe tilemap", nullptr, nullptr);
     tileset_window = glfwCreateWindow(TILESET_WINDOW_W * tileset_scale, TILESET_WINDOW_H * tileset_scale, "gbe tileset", nullptr, nullptr);
     game_window = glfwCreateWindow(LCD_W * game_scale, LCD_H * game_scale, "gbe buffer", nullptr, nullptr);
-
+    
+#if GLFW_VERSION_MINOR >= 2
     glfwSetWindowAspectRatio(game_window, LCD_W, LCD_H);
     glfwSetWindowAspectRatio(tileset_window, TILESET_WINDOW_W, TILESET_WINDOW_H);
     glfwSetWindowAspectRatio(tilemap_window, TILEMAP_WINDOW_W, TILEMAP_WINDOW_H * 2);
-
+#endif
+    
     glfwSetInputMode(game_window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwMakeContextCurrent(game_window);
     glewExperimental = GL_TRUE;
