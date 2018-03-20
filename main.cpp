@@ -383,7 +383,7 @@ int main(int argc, char ** argv) {
 		REG.TCLK = 0;
 		CPU.handle_interrupts();
 
-    if (REG->TCLK != 0) {
+    if (REG.TCLK != 0) {
   		GPU.update(REG.TCLK);
   		TIMER.update(REG.TCLK);
   		SERIAL.update(REG.TCLK);
