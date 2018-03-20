@@ -224,7 +224,7 @@ int main(int argc, char ** argv) {
 	// enable LCD
 	*MEM.LCD_CTRL = 0x80;
 
-	// start audio/video sync timer 
+	// start audio/video sync timer
 	SyncTimer::get().start();
 
 	unsigned long long clk = 0;
@@ -264,7 +264,7 @@ int main(int argc, char ** argv) {
     interface->breakpoint = false;
 
 		MEM.at_breakpoint = false;
-		
+
 		uint8_t opcode = MEM.readByte(REG.PC);
 		Cpu::Instruction instr = CPU.instructions[opcode];
 
@@ -363,7 +363,7 @@ int main(int argc, char ** argv) {
 				}
 			}
 		}
-	
+
 		if (!REG.HALT) {
 			REG.PC += 1;
 			instr.fn(CPU);
@@ -383,10 +383,12 @@ int main(int argc, char ** argv) {
 		REG.TCLK = 0;
 		CPU.handle_interrupts();
 
-		GPU.update(REG.TCLK);
-		TIMER.update(REG.TCLK);
-		SERIAL.update(REG.TCLK);
-		SND.update(REG.TCLK);
+    if (REG->TCLK != 0) {
+  		GPU.update(REG.TCLK);
+  		TIMER.update(REG.TCLK);
+  		SERIAL.update(REG.TCLK);
+  		SND.update(REG.TCLK);
+    }
 
     interface->update(REG.TCLK);
 
@@ -394,7 +396,7 @@ int main(int argc, char ** argv) {
 
 		clk += REG.TCLK;
     if (instruction_limit && clk > instruction_limit) break;
-	}	
+	}
 
 	printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());
 	printf("Clk: %lld\n", clk);

@@ -65,9 +65,11 @@ void gbe::run(long clock_cycles) {
     REG->TCLK = 0;
     CPU->handle_interrupts();
 
-    GPU->update(REG->TCLK);
-    TIMER->update(REG->TCLK);
-    SERIAL->update(REG->TCLK);
+    if (REG->TCLK != 0) {
+      GPU->update(REG->TCLK);
+      TIMER->update(REG->TCLK);
+      SERIAL->update(REG->TCLK);
+    }
 
     clock_cycles -= REG->TCLK;
   }
@@ -76,8 +78,6 @@ void gbe::run(long clock_cycles) {
 }
 
 void gbe::run_to_vblank() {
-
-  unsigned clock_cycles = 0;
 
   while (true) {
 
@@ -100,9 +100,11 @@ void gbe::run_to_vblank() {
     REG->TCLK = 0;
     CPU->handle_interrupts();
 
-    GPU->update(REG->TCLK);
-    TIMER->update(REG->TCLK);
-    SERIAL->update(REG->TCLK);
+    if (REG->TCLK != 0) {
+      GPU->update(REG->TCLK);
+      TIMER->update(REG->TCLK);
+      SERIAL->update(REG->TCLK);
+    }
 
     bool is_vblank = (*MEM->LCD_STAT & MODE_MASK) != MODE_VBLANK;
 
