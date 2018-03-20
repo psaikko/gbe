@@ -104,6 +104,8 @@ private:
 
 	void set_status(uint8_t mode);
 
+  void set_line(uint8_t line);
+
   friend std::ostream & operator << (std::ostream & out, const Gpu & gpu);
   friend std::istream & operator >> (std::istream & in, Gpu & gpu);
 };

@@ -7,11 +7,6 @@
 using namespace std;
 using namespace std::chrono;
 
-void Gpu::set_status(uint8_t mode) {
-	*MEM.LCD_STAT &= ~MODE_MASK;
-	*MEM.LCD_STAT |= mode;
-}
-
 void Gpu::render_tileset() {
   uint8_t *SET = MEM.TILESET1;
 
@@ -257,6 +252,33 @@ void Gpu::render_tilemap() {
   }
 }
 
+void Gpu::set_status(uint8_t mode) {
+  *MEM.LCD_STAT &= ~MODE_MASK;
+  *MEM.LCD_STAT |= mode;
+
+  // Trigger LCD interrupt
+  if ((((*MEM.LCD_STAT & MODE_MASK) == MODE_OAM) && (*MEM.LCD_STAT & INT_OAM)) ||
+      (((*MEM.LCD_STAT & MODE_MASK) == MODE_VBLANK) && (*MEM.LCD_STAT & INT_VBLANK)) ||
+      (((*MEM.LCD_STAT & MODE_MASK) == MODE_HBLANK) && (*MEM.LCD_STAT & INT_HBLANK))) {
+    *MEM.IF |= FLAG_IF_LCD;
+  }
+}
+
+void Gpu::set_line(uint8_t line) {
+  *MEM.SCAN_LN = line;
+
+  // Trigger line interrupt
+  if (*MEM.SCAN_LN == *MEM.LN_CMP) {
+    *MEM.LCD_STAT |= STAT_LYC;
+  } else {
+    *MEM.LCD_STAT &= ~STAT_LYC;
+  }
+
+  if ((*MEM.LCD_STAT & STAT_LYC) && (*MEM.LCD_STAT & INT_LYC)) {
+    *MEM.IF |= FLAG_IF_LCD;
+  }
+}
+
 // refresh every 70224 cycles
 void Gpu::update(unsigned tclock) {
 	bool disable = !(*MEM.LCD_CTRL & CTRL_ENABLE);
@@ -273,7 +295,7 @@ void Gpu::update(unsigned tclock) {
 		// LCD is turned OFF
 		state.clk = 0;
 		state.enabled = false;
-		*MEM.SCAN_LN = 0;
+    set_line(0);
 		set_status(MODE_HBLANK);
 		return;
 	}
@@ -297,7 +319,7 @@ void Gpu::update(unsigned tclock) {
 			case (MODE_HBLANK):
 				if (state.clk >= 204) {
 					state.clk -= 204;
-					*MEM.SCAN_LN += 1;
+					set_line(*MEM.SCAN_LN + 1);
 					if (*MEM.SCAN_LN == 144) {
 						*MEM.IF |= FLAG_IF_VBLANK;
 						set_status(MODE_VBLANK);
@@ -311,28 +333,14 @@ void Gpu::update(unsigned tclock) {
 				if (state.clk >= 456) {
 					state.clk -= 456;
 					if (*MEM.SCAN_LN == 152) {
-						*MEM.SCAN_LN = 0;
+						set_line(0);
 					} else if (*MEM.SCAN_LN == 0) {
 						set_status(MODE_OAM);
 					} else {
-						*MEM.SCAN_LN += 1;
+						set_line(*MEM.SCAN_LN + 1);
 					}
 				}
 				break;
-		}
-
-		if (*MEM.SCAN_LN == *MEM.LN_CMP) {
-			*MEM.LCD_STAT |= STAT_LYC;
-		}	else {
-			*MEM.LCD_STAT &= ~STAT_LYC;
-		}
-
-		// Trigger LCD interrupt
-		if (((*MEM.LCD_STAT & STAT_LYC) && (*MEM.LCD_STAT & INT_LYC)) ||
-			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_OAM) && (*MEM.LCD_STAT & INT_OAM)) ||
-			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_VBLANK) && (*MEM.LCD_STAT & INT_VBLANK)) ||
-			  (((*MEM.LCD_STAT & MODE_MASK) == MODE_HBLANK) && (*MEM.LCD_STAT & INT_HBLANK))) {
-			*MEM.IF |= FLAG_IF_LCD;
 		}
 	}
 }
