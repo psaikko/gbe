@@ -118,7 +118,7 @@ void Gpu::render_buffer_line() {
   int win_tile_y  = win_map_pixel_y % TILE_H;
 
   int n_visible_sprites = 0;
-  pair<int,int> visible_sprites[40]; // <x-coordinate, oam-index> pairs 
+  pair<int,int> visible_sprites[40]; // <x-coordinate, oam-index> pairs
 
   // precompute visible sprites
   for (int spr_id = 0; spr_id < 40; ++spr_id) {
@@ -177,11 +177,12 @@ void Gpu::render_buffer_line() {
 
     if (*MEM.LCD_CTRL & FLAG_GPU_SPR) {
       for (int spr_priority = min(n_visible_sprites, 10); spr_priority > 0; --spr_priority) {
-        
+
         int spr_x  = -visible_sprites[spr_priority - 1].first;
 
         // does not hit current x pixel?
-        if ((lcd_x > spr_x + 7) || (lcd_x < spr_x)) continue;
+        if (lcd_x < spr_x) break; // all subsequent sprites have spr_x smaller than current
+        if (lcd_x > spr_x + 7) continue;
 
         int spr_id = visible_sprites[spr_priority - 1].second;
 
@@ -189,7 +190,7 @@ void Gpu::render_buffer_line() {
         const uint8_t spr_w = 8;
         uint8_t spr_h = (*MEM.LCD_CTRL & FLAG_GPU_SPR_SZ) ? 16 : 8;
         // x and y coords offset in memory..
-        int spr_y = ((int)spr.y) - 16;        
+        int spr_y = ((int)spr.y) - 16;
 
         uint8_t spr_tile_y = lcd_y - spr_y;
         if (spr.yflip) spr_tile_y = (spr_h - 1) - spr_tile_y;
@@ -307,7 +308,7 @@ void Gpu::update(unsigned tclock) {
 		state.enabled = false;
 		*MEM.SCAN_LN = 0;
 		set_status(MODE_HBLANK);
-		return;		
+		return;
 	}
 
 	if (state.enabled) {
@@ -347,7 +348,7 @@ void Gpu::update(unsigned tclock) {
 					} else if (*MEM.SCAN_LN == 0) {
 						set_status(MODE_OAM);
 					} else {
-						*MEM.SCAN_LN += 1;	
+						*MEM.SCAN_LN += 1;
 					}
 				}
 				break;
