@@ -49,10 +49,10 @@ gbe.display()
 TODOs
 ---
 - Cartridge saves
+- Cartridge realtime clock
 - Multiple savestates
 - Usable UI
-- GPU display scaling
-- Sprite display limits
+- GPU display scaling shader
 - Intra-scanline timing
 - Joypad interrupts
 - Serial I/O
