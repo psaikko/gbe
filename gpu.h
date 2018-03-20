@@ -23,6 +23,39 @@
 #define COLOR_GRAY2 2
 #define COLOR_BLACK 3
 
+#define INT_HBLANK 0x04
+#define INT_VBLANK 0x10
+#define INT_OAM    0x20
+#define INT_LYC    0x40
+
+#define MODE_MASK 0x03
+
+#define STAT_LYC 0x04
+
+#define CTRL_ENABLE 0x80
+
+#define MODE_OAM 2
+#define MODE_VRAM 3
+#define MODE_HBLANK 0
+#define MODE_VBLANK 1
+
+#define FLAG_IF_VBLANK 0x01
+#define FLAG_IF_LCD    0x02
+
+#define FLAG_GPU_BG     0x01
+#define FLAG_GPU_SPR    0x02
+#define FLAG_GPU_SPR_SZ 0x04
+#define FLAG_GPU_BG_TM  0x08
+#define FLAG_GPU_BG_WIN_TS  0x10
+#define FLAG_GPU_WIN    0x20
+#define FLAG_GPU_WIN_TM 0x40
+#define FLAG_GPU_DISP   0x80
+
+#define PLT_COLOR0 0x03
+#define PLT_COLOR1 0x0C
+#define PLT_COLOR2 0x30
+#define PLT_COLOR3 0xC0
+
 class Memory;
 
 class Gpu {

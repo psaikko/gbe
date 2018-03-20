@@ -73,7 +73,42 @@ void gbe::run(long clock_cycles) {
   }
 
   clock_overflow = clock_cycles;
+}
 
+void gbe::run_to_vblank() {
+
+  unsigned clock_cycles = 0;
+
+  while (true) {
+
+    uint8_t opcode = MEM->readByte(REG->PC);
+    Cpu::Instruction instr = CPU->instructions[opcode];
+
+    if (!REG->HALT) {
+      REG->PC += 1;
+      instr.fn(*CPU);
+    } else {
+      REG->TCLK = 4;
+    }
+
+    bool was_vblank = (*MEM->LCD_STAT & MODE_MASK) != MODE_VBLANK;
+
+    GPU->update(REG->TCLK);
+    TIMER->update(REG->TCLK);
+    SERIAL->update(REG->TCLK);
+
+    REG->TCLK = 0;
+    CPU->handle_interrupts();
+
+    GPU->update(REG->TCLK);
+    TIMER->update(REG->TCLK);
+    SERIAL->update(REG->TCLK);
+
+    bool is_vblank = (*MEM->LCD_STAT & MODE_MASK) != MODE_VBLANK;
+
+    // run until vblank triggered
+    if (!was_vblank && is_vblank) break;
+  }
 }
 
 void gbe::input(bool up, bool down, bool left, bool right, bool a, bool b, bool start, bool select) {
