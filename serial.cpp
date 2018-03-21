@@ -9,7 +9,7 @@
 #define SERIAL_INT 0x08
 
 void SerialPortInterface::transfer() {
-	// send *MEM.SB & (1 << transfer_bit) 
+	// send *MEM.SB & (1 << transfer_bit)
 	transfer_bit++;
 }
 
@@ -17,7 +17,7 @@ void SerialPortInterface::finish() {
 	transfer_bit = 0;
 	clock = 0;
 	*MEM.SC &= ~START;
-	//*MEM.IF |= SERIAL_INT;
+	*MEM.IF |= SERIAL_INT;
 
 	transfer_callback(*MEM.SB);
 
@@ -32,7 +32,7 @@ void SerialPortInterface::update(unsigned tclocks) {
 			printf("[warning] cgb mode fast transfer not implemented\n");
 		}
 		if ((*MEM.SC & CLOCK) == 1) {
-			
+
 			clock += tclocks;
 
 			// tclock runs at 4,194,304 Hz
@@ -47,7 +47,7 @@ void SerialPortInterface::update(unsigned tclocks) {
 				if (transfer_bit == 8) {
 					finish();
 				}
-			}	
+			}
 		} else {
 			// serial port unimplemented
 		}
