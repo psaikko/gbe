@@ -28,8 +28,8 @@ void printRegisters(Memory &MEM, Registers &REG, bool words) {
 		printf("A %02X F %02X B %02X C %02X D %02X E %02X H %02X L %02X\n",
 			REG.A, REG.F, REG.B, REG.C, REG.D, REG.E, REG.H, REG.L);
 	} else {
-		printf("AF %04X BC %04X DE %04X HL %04X SP %04X PC %04X (HL) %02X\n",
-			REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(REG.HL));
+		printf("AF %04X BC %04X DE %04X HL %04X SP %04X PC %04X (LY) %02X\n",
+			REG.AF, REG.BC, REG.DE, REG.HL, REG.SP, REG.PC, MEM.readByte(0xFF44));
 	}
 }
 
@@ -217,12 +217,19 @@ int main(int argc, char ** argv) {
     REG.SP = 0xFFFE;
     REG.PC = 0x0100;
     *MEM.BIOS_OFF = 1;
+
+    *MEM.LCD_CTRL = 0x91;
+    *MEM.LCD_STAT = 0x05;
+    *MEM.IF = 0x03;
+    *MEM.SCAN_LN = 0;
+    GPU.state.clk = 408;
+    GPU.state.enabled = true;
   }
 
   MEM.break_addr = mem_breakpoint_addr;
 
 	// enable LCD
-	*MEM.LCD_CTRL = 0x80;
+	*MEM.LCD_CTRL |= 0x80;
 
 	// start audio/video sync timer
 	SyncTimer::get().start();
