@@ -1,0 +1,12 @@
+# requires: clang-format >= 14
+BasedOnStyle:   LLVM
+ColumnLimit:    120
+AlignConsecutiveAssignments:    true
+AlignConsecutiveMacros:    true
+AllowShortIfStatementsOnASingleLine:  false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortBlocksOnASingleLine:  false
+AlignAfterOpenBracket:  BlockIndent
+IndentCaseLabels: true
+IndentWidth:  4
