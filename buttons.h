@@ -12,16 +12,17 @@
 #define KEY_SELECT 0x40
 
 class Buttons {
-public:
-	Buttons() : state(0) {}
+  public:
+    Buttons() : state(0) {
+    }
 
-	uint8_t state;
+    uint8_t state;
 
-	uint8_t dpad_state() {
-		return state & 0x0F;
-	}
+    uint8_t dpad_state() {
+        return state & 0x0F;
+    }
 
-	uint8_t key_state() {
-		return state >> 4;
-	}
+    uint8_t key_state() {
+        return state >> 4;
+    }
 };

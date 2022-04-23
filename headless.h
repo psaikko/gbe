@@ -3,11 +3,11 @@
 #include "UI.h"
 
 class Headless : public UI {
- public:
-  Headless() : UI() {};
+  public:
+    Headless() : UI(){};
 
-  void update(unsigned) {};
+    void update(unsigned){};
 
-  void read(std::istream &) {};
-  void write(std::ostream &) const {};
+    void read(std::istream &){};
+    void write(std::ostream &) const {};
 };

@@ -1,33 +1,33 @@
 #pragma once
+#include "sound_defs.h"
 #include <inttypes.h>
 #include <iostream>
-#include "sound_defs.h"
 
 class Sound;
 
 class OpenAL_Output {
-public:
-	OpenAL_Output(Sound &SndRef);
-	~OpenAL_Output();
+  public:
+    OpenAL_Output(Sound &SndRef);
+    ~OpenAL_Output();
 
-	void update_buffer();
-	
-	unsigned queueSize();
+    void update_buffer();
 
-	sample_t *sample_queue;
-	unsigned queue_head;
-	unsigned queue_tail;
+    unsigned queueSize();
 
-  unsigned queued_buffers;
+    sample_t *sample_queue;
+    unsigned queue_head;
+    unsigned queue_tail;
 
-	Sound &SND;
-	ALuint src;
+    unsigned queued_buffers;
 
-	unsigned queue_capacity;
-	unsigned buffer_size;
+    Sound &SND;
+    ALuint src;
 
-	unsigned long samples;
+    unsigned queue_capacity;
+    unsigned buffer_size;
 
-  friend std::ostream & operator << (std::ostream & out, const OpenAL_Output & oa);
-  friend std::istream & operator >> (std::istream & in, OpenAL_Output & oa);
+    unsigned long samples;
+
+    friend std::ostream &operator<<(std::ostream &out, const OpenAL_Output &oa);
+    friend std::istream &operator>>(std::istream &in, OpenAL_Output &oa);
 };

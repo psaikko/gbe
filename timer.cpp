@@ -12,55 +12,55 @@
 #define TICK_65536_HZ  2 // M / 16
 #define TICK_16384_HZ  3 // M / 64
 
-#define FLAG_IF_TIMER  0x04
+#define FLAG_IF_TIMER 0x04
 
 void Timer::tick() {
-	if (*MEM.TIMA == 0xFF) {
-		*MEM.IF |= FLAG_IF_TIMER;
-		*MEM.TIMA = *MEM.TMA;
-	} else {
-		(*MEM.TIMA)++;
-	}
+    if (*MEM.TIMA == 0xFF) {
+        *MEM.IF |= FLAG_IF_TIMER;
+        *MEM.TIMA = *MEM.TMA;
+    } else {
+        (*MEM.TIMA)++;
+    }
 }
 
 void Timer::update(unsigned tclock) {
 
-	div_clock += tclock;
-	if (div_clock >= 256) {
-		(*MEM.DIV)++;
-		div_clock -= 256;	
-	}
+    div_clock += tclock;
+    if (div_clock >= 256) {
+        (*MEM.DIV)++;
+        div_clock -= 256;
+    }
 
-	if (*MEM.TAC & TIMER_CTRL_RUN) {
-		m_clock += tclock / 4;
+    if (*MEM.TAC & TIMER_CTRL_RUN) {
+        m_clock += tclock / 4;
 
-		switch (*MEM.TAC & TIMER_CTRL_SPD) {
-			case TICK_262144_HZ:
-				while (m_clock >= 4) {
-					tick();
-					m_clock -= 4;
-				}
-				break;
-			case TICK_65536_HZ:
-				while (m_clock >= 16) {
-					tick();
-					m_clock -= 16;
-				}
-				break;
-			case TICK_16384_HZ:
-				while (m_clock >= 64) {
-					tick();
-					m_clock -= 64;
-				}
-				break;
-			case TICK_4096_HZ:
-				while (m_clock >= 256) {
-					tick();
-					m_clock -= 256;
-				}
-				break;
-			}
-	} else {
-		m_clock = 0;
-	}
+        switch (*MEM.TAC & TIMER_CTRL_SPD) {
+            case TICK_262144_HZ:
+                while (m_clock >= 4) {
+                    tick();
+                    m_clock -= 4;
+                }
+                break;
+            case TICK_65536_HZ:
+                while (m_clock >= 16) {
+                    tick();
+                    m_clock -= 16;
+                }
+                break;
+            case TICK_16384_HZ:
+                while (m_clock >= 64) {
+                    tick();
+                    m_clock -= 64;
+                }
+                break;
+            case TICK_4096_HZ:
+                while (m_clock >= 256) {
+                    tick();
+                    m_clock -= 256;
+                }
+                break;
+        }
+    } else {
+        m_clock = 0;
+    }
 }

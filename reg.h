@@ -12,57 +12,57 @@
 #define BIT_7 0x80
 
 class Registers {
-public:
-  Registers() = default;
+  public:
+    Registers() = default;
 
-	union {
-		uint16_t AF;
-		struct {
-			union {
-				uint8_t F;
-				struct {
-					uint8_t _ : 4;
-					bool FLAG_C : 1;
-					bool FLAG_H : 1;
-					bool FLAG_N : 1;
-					bool FLAG_Z : 1;
-				};
-			};
-			uint8_t A;
-		};
-	};
+    union {
+        uint16_t AF;
+        struct {
+            union {
+                uint8_t F;
+                struct {
+                    uint8_t _ : 4;
+                    bool FLAG_C : 1;
+                    bool FLAG_H : 1;
+                    bool FLAG_N : 1;
+                    bool FLAG_Z : 1;
+                };
+            };
+            uint8_t A;
+        };
+    };
 
-	union {
-		uint16_t BC;
-		struct {
-			uint8_t C;
-			uint8_t B;
-		};
-	};
+    union {
+        uint16_t BC;
+        struct {
+            uint8_t C;
+            uint8_t B;
+        };
+    };
 
-	union {
-		uint16_t DE;
-		struct {
-			uint8_t E;
-			uint8_t D;
-		};
-	};
+    union {
+        uint16_t DE;
+        struct {
+            uint8_t E;
+            uint8_t D;
+        };
+    };
 
-	union {
-		uint16_t HL;
-		struct {
-			uint8_t L;
-			uint8_t H;
-		};
-	};
+    union {
+        uint16_t HL;
+        struct {
+            uint8_t L;
+            uint8_t H;
+        };
+    };
 
-	uint16_t SP;
-	uint16_t PC;
-	uint64_t TCLK;
+    uint16_t SP;
+    uint16_t PC;
+    uint64_t TCLK;
 
-	bool IME;
-	bool HALT;
+    bool IME;
+    bool HALT;
 
-  friend std::ostream & operator << (std::ostream & out, const Registers & reg);
-  friend std::istream & operator >> (std::istream & in, Registers & reg);
+    friend std::ostream &operator<<(std::ostream &out, const Registers &reg);
+    friend std::istream &operator>>(std::istream &in, Registers &reg);
 };
