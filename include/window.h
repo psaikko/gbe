@@ -20,8 +20,8 @@ class Sound;
 
 class Window : public UI {
   public:
-    Window(Memory &MemRef, Buttons &BtnRef, OpenAL_Output &ALRef, Sound &SndRef, Gpu &GPU, bool u)
-        : MEM(MemRef), BTN(BtnRef), SND_OUT(ALRef), SND(SndRef), GPU(GPU), unlocked_frame_rate(u), game_scale(4),
+    Window(Memory &MemRef, Buttons &BtnRef, Sound &SndRef, Gpu &GPU, bool u)
+        : MEM(MemRef), BTN(BtnRef), SND(SndRef), GPU(GPU), unlocked_frame_rate(u), game_scale(4),
           tileset_scale(2), tilemap_scale(1), f5_down(false), f6_down(false), state({0, 0}), UI() {
         if (!glfwInit()) {
             printf("Failed to initialize GLFW\n");
@@ -46,6 +46,10 @@ class Window : public UI {
             TILESET_WINDOW_W * tileset_scale, TILESET_WINDOW_H * tileset_scale, "gbe tileset", nullptr, nullptr
         );
         game_window = glfwCreateWindow(LCD_W * game_scale, LCD_H * game_scale, "gbe buffer", nullptr, nullptr);
+        if (game_window == NULL) {
+            printf("Failed to create window\n");
+            exit(1);
+        }
 
 #if GLFW_VERSION_MINOR >= 2
         glfwSetWindowAspectRatio(game_window, LCD_W, LCD_H);
@@ -123,6 +127,5 @@ class Window : public UI {
     Memory &MEM;
     Buttons &BTN;
     Sound &SND;
-    OpenAL_Output &SND_OUT;
     Gpu &GPU;
 };

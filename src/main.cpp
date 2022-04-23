@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
     Gpu GPU(MEM);
 
     UI *interface = headless ? static_cast<UI *>(new Headless())
-                             : static_cast<UI *>(new Window(MEM, BTN, SND_OUT, SND, GPU, unlocked_frame_rate));
+                             : static_cast<UI *>(new Window(MEM, BTN, SND, GPU, unlocked_frame_rate));
 
     Timer TIMER(MEM);
 
