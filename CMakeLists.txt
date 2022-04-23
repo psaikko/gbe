@@ -1,11 +1,12 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.8)
 
 project (gbe)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -funroll-loops -march=native -fPIC -Wall -Wextra -Wno-reorder")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -march=native -fPIC -Wall -Wextra -Wno-reorder")
 file(GLOB SOURCES "*.cpp")
 file(GLOB HEADERS "*.h")
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/wrapper.cpp)
@@ -26,6 +27,7 @@ include_directories(${GLFW_INCLUDE_DIRS})
 link_libraries(${GLFW_LIBRARY_DIRS})
 
 # opengl
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 
