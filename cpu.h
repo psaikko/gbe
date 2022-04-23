@@ -912,6 +912,13 @@ public:
 	void jr_e() {
 		uint8_t n = argbyte();
 		int8_t e = *reinterpret_cast<int8_t*>(&n);
+		#ifndef NDEBUG
+		if (e == -2) {
+			// jr_e advances PC by 2 (1 for instr, 1 for argbyte)
+			printf("DEBUG: exiting on JR infinite loop\n");
+			exit(1);
+		}
+		#endif
 		REG.PC += e;
 
 		REG.TCLK = 12;
@@ -924,7 +931,8 @@ public:
 			REG.TCLK = 12;
 			#ifndef NDEBUG
 			if (e == -2) {
-				printf("DEBUG: exiting on JRO 0\n");
+				// jr_f_e advances PC by 2 (1 for instr, 1 for argbyte)
+				printf("DEBUG: exiting on JR infinite loop\n");
 				exit(1);
 			}
 			#endif
