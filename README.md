@@ -2,8 +2,9 @@
 
 Work in progress .. most games correctly emulated
 ````
+sudo apt install g++ pkg-config cmake 
 sudo apt install libalut-dev libglfw3-dev libglm-dev libglew-dev
-cmake -DCMAKE_BUILD_TYPE=Release . && cmake . && make gbe
+cmake -DCMAKE_BUILD_TYPE=Release . && make gbe
 ./gbe [-B path_to_bios] -R path_to_rom
 ````
 
