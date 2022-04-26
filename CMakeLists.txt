@@ -10,20 +10,24 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -march=native -fPIC -Wall -Wextra -Wno-reorder")
 endif()
 
-file(GLOB SOURCES "src/*.cpp")
-file(GLOB HEADERS "include/*.h")
-list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/wrapper.cpp)
-
-set(LIB_SOURCES ${SOURCES})
+file(GLOB LIB_SOURCES "src/*.cpp")
+list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/wrapper.cpp) # pybind wrapper
 list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/window.cpp)
+list(REMOVE_ITEM LIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/openal_output.cpp)
 
 # library
-add_library(libgbe STATIC ${LIB_SOURCES} ${HEADERS})
+add_library(libgbe STATIC ${LIB_SOURCES})
 set_target_properties(libgbe PROPERTIES OUTPUT_NAME "gbe")
 
+set(EXE_SOURCES "")
+list(APPEND EXE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+list(APPEND EXE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/window.cpp)
+list(APPEND EXE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/openal_output.cpp)
+
 # gbe exe
-add_executable(gbe ${SOURCES} ${HEADERS})
+add_executable(gbe ${EXE_SOURCES})
+target_link_libraries(gbe libgbe)
 
 # glfw
 find_package(glfw3 REQUIRED)
