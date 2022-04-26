@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: build
+on: [push]
+jobs:
+    ubuntu-build:
+        runs-on: ubuntu-latest
+        container: psaikko/gbe-builder:ubuntu-22.04
+        steps:
+        - name: 'Run cmake and make'
+          run: |
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S. -B./build
+            make -C./build -j2
+        - name: 'Upload executable'  
+          uses: actions/upload-artifact@v3
+          with:
+            name: ubuntu-exe
+            path: ./build/gbe
+        - name: 'Upload library'
+          uses: actions/upload-artifact@v3
+          with:
+            name: ubuntu-lib
+            path: ./build/libgbe.a
