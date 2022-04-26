@@ -41,4 +41,3 @@ target_link_libraries(gbe GLEW::GLEW)
 # openal
 find_package(OpenAL REQUIRED)
 target_link_libraries(gbe openal)
-target_link_libraries(libgbe openal)

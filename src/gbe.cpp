@@ -5,7 +5,6 @@
 #include "cpu.h"
 #include "gpu.h"
 #include "mem.h"
-#include "openal_output.h"
 #include "reg.h"
 #include "serial.h"
 #include "sound.h"

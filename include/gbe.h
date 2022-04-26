@@ -8,7 +8,6 @@
 
 class Buttons;
 class Sound;
-class OpenAL_Output;
 class Cart;
 class Memory;
 class Registers;
