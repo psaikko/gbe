@@ -1,5 +1,9 @@
 cmake_minimum_required (VERSION 3.8)
 
+if (WIN32)
+    SET(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+endif()
+
 project (gbe)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -49,4 +53,10 @@ if (CMAKE_HOST_WIN32)
 else()
     find_package(OpenAL REQUIRED)
     target_link_libraries(gbe openal)
+endif()
+
+# getopt
+if (CMAKE_HOST_WIN32)
+    target_include_directories(gbe PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-windows/include")
+    target_link_libraries(gbe "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-windows/lib/getopt.lib")
 endif()
