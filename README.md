@@ -31,12 +31,12 @@ git submodule update --init vcpkg
 
 Build and run:
 ````
-cmake.exe -S. -B.\build
+cmake.exe -DCMAKE_CONFIGURATION_TYPES=Release -S. -B.\build
 MSBuild.exe .\build\gbe.sln
-.\build\gbe.exe [-B path_to_bios] -R path_to_rom
+.\build\Release\gbe.exe [-B path_to_bios] -R path_to_rom
 ````
 
-Features
+## Features
 ---
 gbe displays the main game window, tilesets, and tilemaps.
 
@@ -50,7 +50,8 @@ Shift+[F1-F4] disable individual sound channels.
 
 [F6] Loads state.
 
-Screenshots
+
+## Screenshots
 ---
 Game view:
 
@@ -60,7 +61,7 @@ Tileset view:
 
 ![Tileset window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Tileset_screenshot.png)
 
-Python wrapper
+## Python wrapper
 ---
 To install
 
@@ -77,7 +78,7 @@ gbe.run(70224)
 gbe.display()
 ```
 
-TODOs
+## TODOs
 ---
 - Cartridge saves
 - Cartridge realtime clock
