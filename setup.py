@@ -24,12 +24,12 @@ class get_pybind_include(object):
 ext_modules = [
     Extension(
         'libgbe',
-        ['wrapper.cpp'],
+        ['./src/wrapper.cpp'],
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
             get_pybind_include(user=True),
-            os.path.dirname(os.path.realpath(__file__))
+            os.path.join(os.path.dirname(os.path.realpath(__file__)), "include")
         ],
         extra_objects=[
             'libgbe.a'
@@ -38,7 +38,6 @@ ext_modules = [
         language='c++'
     ),
 ]
-
 
 # As of Python 3.6, CCompiler has a `has_flag` method.
 # cf http://bugs.python.org/issue26689

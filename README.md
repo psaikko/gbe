@@ -42,7 +42,7 @@ To install
 Usage
 
 ```
-import libgbe
+from libgbe import GBE
 gbe = GBE("path/to/rom")
 gbe.run(70224)
 gbe.display()
