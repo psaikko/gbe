@@ -43,9 +43,10 @@ find_package(GLEW REQUIRED)
 target_link_libraries(gbe GLEW::GLEW)
 
 # openal
-find_package(OpenAL CONFIG REQUIRED)
-if (WIN32)
+if (CMAKE_HOST_WIN32)
+    find_package(OpenAL CONFIG REQUIRED)
     target_link_libraries(gbe OpenAL::OpenAL)
 else()
+    find_package(OpenAL REQUIRED)
     target_link_libraries(gbe openal)
 endif()
