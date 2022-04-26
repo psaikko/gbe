@@ -6,6 +6,7 @@ jobs:
         runs-on: ubuntu-latest
         container: psaikko/gbe-builder:ubuntu-22.04
         steps:
+        - uses: actions/checkout@v3
         - name: 'Run cmake and make'
           run: |
             echo ${pwd}
