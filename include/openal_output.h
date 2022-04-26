@@ -2,6 +2,11 @@
 #include "sound_defs.h"
 #include <inttypes.h>
 #include <iostream>
+#include <AL/al.h>
+
+#define AL_BUFFER_LEN_MS 5
+#define QUEUE_LEN_MS     15
+#define FORMAT           AL_FORMAT_STEREO16
 
 class Sound;
 
