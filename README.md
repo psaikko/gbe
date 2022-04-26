@@ -37,7 +37,7 @@ MSBuild.exe .\build\gbe.sln
 ````
 
 ## Features
----
+
 gbe displays the main game window, tilesets, and tilemaps.
 
 Esc closes the emulator.
@@ -52,7 +52,7 @@ Shift+[F1-F4] disable individual sound channels.
 
 
 ## Screenshots
----
+
 Game view:
 
 ![Game window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Game_screenshot.png)
@@ -62,7 +62,7 @@ Tileset view:
 ![Tileset window](https://raw.githubusercontent.com/psaikko/gbe/master/img/Tileset_screenshot.png)
 
 ## Python wrapper
----
+
 To install
 
 0. `sudo apt install pybind11-dev python3-dev`
@@ -79,7 +79,7 @@ gbe.display()
 ```
 
 ## TODOs
----
+
 - Cartridge saves
 - Cartridge realtime clock
 - Multiple savestates
