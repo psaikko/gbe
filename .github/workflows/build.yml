@@ -8,6 +8,9 @@ jobs:
         steps:
         - name: 'Run cmake and make'
           run: |
+            echo ${pwd}
+            echo $USER
+            ls -lah
             cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S. -B./build
             make -C./build -j2
         - name: 'Upload executable'  
