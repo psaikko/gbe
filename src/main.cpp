@@ -194,7 +194,10 @@ int main(int argc, char **argv) {
 
     Cpu CPU(MEM, REG);
 
-    auto serial_callback = log_serial ? [](uint8_t b) { printf("[serial] %d\n", b); } : [](uint8_t) {};
+    std::function<void(uint8_t)> serial_callback = [](uint8_t) {};
+    if (log_serial) {
+        serial_callback = [](uint8_t b) { printf("[serial] %d\n", b); };
+    }
     SerialPortInterface SERIAL(MEM, serial_callback);
 
     if (load_bios) {
