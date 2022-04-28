@@ -7,25 +7,17 @@ on:
       - 'include/**.h'
       - 'CMakeLists.txt'
 jobs:
-    ubuntu-build:
+    build-library:
         runs-on: ubuntu-latest
         container: psaikko/gbe-builder:ubuntu-22.04
         steps:
         - uses: actions/checkout@v3
-        - name: 'Run cmake and make'
+        - name: 'Build static library'
           run: |
-            echo ${pwd}
-            echo $USER
-            ls -lah
             cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S. -B./build
-            make -C./build -j2
-        - name: 'Upload executable'  
+            make -C./build -j2 libgbe
+        - name: 'Upload library artifact'
           uses: actions/upload-artifact@v3
           with:
-            name: ubuntu-exe
-            path: ./build/gbe
-        - name: 'Upload library'
-          uses: actions/upload-artifact@v3
-          with:
-            name: ubuntu-lib
+            name: 'libgbe.a'
             path: ./build/libgbe.a
