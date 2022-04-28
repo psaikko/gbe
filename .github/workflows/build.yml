@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: build
-on: 
+on:
   push:
     paths:
       - 'src/**.cpp'
@@ -21,3 +21,6 @@ jobs:
           with:
             name: 'libgbe.a'
             path: ./build/libgbe.a
+        - name: 'Build executable'
+          run: |
+            make -C./build -j2 gbe
