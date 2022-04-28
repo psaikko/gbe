@@ -59,7 +59,7 @@ void Gpu::render_buffer_line() {
         return;
 
     uint8_t lcd_y = *MEM.SCAN_LN;
-    assert(lcd_y < 144);
+    assert(lcd_y < LCD_H);
 
     uint8_t *BG_MAP = (*MEM.LCD_CTRL & FLAG_GPU_BG_TM) ? MEM.TILEMAP1 : MEM.TILEMAP0;
 
@@ -331,7 +331,7 @@ void Gpu::update(unsigned tclock) {
                 if (state.clk >= 204) {
                     state.clk -= 204;
                     set_line(*MEM.SCAN_LN + 1);
-                    if (*MEM.SCAN_LN == 144) {
+                    if (*MEM.SCAN_LN == LCD_H) {
                         *MEM.IF |= FLAG_IF_VBLANK;
                         set_status(MODE_VBLANK);
                         lcd_buffer.swap(write_buffer);
