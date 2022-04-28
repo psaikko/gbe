@@ -47,7 +47,7 @@ class Cart {
         }
     }
 
-    explicit Cart(string &filename) : mbc_mode(controller_mode::ROM_banking), rom_bank(1), ram_bank(0) {
+    Cart(string &filename, bool print_to_stdout=false) : mbc_mode(controller_mode::ROM_banking), rom_bank(1), ram_bank(0) {
 
         ifstream romfile(filename, ios::binary);
         if (!romfile.good()) {
@@ -68,24 +68,7 @@ class Cart {
 
         char rom_name[16];
         memcpy(rom_name, &ROM[0x0134], 16);
-        printf("NAME:\t%-16s\n", rom_name);
-        printf("TYPE:\t");
-        if (ROM[0x0143] == 0x80)
-            printf("GBC ");
-        if (ROM[0x0146] == 0x00)
-            printf("GB ");
-        if (ROM[0x0146] == 0x03)
-            printf("SGB ");
-        printf("\n");
-
-        printf("SIZE:\t%dK\n", rom_size / 1024);
-
         uint8_t cart_type = ROM[0x0147];
-        if (cart_types.count(cart_type)) {
-            printf("CART:\t%s\n", cart_types[cart_type].c_str());
-        } else {
-            printf("Unknown type 0x%02X\n", cart_type);
-        }
 
         switch (cart_type) {
             default:
@@ -120,7 +103,6 @@ class Cart {
 
         uint8_t rom_type = ROM[0x0148];
         if (rom_types.count(rom_type)) {
-            printf("ROM:\t%s\n", rom_types[rom_type].first.c_str());
             rom_banks = rom_types[rom_type].second;
             assert(rom_banks == rom_size / 0x4000);
         } else {
@@ -130,7 +112,6 @@ class Cart {
 
         uint8_t ram_type = ROM[0x0149];
         if (ram_types.count(ram_type)) {
-            printf("RAM:\t%s\n", ram_types[ram_type].first.c_str());
             ram_banks = ram_types[ram_type].second;
             ram_size  = 0x2000 * ram_banks;
             RAM       = (uint8_t *)malloc(ram_size);
@@ -140,8 +121,30 @@ class Cart {
         }
 
         // TODO: compute checksum
-        printf("CPL:\t0x%02X\n", ROM[0x014D]);
-        printf("CHK:\t0x%02X 0x%02X\n", ROM[0x014E], ROM[0x014F]);
+        if (print_to_stdout) {
+            printf("NAME:\t%-16s\n", rom_name);
+            printf("TYPE:\t");
+            if (ROM[0x0143] == 0x80)
+                printf("GBC ");
+            if (ROM[0x0146] == 0x00)
+                printf("GB ");
+            if (ROM[0x0146] == 0x03)
+                printf("SGB ");
+            printf("\n");
+
+            printf("SIZE:\t%dK\n", rom_size / 1024);
+            if (cart_types.count(cart_type)) {
+                printf("CART:\t%s\n", cart_types[cart_type].c_str());
+            } else {
+                printf("Unknown type 0x%02X\n", cart_type);
+            }
+
+            printf("ROM:\t%s\n", rom_types[rom_type].first.c_str());
+            printf("RAM:\t%s\n", ram_types[ram_type].first.c_str());
+
+            printf("CPL:\t0x%02X\n", ROM[0x014D]);
+            printf("CHK:\t0x%02X 0x%02X\n", ROM[0x014E], ROM[0x014F]);
+        }
     }
 
   private:

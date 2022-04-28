@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     Buttons BTN;
     Sound SND;
     OpenAL_Output SND_OUT(SND);
-    Cart CART(romfile);
+    Cart CART(romfile, true);
     Memory MEM(CART, BTN, SND);
 
     Registers REG;
