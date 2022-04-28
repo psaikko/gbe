@@ -404,6 +404,10 @@ int main(int argc, char **argv) {
         clk += REG.TCLK;
         if (instruction_limit && clk > instruction_limit)
             break;
+        if (CPU.is_stuck()) {
+            printf("[warning] infinite loop detected\n");
+            break;
+        }
     }
 
     printf("Time: %lld ms\n", SyncTimer::get().elapsed_ms());

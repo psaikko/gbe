@@ -56,7 +56,12 @@ class Cpu {
     Instruction instructions[256];
     Instruction ext_instructions[256];
 
+    bool is_stuck() {
+        return stuck_flag;
+    }
+
   private:
+    bool stuck_flag = false;
     void init_instructions();
     void init_ext_instructions();
 
@@ -935,15 +940,8 @@ class Cpu {
     void jr_e() {
         uint8_t n = argbyte();
         int8_t e  = *reinterpret_cast<int8_t *>(&n);
-#ifndef NDEBUG
-        if (e == -2) {
-            // jr_e advances PC by 2 (1 for instr, 1 for argbyte)
-            printf("DEBUG: exiting on JR infinite loop\n");
-            exit(1);
-        }
-#endif
+        stuck_flag |= (e == -2);
         REG.PC += e;
-
         REG.TCLK = 12;
     }
 
@@ -952,13 +950,7 @@ class Cpu {
         if (cond) {
             int8_t e = *reinterpret_cast<int8_t *>(&n);
             REG.TCLK = 12;
-#ifndef NDEBUG
-            if (e == -2) {
-                // jr_f_e advances PC by 2 (1 for instr, 1 for argbyte)
-                printf("DEBUG: exiting on JR infinite loop\n");
-                exit(1);
-            }
-#endif
+            stuck_flag |= (e == -2);
             REG.PC += e;
         } else {
             REG.TCLK = 8;
