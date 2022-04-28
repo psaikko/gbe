@@ -10,7 +10,7 @@
 #include "sound.h"
 #include "timer.h"
 
-gbe::gbe(std::string romfile) : clock_overflow(0) {
+gbe::gbe(std::string romfile, std::function<void(uint8_t)> serial_send_cb) : clock_overflow(0) {
 
     BTN    = new Buttons();
     SND    = new Sound();
@@ -20,7 +20,7 @@ gbe::gbe(std::string romfile) : clock_overflow(0) {
     GPU    = new Gpu(*MEM);
     TIMER  = new Timer(*MEM);
     CPU    = new Cpu(*MEM, *REG);
-    SERIAL = new SerialPortInterface(*MEM);
+    SERIAL = new SerialPortInterface(*MEM, serial_send_cb);
 
     REG->AF = 0x01B0;
     REG->BC = 0x0013;
@@ -39,7 +39,7 @@ uint8_t *gbe::display() {
     return GPU->lcd_buffer.data();
 }
 
-void gbe::run(long clock_cycles) {
+bool gbe::run(long clock_cycles) {
 
     clock_cycles += clock_overflow;
 
@@ -74,9 +74,11 @@ void gbe::run(long clock_cycles) {
     }
 
     clock_overflow = clock_cycles;
+
+    return !CPU->is_stuck();
 }
 
-void gbe::run_to_vblank() {
+bool gbe::run_to_vblank() {
 
     while (true) {
 
@@ -109,7 +111,9 @@ void gbe::run_to_vblank() {
 
         // run until vblank triggered
         if (!was_vblank && is_vblank)
-            break;
+            return true;
+        if (CPU->is_stuck())
+            return false;
     }
 }
 

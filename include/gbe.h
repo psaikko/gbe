@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <functional>
 
 #define LCD_W 160u
 #define LCD_H 144u
@@ -21,16 +22,16 @@ class SerialPortInterface;
  */
 class gbe {
   public:
-    gbe(std::string romfile);
+    gbe(std::string romfile, std::function<void(uint8_t)> serial_send_cb = [](uint8_t) {});
 
     // get current contents of lcd display (160 * RGB * 144 bytes)
     uint8_t *display();
 
     // run emulator for some clock cycles (70224 cycles per frame when LCD is enabled)
-    void run(long clock_cycles);
+    bool run(long clock_cycles);
 
     // run emulator until next complete frame is rendered
-    void run_to_vblank();
+    bool run_to_vblank();
 
     // set button states (lasts until next input call)
     void input(bool up, bool down, bool left, bool right, bool a, bool b, bool start, bool select);
