@@ -1,6 +1,11 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: build
-on: [push]
+on: 
+  push:
+    paths:
+      - 'src/**.cpp'
+      - 'include/**.h'
+      - 'CMakeLists.txt'
 jobs:
     ubuntu-build:
         runs-on: ubuntu-latest
