@@ -206,11 +206,11 @@ void Memory::writeByte(uint16_t addr, uint8_t val) {
             break;
         case Cart::mbc_type::MBC1:
             if (addr <= 0x1FFF) {
-                if (val & 0x0A) {
-                    printf("[cart] ram enable\n");
-                } else {
-                    printf("[cart] ram disable\n");
-                }
+                // if (val & 0x0A) {
+                //     printf("[cart] ram enable\n");
+                // } else {
+                //     printf("[cart] ram disable\n");
+                // }
                 // printf("RAM enable / disable 0x%02X at 0x%04X\n", val, addr);
                 return;
             } else if (0x2000 <= addr && addr <= 0x3FFF) {
