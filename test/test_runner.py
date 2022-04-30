@@ -74,7 +74,7 @@ test_suites = [
     ])
 ]
 
-xml_root = ET.Element("testsuites")
+xml_root = ET.Element("testsuites", name="ROM tests")
 
 for ts in test_suites:
 
@@ -105,7 +105,7 @@ for ts in test_suites:
         out_str = str(out, "ascii")
         success = True if proc.returncode == 0 else False
 
-        ET.SubElement(tc_element, "system-out").text = repr(out_str)
+        # ET.SubElement(tc_element, "system-out").text = repr(out_str)
 
         # if not success:
         #     if "Failed" in out_str:
