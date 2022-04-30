@@ -52,4 +52,5 @@ jobs:
             name: ROM tests
             path: test/*.xml
             reporter: jest-junit
+            fail-on-error: 'false'
 
