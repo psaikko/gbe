@@ -41,12 +41,13 @@ jobs:
           shell: bash
           run: |
             cd test
+            ls -lah
             make
             python test_runner.py
         - name: Test Report
           uses: dorny/test-reporter@v1
           with:
-            name: ROM tests
+            name: rom-test-results
             path: test/*.xml
             reporter: jest-junit
             fail-on-error: 'false'

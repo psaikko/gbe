@@ -77,7 +77,7 @@ test_suites = [
     ])
 ]
 
-xml_root = ET.Element("testsuites", name="ROM tests", time="0")
+xml_root = ET.Element("testsuites", name="rom-test-results", time="0")
 
 for ts in test_suites:
 
