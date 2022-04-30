@@ -42,10 +42,13 @@ jobs:
           run: |
             cd test
             ls -lah
+            ls -lah ..
+            ls -lah ../build
+            file ../build/libgbe.a
             git status
             make
             python test_runner.py
-        - name: Test Report
+        - name: Test report
           uses: dorny/test-reporter@v1
           with:
             name: rom-test-results
