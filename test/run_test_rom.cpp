@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include "gbe.h"
 
@@ -41,7 +42,14 @@ bool run_test_rom_memory(std::string rom_path) {
         std::cout << memory_out_stream.str() << std::endl;
         return status == 0;
     } else {
-        std::cerr << "Signature BAD" << std::hex << int(chk_1) << int(chk_2) << int(chk_3) << std::endl;
+        std::cerr << "Signature BAD: "
+                  << std::setfill('0')
+                  << std::uppercase
+                  << std::hex
+                  << std::setw(2) << int(chk_1) << " "
+                  << std::setw(2) << int(chk_2) << " "
+                  << std::setw(2) << int(chk_3)
+                  << std::endl;
         return false;
     }
 
