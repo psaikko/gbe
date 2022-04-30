@@ -74,7 +74,7 @@ test_suites = [
     ])
 ]
 
-xml_root = ET.Element("testsuites", name="ROM tests")
+xml_root = ET.Element("testsuites", name="ROM tests", time="0")
 
 for ts in test_suites:
 
@@ -87,6 +87,9 @@ for ts in test_suites:
     print(ts.type)
 
     rom_paths = []
+
+    errors = 0
+    failures = 0
 
     if len(ts.individual_rom_paths):
         rom_paths = ts.individual_rom_paths
@@ -107,11 +110,16 @@ for ts in test_suites:
 
         # ET.SubElement(tc_element, "system-out").text = repr(out_str)
 
-        # if not success:
-        #     if "Failed" in out_str:
-        #         ET.SubElement(tc_element, "failure")
-        #     else:
-        #         ET.SubElement(tc_element, "error")
+        if not success:
+            if "Failed" in out_str:
+                ET.SubElement(tc_element, "failure")
+                failures += 1
+            else:
+                ET.SubElement(tc_element, "error")
+                errors += 1
+
+    ts_element.set('failures', str(failures))
+    ts_element.set('errors', str(errors))
 
 tree = ET.ElementTree(xml_root)
 tree.write("JUnit.xml")
