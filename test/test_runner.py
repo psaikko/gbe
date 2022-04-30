@@ -1,6 +1,7 @@
 import xml.etree.cElementTree as ET
 import subprocess
 from collections import namedtuple
+import os
 
 RUNNER_PATH = "./run_test_rom"
 
@@ -94,7 +95,9 @@ for ts in test_suites:
     for rom_path in rom_paths:
         print(rom_path)
 
-        tc_element = ET.SubElement(ts_element, "testcase")
+        test_name = os.path.join(*os.path.normpath(rom_path).split(os.sep)[2:])
+
+        tc_element = ET.SubElement(ts_element, "testcase", name=test_name, classname=test_name)
 
         proc = subprocess.Popen([RUNNER_PATH, ts.type, rom_path], stdout=subprocess.PIPE)
         out, err = proc.communicate()
