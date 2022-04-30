@@ -106,9 +106,12 @@ for ts in test_suites:
         proc = subprocess.Popen([RUNNER_PATH, ts.type, rom_path], stdout=subprocess.PIPE)
         out, err = proc.communicate()
         out_str = str(out, "ascii")
-        success = True if proc.returncode == 0 else False
+        err_str = str(err, "ascii")
 
-        if not success:
+        ET.SubElement(tc_element, "system-out").text = repr(out_str)
+        ET.SubElement(tc_element, "system-err").text = repr(err_str)
+
+        if proc.returncode != 0:
             if "Failed" in out_str:
                 ET.SubElement(tc_element, "failure").text = out_str
                 failures += 1
