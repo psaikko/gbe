@@ -108,14 +108,12 @@ for ts in test_suites:
         out_str = str(out, "ascii")
         success = True if proc.returncode == 0 else False
 
-        ET.SubElement(tc_element, "system-out").text = repr(out_str)
-
         if not success:
             if "Failed" in out_str:
-                ET.SubElement(tc_element, "failure")
+                ET.SubElement(tc_element, "failure").text = out_str
                 failures += 1
             else:
-                ET.SubElement(tc_element, "error")
+                ET.SubElement(tc_element, "error").text = out_str
                 errors += 1
 
     ts_element.set('failures', str(failures))
