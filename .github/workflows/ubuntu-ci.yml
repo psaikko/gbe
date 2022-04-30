@@ -42,11 +42,10 @@ jobs:
             cd test
             g++ -I../include run_test_rom.cpp -o run_test_rom ../libgbe.a
             python test_runner.py
-        - name: Test Report
-          uses: dorny/test-reporter@v1
+        - name: Test report
+          uses: EnricoMi/publish-unit-test-result-action@v1
           with:
-            name: ROM tests
-            path: test/*.xml
-            reporter: jest-junit
-            fail-on-error: 'false'
+            files: "test/*.xml"
+            comment_mode: off
+            check_name: Test ROM results
 
