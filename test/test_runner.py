@@ -2,6 +2,9 @@ import xml.etree.cElementTree as ET
 import subprocess
 from collections import namedtuple
 import os
+import sys
+
+print(sys.argv[0])
 
 RUNNER_PATH = "./run_test_rom"
 
@@ -52,20 +55,20 @@ test_suites = [
         "../gb-test-roms/cpu_instrs/individual/11-op a,(hl).gb",
         "../gb-test-roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb",
     ]),
-    TestSuite("cgb_sound", "memory", "../gb-test-roms/cgb_sound/cgb_sound.gb", [
-        "../gb-test-roms/cgb_sound/rom_singles/07-len sweep period sync.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/11-regs after power.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/08-len ctr during power.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/06-overflow on trigger.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/03-trigger.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/12-wave.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/01-registers.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/02-len ctr.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/10-wave trigger while on.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/09-wave read while on.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/04-sweep.gb",
-        "../gb-test-roms/cgb_sound/rom_singles/05-sweep details.gb",
-    ]),
+    # TestSuite("cgb_sound", "memory", "../gb-test-roms/cgb_sound/cgb_sound.gb", [
+    #     "../gb-test-roms/cgb_sound/rom_singles/07-len sweep period sync.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/11-regs after power.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/08-len ctr during power.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/06-overflow on trigger.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/03-trigger.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/12-wave.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/01-registers.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/02-len ctr.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/10-wave trigger while on.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/09-wave read while on.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/04-sweep.gb",
+    #     "../gb-test-roms/cgb_sound/rom_singles/05-sweep details.gb",
+    # ]),
     TestSuite("interrupt_time", "serial", "../gb-test-roms/interrupt_time/interrupt_time.gb", []),
     TestSuite("mem_timing", "serial", "../gb-test-roms/mem_timing/mem_timing.gb", [
         "../gb-test-roms/mem_timing/individual/03-modify_timing.gb",
@@ -116,7 +119,7 @@ for ts in test_suites:
                 ET.SubElement(tc_element, "failure").text = out_str
                 failures += 1
             else:
-                ET.SubElement(tc_element, "error").text = out_str
+                ET.SubElement(tc_element, "error").text = err_str
                 errors += 1
 
     ts_element.set('failures', str(failures))
