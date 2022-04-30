@@ -42,6 +42,7 @@ jobs:
           run: |
             cd test
             ls -lah
+            git status
             make
             python test_runner.py
         - name: Test Report
