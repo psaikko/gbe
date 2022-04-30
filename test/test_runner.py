@@ -116,7 +116,7 @@ for ts in test_suites:
                 ET.SubElement(tc_element, "failure").text = out_str
                 failures += 1
             else:
-                ET.SubElement(tc_element, "error").text = err_str
+                ET.SubElement(tc_element, "error").text = out_str
                 errors += 1
 
     ts_element.set('failures', str(failures))
