@@ -34,18 +34,13 @@ jobs:
         - uses: actions/download-artifact@v3
           with:
             name: libgbe.a
-            path: build/libgbe.a
+            path: build
         - name: Get test ROMs submodule
           run: git submodule update --init gb-test-roms
         - name: Compile runner and run tests
           shell: bash
           run: |
             cd test
-            ls -lah
-            ls -lah ..
-            ls -lah ../build
-            file ../build/libgbe.a
-            git status
             make
             python test_runner.py
         - name: Test report
