@@ -1,2 +1,2 @@
-run_test_rom: run_test_rom.cpp
-	g++ -I../include $^ -o run_test_rom ../build/libgbe.a
+run_test_rom: rom_runner.cpp
+	g++ -I../include $^ -o rom_runner ../build/libgbe.a

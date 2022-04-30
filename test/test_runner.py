@@ -2,11 +2,8 @@ import xml.etree.cElementTree as ET
 import subprocess
 from collections import namedtuple
 import os
-import sys
 
-print(sys.argv[0])
-
-RUNNER_PATH = "./run_test_rom"
+RUNNER_PATH = "./rom_runner"
 
 TestSuite = namedtuple("TestSuite", "name type main_rom_path individual_rom_paths")
 
