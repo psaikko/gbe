@@ -39,11 +39,12 @@ jobs:
         - name: Compile rom runner
           shell: bash
           run: |
-            echo `ls -lah`
-            echo `pwd`
+            ls -lah
+            pwd
+            g++ -v
+            python --version
             cd test
             g++ -I../include run_test_rom.cpp -o run_test_rom ../libgbe.a
-            python --version
             python test_runner.py
         - name: Test Report
           uses: dorny/test-reporter@v1
