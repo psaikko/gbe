@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: build
+name: ubuntu-ci
 on:
   push:
     paths:
@@ -34,15 +34,11 @@ jobs:
         - uses: actions/download-artifact@v3
           with:
             name: libgbe.a
-        - name: Get test rom submodule
+        - name: Get test ROMs submodule
           run: git submodule update --init gb-test-roms
-        - name: Compile rom runner
+        - name: Compile runner and run tests
           shell: bash
           run: |
-            ls -lah
-            pwd
-            g++ -v
-            python --version
             cd test
             g++ -I../include run_test_rom.cpp -o run_test_rom ../libgbe.a
             python test_runner.py
