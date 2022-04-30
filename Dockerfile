@@ -1,9 +1,9 @@
 # Dockerfile for psaikko/gbe-builder
 # TODO: build and upload from github action
 
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
-RUN apt update && apt install -y \ 
+RUN apt update && apt install -y \
     g++ \
     cmake \
     libalut-dev \

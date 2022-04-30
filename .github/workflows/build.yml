@@ -10,8 +10,8 @@ on:
       - 'CMakeLists.txt'
 jobs:
     build-library:
-        runs-on: ubuntu-latest
-        container: psaikko/gbe-builder:ubuntu-22.04
+        runs-on: ubuntu-20.04
+        container: psaikko/gbe-builder:ubuntu-20.04
         steps:
         - uses: actions/checkout@v3
         - name: Build static library
@@ -28,7 +28,7 @@ jobs:
             make -C./build -j2 gbe
     run-test-roms:
         needs: build-library
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
         steps:
         - uses: actions/checkout@v3
         - uses: actions/download-artifact@v3
