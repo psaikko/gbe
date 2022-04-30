@@ -26,8 +26,8 @@ bool run_test_rom_memory(std::string rom_path) {
 
     // Magic numbers indicate test could be run
     if (chk_1 == 0xDE && chk_2 == 0xB0 && chk_3 == 0x61) {
-        std::cout << "Signature OK" << std::endl;
-        std::cout << "Status " << std::hex << int(status) << std::endl;
+        std::cerr << "Signature OK" << std::endl;
+        std::cerr << "Status " << std::hex << int(status) << std::endl;
         const int max_chars = 512;
         std::stringstream memory_out_stream;
         // On a successful test run, this rom outputs a zero-terminated string to 0xA004
@@ -41,7 +41,7 @@ bool run_test_rom_memory(std::string rom_path) {
         std::cout << memory_out_stream.str() << std::endl;
         return status == 0;
     } else {
-        std::cout << "Signature BAD" << std::hex << chk_1 << chk_2 << chk_3 << std::endl;
+        std::cerr << "Signature BAD" << std::hex << int(chk_1) << int(chk_2) << int(chk_3) << std::endl;
         return false;
     }
 
