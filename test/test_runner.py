@@ -103,7 +103,7 @@ for ts in test_suites:
 
         tc_element = ET.SubElement(ts_element, "testcase", name=test_name, classname=test_name, time="0")
 
-        proc = subprocess.Popen([RUNNER_PATH, ts.type, rom_path], stdout=subprocess.PIPE)
+        proc = subprocess.Popen([RUNNER_PATH, ts.type, rom_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
         out_str = str(out, "ascii")
         err_str = str(err, "ascii")
