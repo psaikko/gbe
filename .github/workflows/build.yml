@@ -38,7 +38,8 @@ jobs:
         - name: Compile rom runner
           shell: bash
           run: |
-            echo ${ls}
+            echo ${ls -lah}
+            echo ${pwd}
             cd test
             g++ -I../include run_test_rom.cpp -o run_test_rom ../libgbe.a
             python --version
