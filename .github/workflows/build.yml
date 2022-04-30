@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/**.cpp'
       - 'include/**.h'
+      - 'test/*'
       - 'CMakeLists.txt'
 jobs:
     build-library:
@@ -12,15 +13,40 @@ jobs:
         container: psaikko/gbe-builder:ubuntu-22.04
         steps:
         - uses: actions/checkout@v3
-        - name: 'Build static library'
+        - name: Build static library
           run: |
             cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S. -B./build
             make -C./build -j2 libgbe
-        - name: 'Upload library artifact'
+        - name: Upload library artifact
           uses: actions/upload-artifact@v3
           with:
-            name: 'libgbe.a'
+            name: libgbe.a
             path: ./build/libgbe.a
-        - name: 'Build executable'
+        - name: Build executable
           run: |
             make -C./build -j2 gbe
+    run-test-roms:
+        needs: build-library
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v3
+        - uses: actions/download-artifact@v3
+          with:
+            name: libgbe.a
+        - name: Get test rom submodule
+          run: git submodule update --init gb-test-roms
+        - name: Compile rom runner
+          shell: bash
+          run: |
+            echo ${ls}
+            cd test
+            g++ -I../include run_test_rom.cpp -o run_test_rom ../libgbe.a
+            python --version
+            python test_runner.py
+        - name: Test Report
+          uses: dorny/test-reporter@v1
+          with:
+            name: ROM tests
+            path: test/*.xml
+            reporter: java-Junit
+
