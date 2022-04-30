@@ -108,8 +108,8 @@ for ts in test_suites:
         out_str = str(out, "ascii")
         err_str = str(err, "ascii")
 
-        ET.SubElement(tc_element, "system-out").text = repr(out_str)
-        ET.SubElement(tc_element, "system-err").text = repr(err_str)
+        # ET.SubElement(tc_element, "system-out").text = repr(out_str)
+        # ET.SubElement(tc_element, "system-err").text = repr(err_str)
 
         if proc.returncode != 0:
             if "Failed" in out_str:
