@@ -80,7 +80,8 @@ for ts in test_suites:
 
     ts_element = ET.SubElement(xml_root, "testsuite",
         name=ts.name,
-        tests=str(max(1, len(ts.individual_rom_paths))))
+        tests=str(max(1, len(ts.individual_rom_paths))),
+        time="0")
 
     print(ts.name)
     print(ts.type)
@@ -97,7 +98,7 @@ for ts in test_suites:
 
         test_name = os.path.join(*os.path.normpath(rom_path).split(os.sep)[2:])
 
-        tc_element = ET.SubElement(ts_element, "testcase", name=test_name, classname=test_name)
+        tc_element = ET.SubElement(ts_element, "testcase", name=test_name, classname=test_name, time="0")
 
         proc = subprocess.Popen([RUNNER_PATH, ts.type, rom_path], stdout=subprocess.PIPE)
         out, err = proc.communicate()
