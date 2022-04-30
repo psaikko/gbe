@@ -107,11 +107,11 @@ for ts in test_suites:
 
         ET.SubElement(tc_element, "system-out").text = repr(out_str)
 
-        if not success:
-            if "Failed" in out_str:
-                ET.SubElement(tc_element, "failure")
-            else:
-                ET.SubElement(tc_element, "error")
+        # if not success:
+        #     if "Failed" in out_str:
+        #         ET.SubElement(tc_element, "failure")
+        #     else:
+        #         ET.SubElement(tc_element, "error")
 
 tree = ET.ElementTree(xml_root)
 tree.write("JUnit.xml")
