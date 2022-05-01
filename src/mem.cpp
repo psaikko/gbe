@@ -53,7 +53,8 @@ uint8_t *Memory::getReadPtr(uint16_t addr) {
                     case 0xFF80: // ZERO
                         return &RAW[addr];
                     default:
-                        assert(false);
+                        printf("[mem] read from bad address 0x%04X\n", addr);
+                        exit(1);
                 }
             }
     }
@@ -106,7 +107,8 @@ uint8_t *Memory::getWritePtr(uint16_t addr) {
                     case 0xFF80: // ZERO
                         return &RAW[addr];
                     default:
-                        assert(false);
+                        printf("[mem] write to bad address 0x%04X\n", addr);
+                        exit(1);
                 }
             }
     }
