@@ -3,7 +3,7 @@ name: ubuntu-ci
 on:
   push:
     paths:
-      - '.github/workflows/*'
+      - '.github/workflows/ubuntu-ci.yml'
       - 'src/**.cpp'
       - 'include/**.h'
       - 'test/*'

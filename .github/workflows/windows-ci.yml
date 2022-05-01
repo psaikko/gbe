@@ -1,0 +1,34 @@
+name: windows-ci
+on:
+  push:
+    paths:
+      - '.github/workflows/windows-ci.yml'
+      - 'src/**.cpp'
+      - 'include/**.h'
+      - 'CMakeLists.txt'
+jobs:
+  build-library:
+        runs-on: windows-latest
+        steps:
+        - uses: actions/checkout@v3
+        - name: get-cmake
+          uses: lukka/get-cmake@v3.21.1
+
+        - name: Add msbuild to PATH
+          uses: microsoft/setup-msbuild@v1.1
+
+        - name: Setup vcpkg
+          run: |
+            git submodule update --init vcpkg
+            .\vcpkg\bootstrap-vcpkg.bat
+            .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows
+
+        - name: Build
+          run: |
+            cmake.exe -DCMAKE_CONFIGURATION_TYPES=Release -S. -B.\build
+            MSBuild.exe .\build\gbe.sln
+
+        - name: Debug
+          run: |
+            cd build
+            dir
