@@ -11,7 +11,8 @@ jobs:
         runs-on: windows-latest
         steps:
         - uses: actions/checkout@v3
-        - name: get-cmake
+
+        - name: Get cmake
           uses: lukka/get-cmake@v3.21.1
 
         - name: Add msbuild to PATH
@@ -21,14 +22,29 @@ jobs:
           run: |
             git submodule update --init vcpkg
             .\vcpkg\bootstrap-vcpkg.bat
+
+        - name: Cache vcpkg dependencies
+          uses: actions/cache@v3
+          env:
+            cache-name: cache-vcpkg-deps
+          with:
+            path: .\vcpkg\installed
+            key: test
+
+        - name: Install dependencies
             .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows
 
-        - name: Build
-          run: |
-            cmake.exe -DCMAKE_CONFIGURATION_TYPES=Release -S. -B.\build
-            MSBuild.exe .\build\gbe.sln
+        - name: Run cmake
+          run: cmake.exe -DCMAKE_CONFIGURATION_TYPES=Release -S. -B.\build
 
-        - name: Debug
-          run: |
-            cd build
-            dir
+        - name: Build library
+          run: MSBuild.exe .\build\libgbe.sln
+
+        - name: Upload library artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: libgbe.lib
+            path: ./build/Release/libgbe.lib
+
+        - name: Build executable
+          run: MSBuild.exe .\build\gbe.sln
