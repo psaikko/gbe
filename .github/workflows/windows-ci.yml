@@ -35,7 +35,7 @@ jobs:
         key: test
 
     - name: Install dependencies
-      run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows-rel
+      run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows-release
 
     - name: Run cmake
       run: cmake.exe -DCMAKE_CONFIGURATION_TYPES=$CONFIG_TYPE -S. -B$BUILD_DIR
