@@ -26,16 +26,16 @@ jobs:
         git submodule update --init vcpkg
         .\vcpkg\bootstrap-vcpkg.bat
 
-    - name: Cache vcpkg dependencies
+    - name: Cache vcpkg
       uses: actions/cache@v3
       env:
-        cache-name: cache-vcpkg-deps
+        cache-name: cache-vcpkg
       with:
-        path: .\vcpkg\installed
+        path: .\vcpkg
         key: test
 
     - name: Install dependencies
-      run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows-release
+      run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows
 
     - name: Run cmake
       run: cmake.exe -DCMAKE_CONFIGURATION_TYPES=$Env:CONFIG_TYPE -S . -B $env:BUILD_DIR
