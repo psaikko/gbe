@@ -1,6 +1,6 @@
 name: windows-ci
 env:
-  BUILD_DIR: .\build
+  BUILD_DIR: build
   CONFIG_TYPE: Release
 on:
   push:
@@ -37,8 +37,8 @@ jobs:
     - name: Install dependencies
       run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows
 
-    - name: Run cmake
-      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES=$Env:CONFIG_TYPE -S . -B $env:BUILD_DIR
+    - name: Run cmake"
+      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$Env:CONFIG_TYPE" -S . -B $env:BUILD_DIR
 
     - name: Build library
       run: MSBuild.exe $env:BUILD_DIR\gbe.sln /target:libgbe
