@@ -38,16 +38,16 @@ jobs:
       run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows-release
 
     - name: Run cmake
-      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES=$CONFIG_TYPE -S. -B$BUILD_DIR
+      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$CONFIG_TYPE" -S. -B"$BUILD_DIR"
 
     - name: Build library
-      run: MSBuild.exe $BUILD_DIR\gbe.sln /target:libgbe
+      run: MSBuild.exe "$BUILD_DIR\gbe.sln" /target:libgbe
 
     - name: Upload library artifact
       uses: actions/upload-artifact@v3
       with:
         name: libgbe.lib
-        path: $BUILD_DIR\$CONFIG_TYPE\libgbe.lib
+        path: "$BUILD_DIR/$CONFIG_TYPE/libgbe.lib"
 
     - name: Build executable
-      run: MSBuild.exe $BUILD_DIR\gbe.sln /target:gbe
+      run: MSBuild.exe "$BUILD_DIR\gbe.sln" /target:gbe
