@@ -23,21 +23,19 @@ jobs:
 
     - name: Cache vcpkg
       uses: actions/cache@v3
+      id: cache
       env:
         cache-name: cache-vcpkg
       with:
         path: .\vcpkg
         key: vcpkg_deps-${{ hashFiles('.vcpkg_deps.txt') }}
 
-    - name: Setup vcpkg
+    - name: Setup vcpkg and install deps
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        if ((Get-ChildItem vcpkg | Measure-Object).Count -eq 0) {
-          git submodule update --init vcpkg
-        }
+        git submodule update --init vcpkg
         .\vcpkg\bootstrap-vcpkg.bat
-
-    - name: Install dependencies
-      run: .\vcpkg\vcpkg.exe install --triplet=x64-windows "@.vcpkg_deps.txt"
+        .\vcpkg\vcpkg.exe install --triplet=x64-windows "@.vcpkg_deps.txt"
 
     - name: Run cmake
       run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$env:CONFIG_TYPE" -S . -B $env:BUILD_DIR
