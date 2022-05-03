@@ -21,27 +21,31 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
 
-    - name: Setup vcpkg
-      run: |
-        git submodule update --init vcpkg
-        .\vcpkg\bootstrap-vcpkg.bat
-
     - name: Cache vcpkg
       uses: actions/cache@v3
       env:
         cache-name: cache-vcpkg
       with:
         path: .\vcpkg
-        key: test
+        key: vcpkg_deps-${{ hashFiles('.vcpkg_deps.txt') }}
+        restore-keys: test
+
+    - name: Setup vcpkg
+      run: |
+        git submodule update --init vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat
 
     - name: Install dependencies
-      run: .\vcpkg\vcpkg.exe install glfw3 glew glm openal-soft freealut getopt --triplet=x64-windows
+      run: .\vcpkg\vcpkg.exe install --triplet=x64-windows "@.vcpkg_deps.txt"
 
-    - name: Run cmake"
-      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$Env:CONFIG_TYPE" -S . -B $env:BUILD_DIR
+    - name: Run cmake
+      run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$env:CONFIG_TYPE" -S . -B $env:BUILD_DIR
 
     - name: Build library
-      run: MSBuild.exe $env:BUILD_DIR\gbe.sln /target:libgbe
+      run: |
+        MSBuild.exe $env:BUILD_DIR\gbe.sln /target:libgbe
+        dir build
+        dir build\Release
 
     - name: Upload library artifact
       uses: actions/upload-artifact@v3

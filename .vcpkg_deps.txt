@@ -1,0 +1,6 @@
+glfw3
+glew
+glm
+openal-soft
+freealut
+getopt
