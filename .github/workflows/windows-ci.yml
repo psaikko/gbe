@@ -31,8 +31,9 @@ jobs:
 
     - name: Setup vcpkg
       run: |
-        git submodule
-        git submodule update --init vcpkg
+        if ((Get-ChildItem vcpkg | Measure-Object).Count -eq 0) {
+          git submodule update --init vcpkg
+        }
         .\vcpkg\bootstrap-vcpkg.bat
 
     - name: Install dependencies
