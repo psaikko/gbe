@@ -28,10 +28,10 @@ jobs:
       with:
         path: .\vcpkg
         key: vcpkg_deps-${{ hashFiles('.vcpkg_deps.txt') }}
-        restore-keys: test
 
     - name: Setup vcpkg
       run: |
+        git submodule
         git submodule update --init vcpkg
         .\vcpkg\bootstrap-vcpkg.bat
 
@@ -42,16 +42,13 @@ jobs:
       run: cmake.exe -DCMAKE_CONFIGURATION_TYPES="$env:CONFIG_TYPE" -S . -B $env:BUILD_DIR
 
     - name: Build library
-      run: |
-        MSBuild.exe $env:BUILD_DIR\gbe.sln /target:libgbe
-        dir build
-        dir build\Release
+      run: MSBuild.exe $env:BUILD_DIR\gbe.sln /target:libgbe
 
     - name: Upload library artifact
       uses: actions/upload-artifact@v3
       with:
         name: libgbe.lib
-        path: ${{ env.BUILD_DIR }}/${{ env.CONFIG_TYPE }}/libgbe.lib
+        path: ${{ env.BUILD_DIR }}/${{ env.CONFIG_TYPE }}/gbe.lib
 
     - name: Build executable
       run: MSBuild.exe $env:BUILD_DIR\gbe.sln /target:gbe
