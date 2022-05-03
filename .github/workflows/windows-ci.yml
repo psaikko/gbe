@@ -27,7 +27,11 @@ jobs:
       env:
         cache-name: cache-vcpkg
       with:
-        path: .\vcpkg
+        path: |
+          vcpkg
+          !vcpkg\.git
+          !vcpkg\downloads
+          !vcpkg\buildtrees
         key: vcpkg_deps-${{ hashFiles('.vcpkg_deps.txt') }}
 
     - name: Setup vcpkg and install deps
