@@ -56,11 +56,14 @@ class Sound {
     LengthCounter *Ch4_Length;
 
     std::unordered_map<uint16_t, uint8_t *> reg_pointers;
+    std::unordered_map<uint16_t, uint8_t> reg_masks;
 
     sample_t updateCh1(unsigned tclock);
     sample_t updateCh2(unsigned tclock);
     sample_t updateCh3(unsigned tclock);
     sample_t updateCh4(unsigned tclock);
+
+    void clearRegisters();
 };
 
 // 1 step = n/64 sec
