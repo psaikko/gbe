@@ -289,7 +289,7 @@ void Sound::writeByte(uint16_t addr, uint8_t val) {
         printf("[snd] write %02X to unused register %04X\n", val, addr);
     } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
         wave_pattern_ram[addr & 0x000F] = val;
-    } else {
+    } else if (Control->sound_on) {
         *reg_pointers[addr] = val;
     }
 }
