@@ -167,24 +167,24 @@ struct Sound::CH4 {
 struct Sound::CTRL {
     union {
         struct { // rw
-            uint8_t SO1_vol : 3;
-            uint8_t SO1_vin : 1;
-            uint8_t SO2_vol : 3;
-            uint8_t SO2_vin : 1;
+            uint8_t SO1_vol : 3; // left channel volume
+            uint8_t SO1_vin : 1; // left channel cart input
+            uint8_t SO2_vol : 3; // right channel volume
+            uint8_t SO2_vin : 1; // right channel cart input
         };
         uint8_t NR50;
     };
 
     union {
         struct { // rw
-            uint8_t CH1_SO1 : 1;
-            uint8_t CH2_SO1 : 1;
-            uint8_t CH3_SO1 : 1;
-            uint8_t CH4_SO1 : 1;
-            uint8_t CH1_SO2 : 1;
-            uint8_t CH2_SO2 : 1;
-            uint8_t CH3_SO2 : 1;
-            uint8_t CH4_SO2 : 1;
+            uint8_t CH1_SO1 : 1; // ch1 to right channel
+            uint8_t CH2_SO1 : 1; // ch2 to right channel
+            uint8_t CH3_SO1 : 1; // ch3 to right channel
+            uint8_t CH4_SO1 : 1; // ch4 to right channel
+            uint8_t CH1_SO2 : 1; // ch1 to left channel
+            uint8_t CH2_SO2 : 1; // ch2 to left channel
+            uint8_t CH3_SO2 : 1; // ch3 to left channel
+            uint8_t CH4_SO2 : 1; // ch4 to left channel
         };
         uint8_t NR51;
     };
@@ -241,6 +241,15 @@ Sound::Sound() : samples(0), clock(0), lsample(0), rsample(0) {
                     {0xFF21, &(Channel4->NR42)}, {0xFF22, &(Channel4->NR43)}, {0xFF23, &(Channel4->NR44)},
                     {0xFF24, &(Control->NR50)},  {0xFF25, &(Control->NR51)},  {0xFF26, &(Control->NR52)}};
 
+    // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Register_Reading
+    reg_masks = {{0xFF10, 0x80}, {0xFF11, 0x3F}, {0xFF12, 0x00}, {0xFF13, 0xFF}, {0xFF14, 0xBF},
+                 {0xFF15, 0xFF}, {0xFF16, 0x3f}, {0xFF17, 0x00}, {0xFF18, 0xFF}, {0xFF19, 0xBF},
+                 {0xFF1A, 0x7F}, {0xFF1B, 0xFF}, {0xFF1C, 0x9F}, {0xFF1D, 0xFF}, {0xFF1E, 0xBF},
+                 {0xFF1F, 0xFF}, {0xFF20, 0xFF}, {0xFF21, 0x00}, {0xFF22, 0x00}, {0xFF23, 0xBF},
+                 {0xFF24, 0x00}, {0xFF25, 0x00}, {0xFF26, 0x70}, {0xFF27, 0xFF}, {0xFF28, 0xFF},
+                 {0xFF29, 0xFF}, {0xFF2A, 0xFF}, {0xFF2B, 0xFF}, {0xFF2C, 0xFF}, {0xFF2D, 0xFF},
+                 {0xFF2E, 0xFF}, {0xFF2F, 0xFF}};
+
     mute_ch1 = false;
     mute_ch2 = false;
     mute_ch3 = false;
@@ -258,60 +267,44 @@ Sound::Sound() : samples(0), clock(0), lsample(0), rsample(0) {
     }
 }
 
+void Sound::clearRegisters() {
+    for (auto pair : reg_pointers) {
+        if (pair.first != 0xFF26) {
+            *pair.second = 0;
+        }
+    }
+}
+
 void Sound::writeByte(uint16_t addr, uint8_t val) {
-    // mask out readonly bits of FF26
-    if (addr == 0xFF26)
+
+    if (addr == 0xFF26) {
+        // write only allowed to high (power) bit
         val &= 0x80;
-    if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
+        *reg_pointers[addr] = val;
+        if (val == 0) {
+            // zero write to power bit clears registers
+            clearRegisters();
+        }
+    } else if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
         printf("[snd] write %02X to unused register %04X\n", val, addr);
     } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
         wave_pattern_ram[addr & 0x000F] = val;
-    } else {
+    } else if (Control->sound_on) {
         *reg_pointers[addr] = val;
     }
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
-    // mask out writeonly bits
-    uint8_t mask = 0;
-    switch (addr) {
-        case 0xFF11:
-            mask = 0x1F;
-            break;
-        case 0xFF13:
-            mask = 0xFF;
-            break;
-        case 0xFF14:
-            mask = 0x83;
-            break;
-        case 0xFF16:
-            mask = 0x1F;
-            break;
-        case 0xFF18:
-            mask = 0xFF;
-            break;
-        case 0xFF19:
-            mask = 0x83;
-            break;
-        case 0xFF1D:
-            mask = 0xFF;
-            break;
-        case 0xFF1E:
-            mask = 0x83;
-            break;
-        default:
-            break;
-    }
-    mask = ~mask;
     if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
         printf("[snd] read from unused register %04X\n", addr);
-        return 0;
+        return 0xFF;
     } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
         return wave_pattern_ram[addr & 0x000F];
     } else {
         // printf("[snd] read from register %04X\n", addr);
         uint8_t val = *reg_pointers[addr];
-        return val & mask;
+        // mask out select register bits as all 1s
+        return val | reg_masks[addr];
     }
 }
 
