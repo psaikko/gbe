@@ -278,9 +278,13 @@ void Sound::clearRegisters() {
 void Sound::writeByte(uint16_t addr, uint8_t val) {
 
     if (addr == 0xFF26) {
-        // mask out readonly bits of FF26
-        // allow write to high bits when off
-        *reg_pointers[addr] = val & 0x80;
+        // write only allowed to high (power) bit
+        val &= 0x80;
+        *reg_pointers[addr] = val;
+        if (val == 0) {
+            // zero write to power bit clears registers
+            clearRegisters();
+        }
     } else if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
         printf("[snd] write %02X to unused register %04X\n", val, addr);
     } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
