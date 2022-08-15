@@ -167,24 +167,24 @@ struct Sound::CH4 {
 struct Sound::CTRL {
     union {
         struct { // rw
-            uint8_t SO1_vol : 3;
-            uint8_t SO1_vin : 1;
-            uint8_t SO2_vol : 3;
-            uint8_t SO2_vin : 1;
+            uint8_t SO1_vol : 3; // left channel volume
+            uint8_t SO1_vin : 1; // left channel cart input
+            uint8_t SO2_vol : 3; // right channel volume
+            uint8_t SO2_vin : 1; // right channel cart input
         };
         uint8_t NR50;
     };
 
     union {
         struct { // rw
-            uint8_t CH1_SO1 : 1;
-            uint8_t CH2_SO1 : 1;
-            uint8_t CH3_SO1 : 1;
-            uint8_t CH4_SO1 : 1;
-            uint8_t CH1_SO2 : 1;
-            uint8_t CH2_SO2 : 1;
-            uint8_t CH3_SO2 : 1;
-            uint8_t CH4_SO2 : 1;
+            uint8_t CH1_SO1 : 1; // ch1 to right channel
+            uint8_t CH2_SO1 : 1; // ch2 to right channel
+            uint8_t CH3_SO1 : 1; // ch3 to right channel
+            uint8_t CH4_SO1 : 1; // ch4 to right channel
+            uint8_t CH1_SO2 : 1; // ch1 to left channel
+            uint8_t CH2_SO2 : 1; // ch2 to left channel
+            uint8_t CH3_SO2 : 1; // ch3 to left channel
+            uint8_t CH4_SO2 : 1; // ch4 to left channel
         };
         uint8_t NR51;
     };
