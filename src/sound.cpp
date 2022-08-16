@@ -270,6 +270,26 @@ void Sound::writeByte(uint16_t addr, uint8_t val) {
     } else if (Control->sound_on) {
         *reg_pointers[addr] = val;
     }
+
+    if (addr == 0xFF11) {
+        // sq 1
+        printf("[ch1] set length %d\n", Channel1->sound_length);
+    }
+
+    if (addr == 0xFF16) {
+        // sq 2
+        printf("[ch2] set length %d\n", Channel2->sound_length);
+    }
+
+    if (addr == 0xFF20) {
+        // 4 noise
+        printf("[ch4] set length %d\n", Channel4->sound_length);
+    }
+
+    if (addr == 0xFF1B) {
+        // 3 wave
+        printf("[ch3] set length %d\n", Channel3->sound_length);
+    }
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
@@ -381,7 +401,6 @@ sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
         Channel1->sound_length++;
         if (Channel1->sound_length == 0) {
             Control->CH1_on = 0;
-            Channel1->timed_mode = 0;
             printf("[ch1] stop\n");
         }
     }
@@ -488,7 +507,6 @@ sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
         Channel2->sound_length++;
         if (Channel2->sound_length == 0) {
             Control->CH2_on = 0;
-            Channel2->timed_mode = 0;
             printf("[ch2] stop\n");
         }
     }
@@ -561,7 +579,6 @@ sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
         Channel3->sound_length++;
         if (Channel3->sound_length == 0) {
             Control->CH3_on = 0;
-            Channel3->timed_mode = 0;
             printf("[ch3] stop\n");
         }
     }
@@ -630,7 +647,6 @@ sample_t Sound::updateCh4(unsigned tclock, bool length_tick) {
         Channel4->sound_length++;
         if (Channel4->sound_length == 0) {
             Control->CH4_on = 0;
-            Channel4->timed_mode = 0;
             printf("[ch4] stop\n");
         }
     }
