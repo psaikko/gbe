@@ -42,7 +42,6 @@ class Sound {
     struct CH3;
     struct CH4;
     struct CTRL;
-    struct LengthCounter;
 
     CH1 *Channel1;
     CH2 *Channel2;
@@ -50,18 +49,15 @@ class Sound {
     CH4 *Channel4;
     CTRL *Control;
 
-    LengthCounter *Ch1_Length;
-    LengthCounter *Ch2_Length;
-    LengthCounter *Ch3_Length;
-    LengthCounter *Ch4_Length;
+    int internal_256hz_counter;
 
     std::unordered_map<uint16_t, uint8_t *> reg_pointers;
     std::unordered_map<uint16_t, uint8_t> reg_masks;
 
-    sample_t updateCh1(unsigned tclock);
-    sample_t updateCh2(unsigned tclock);
-    sample_t updateCh3(unsigned tclock);
-    sample_t updateCh4(unsigned tclock);
+    sample_t updateCh1(unsigned tclock, bool length_tick);
+    sample_t updateCh2(unsigned tclock, bool length_tick);
+    sample_t updateCh3(unsigned tclock, bool length_tick);
+    sample_t updateCh4(unsigned tclock, bool length_tick);
 
     void clearRegisters();
 };
