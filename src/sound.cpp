@@ -3,6 +3,24 @@
 #include <cstdio>
 #include <limits>
 
+enum direction { Decrease, Increase };
+
+#define ENV_REGISTERS(name) \
+union { \
+    union { \
+        struct {                   /* rw */ \
+            uint8_t   env_sweep : 3; /* 0 = stop */ \
+            direction env_direction : 1; \
+            uint8_t   env_start : 4; /* n: 0 = no sound */ \
+        }; \
+        struct {            \
+            uint8_t _0 : 3;  \
+            uint8_t dac_on : 5; /* if >0 dac enabled */ \
+        }; \
+    }; \
+    uint8_t name; \
+}
+
 struct Sound::CH1 {
     enum op { Addition, Subtraction };
 
@@ -24,14 +42,7 @@ struct Sound::CH1 {
         uint8_t NR11;
     };
 
-    union {
-        struct {                   // rw
-            uint8_t env_sweep : 3; // 0 = stop
-            direction env_direction : 1;
-            uint8_t dac_power : 4; // n: 0 = no sound
-        };
-        uint8_t NR12;
-    };
+    ENV_REGISTERS(NR12);
 
     union {
         uint8_t freq_lo; // wo
@@ -59,14 +70,7 @@ struct Sound::CH2 {
         uint8_t NR21;
     };
 
-    union {
-        struct {                   // rw
-            uint8_t env_sweep : 3; // 0 = stop
-            direction env_direction : 1;
-            uint8_t dac_power : 4; // n: 0 = no sound
-        };
-        uint8_t NR22;
-    };
+    ENV_REGISTERS(NR22);
 
     union {
         uint8_t freq_lo; // wo
@@ -135,14 +139,7 @@ struct Sound::CH4 {
         uint8_t NR41;
     };
 
-    union {
-        struct {
-            uint8_t env_sweep : 3; // 0 = stop
-            direction env_direction : 1;
-            uint8_t dac_power : 4; // n: 0 = no sound
-        };
-        uint8_t NR42;
-    };
+    ENV_REGISTERS(NR42);
 
     union {
         struct {
@@ -270,50 +267,6 @@ void Sound::writeByte(uint16_t addr, uint8_t val) {
     } else if (Control->sound_on) {
         *reg_pointers[addr] = val;
     }
-
-    if (addr == 0xFF11) {
-        // sq 1
-        printf("[ch1] set length %d\n", Channel1->sound_length);
-    }
-
-    if (addr == 0xFF16) {
-        // sq 2
-        printf("[ch2] set length %d\n", Channel2->sound_length);
-    }
-
-    if (addr == 0xFF20) {
-        // 4 noise
-        printf("[ch4] set length %d\n", Channel4->sound_length);
-    }
-
-    if (addr == 0xFF1B) {
-        // 3 wave
-        printf("[ch3] set length %d\n", Channel3->sound_length);
-    }
-
-    if (addr == 0xFF12) {
-        if (Channel1->dac_power == 0) {
-            Control->CH1_on = 0;
-        }
-    }
-
-    if (addr == 0xFF17) {
-        if (Channel2->dac_power == 0) {
-            Control->CH2_on = 0;
-        }
-    }
-
-    if (addr == 0xFF1A) {
-        if (Channel3->dac_on == 0) {
-            Control->CH3_on = 0;
-        }
-    }
-
-    if (addr == 0xFF21) {
-        if (Channel4->dac_power == 0) {
-            Control->CH4_on = 0;
-        }
-    }
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
@@ -425,31 +378,33 @@ sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
         Channel1->sound_length++;
         if (Channel1->sound_length == 0) {
             Control->CH1_on = 0;
-            printf("[ch1] stop\n");
+            // printf("[ch1] stop\n");
         }
     }
 
     if (Channel1->reset) {
         freq_clock     = 0;
         Channel1->reset = 0;
-        printf("[ch1] reset\n");
+        // printf("[ch1] reset\n");
 
         ctr = 0;
 
         // hz = env_step / 64
         env_step = Channel1->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
+        vol = Channel1->env_start;
 
         // hz = sweep_step / 128
         sweep_step = Channel1->sweep_time * TCLK_HZ / 128;
         sweep_ctr  = 0;
-
-        vol = Channel1->dac_power;
-
         sweep_freq = unsigned(Channel1->freq_hi) << 8;
         sweep_freq |= Channel1->freq_lo;
 
         Control->CH1_on = 1;
+    }
+
+    if (Channel1->dac_on == 0) {
+        Control->CH1_on = 0;
     }
 
     if (Control->CH1_on) {
@@ -531,24 +486,27 @@ sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
         Channel2->sound_length++;
         if (Channel2->sound_length == 0) {
             Control->CH2_on = 0;
-            printf("[ch2] stop\n");
+            // printf("[ch2] stop\n");
         }
     }
 
     if (Channel2->reset) {
         freq_clock     = 0;
         Channel2->reset = 0;
-        printf("[ch2] reset\n");
+        // printf("[ch2] reset\n");
 
         ctr = 0;
 
         // hz = env_step / 64
         env_step = Channel2->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
-
-        vol = Channel2->dac_power;
+        vol = Channel2->env_start;
 
         Control->CH2_on = 1;
+    }
+
+    if (Channel2->dac_on == 0) {
+        Control->CH2_on = 0;
     }
 
     if (Control->CH2_on) {
@@ -603,18 +561,22 @@ sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
         Channel3->sound_length++;
         if (Channel3->sound_length == 0) {
             Control->CH3_on = 0;
-            printf("[ch3] stop\n");
+            // printf("[ch3] stop\n");
         }
     }
 
     if (Channel3->reset) {
         freq_clock     = 0;
         Channel3->reset = 0;
-        printf("[ch3] reset\n");
+        // printf("[ch3] reset\n");
 
         index           = 0;
         Control->CH3_on = 1;
         vol             = Channel3->volume;
+    }
+
+    if (Channel3->dac_on == 0) {
+        Control->CH3_on = 0;
     }
 
     static sample_t sample = 0;
@@ -671,30 +633,26 @@ sample_t Sound::updateCh4(unsigned tclock, bool length_tick) {
         Channel4->sound_length++;
         if (Channel4->sound_length == 0) {
             Control->CH4_on = 0;
-            printf("[ch4] stop\n");
+            // printf("[ch4] stop\n");
         }
+    }
+
+    if (Channel4->dac_on == 0) {
+        Control->CH4_on = 0;
     }
 
     if (Channel4->reset) {
         freq_clock     = 0;
         Channel4->reset = 0;
-        printf("[ch4] reset\n");
+        // printf("[ch4] reset\n");
 
         // hz = env_step / 64
         env_step = Channel4->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
-        /*
-        if (env_step != 0) {
-                printf("[ch4] env start %d\n", Channel4->env_sweep);
-        }
-        */
-        vol = Channel4->dac_power;
+        vol = Channel4->env_start;
 
         Control->CH4_on = 1;
         // initialize counter with 15 1-bits
-
-        // printf("[ch4] %02X %02X %02X %02X\n", Channel4->NR41,
-        //	Channel4->NR42, Channel4->NR43, Channel4->NR44);
         counter = (1 << 15) - 1;
     }
 

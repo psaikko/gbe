@@ -35,8 +35,6 @@ class Sound {
     sample_t sample_map[16];
     sample_t square_map[33];
 
-    enum direction { Decrease, Increase };
-
     struct CH1;
     struct CH2;
     struct CH3;
