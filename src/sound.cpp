@@ -5,21 +5,21 @@
 
 enum direction { Decrease, Increase };
 
-#define ENV_REGISTERS(name) \
-union { \
-    union { \
-        struct {                   /* rw */ \
-            uint8_t   env_sweep : 3; /* 0 = stop */ \
-            direction env_direction : 1; \
-            uint8_t   env_start : 4; /* n: 0 = no sound */ \
-        }; \
-        struct {            \
-            uint8_t _0 : 3;  \
-            uint8_t dac_on : 5; /* if >0 dac enabled */ \
-        }; \
-    }; \
-    uint8_t name; \
-}
+#define ENV_REGISTERS(name)                                                                                            \
+    union {                                                                                                            \
+        union {                                                                                                        \
+            struct {                   /* rw */                                                                        \
+                uint8_t env_sweep : 3; /* 0 = stop */                                                                  \
+                direction env_direction : 1;                                                                           \
+                uint8_t env_start : 4; /* n: 0 = no sound */                                                           \
+            };                                                                                                         \
+            struct {                                                                                                   \
+                uint8_t _0 : 3;                                                                                        \
+                uint8_t dac_on : 5; /* if >0 dac enabled */                                                            \
+            };                                                                                                         \
+        };                                                                                                             \
+        uint8_t name;                                                                                                  \
+    }
 
 struct Sound::CH1 {
     enum op { Addition, Subtraction };
@@ -54,7 +54,7 @@ struct Sound::CH1 {
             uint8_t freq_hi : 3; // wo
             uint8_t _2 : 3;
             uint8_t timed_mode : 1; // 0=continuous, 1=use length counter, rw
-            uint8_t reset : 1;       // wo
+            uint8_t reset : 1;      // wo
         };
         uint8_t NR14;
     };
@@ -82,7 +82,7 @@ struct Sound::CH2 {
             uint8_t freq_hi : 3; // wo
             uint8_t _ : 3;
             uint8_t timed_mode : 1; // 0=continuous, 1=use length counter, rw
-            uint8_t reset : 1;       // wo
+            uint8_t reset : 1;      // wo
         };
         uint8_t NR24;
     };
@@ -122,7 +122,7 @@ struct Sound::CH3 {
             uint8_t freq_hi : 3; // wo
             uint8_t _4 : 3;
             uint8_t timed_mode : 1; // 0=continuous, 1=use length counter, rw
-            uint8_t reset : 1;       // wo
+            uint8_t reset : 1;      // wo
         };
         uint8_t NR34;
     };
@@ -155,7 +155,7 @@ struct Sound::CH4 {
         struct {
             uint8_t _2 : 6;
             uint8_t timed_mode : 1; // 0=continuous, 1=use length counter, rw
-            uint8_t reset : 1;       // wo
+            uint8_t reset : 1;      // wo
         };
         uint8_t NR44;
     };
@@ -163,7 +163,7 @@ struct Sound::CH4 {
 
 struct Sound::CTRL {
     union {
-        struct { // rw
+        struct {                 // rw
             uint8_t SO1_vol : 3; // left channel volume
             uint8_t SO1_vin : 1; // left channel cart input
             uint8_t SO2_vol : 3; // right channel volume
@@ -173,7 +173,7 @@ struct Sound::CTRL {
     };
 
     union {
-        struct { // rw
+        struct {                 // rw
             uint8_t CH1_SO1 : 1; // ch1 to right channel
             uint8_t CH2_SO1 : 1; // ch2 to right channel
             uint8_t CH3_SO1 : 1; // ch3 to right channel
@@ -215,12 +215,11 @@ Sound::Sound() : samples(0), clock(0), lsample(0), rsample(0) {
                     {0xFF24, &(Control->NR50)},  {0xFF25, &(Control->NR51)},  {0xFF26, &(Control->NR52)}};
 
     // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Register_Reading
-    reg_masks = {{0xFF10, 0x80}, {0xFF11, 0x3F}, {0xFF12, 0x00}, {0xFF13, 0xFF}, {0xFF14, 0xBF},
-                 {0xFF15, 0xFF}, {0xFF16, 0x3f}, {0xFF17, 0x00}, {0xFF18, 0xFF}, {0xFF19, 0xBF},
-                 {0xFF1A, 0x7F}, {0xFF1B, 0xFF}, {0xFF1C, 0x9F}, {0xFF1D, 0xFF}, {0xFF1E, 0xBF},
-                 {0xFF1F, 0xFF}, {0xFF20, 0xFF}, {0xFF21, 0x00}, {0xFF22, 0x00}, {0xFF23, 0xBF},
-                 {0xFF24, 0x00}, {0xFF25, 0x00}, {0xFF26, 0x70}, {0xFF27, 0xFF}, {0xFF28, 0xFF},
-                 {0xFF29, 0xFF}, {0xFF2A, 0xFF}, {0xFF2B, 0xFF}, {0xFF2C, 0xFF}, {0xFF2D, 0xFF},
+    reg_masks = {{0xFF10, 0x80}, {0xFF11, 0x3F}, {0xFF12, 0x00}, {0xFF13, 0xFF}, {0xFF14, 0xBF}, {0xFF15, 0xFF},
+                 {0xFF16, 0x3f}, {0xFF17, 0x00}, {0xFF18, 0xFF}, {0xFF19, 0xBF}, {0xFF1A, 0x7F}, {0xFF1B, 0xFF},
+                 {0xFF1C, 0x9F}, {0xFF1D, 0xFF}, {0xFF1E, 0xBF}, {0xFF1F, 0xFF}, {0xFF20, 0xFF}, {0xFF21, 0x00},
+                 {0xFF22, 0x00}, {0xFF23, 0xBF}, {0xFF24, 0x00}, {0xFF25, 0x00}, {0xFF26, 0x70}, {0xFF27, 0xFF},
+                 {0xFF28, 0xFF}, {0xFF29, 0xFF}, {0xFF2A, 0xFF}, {0xFF2B, 0xFF}, {0xFF2C, 0xFF}, {0xFF2D, 0xFF},
                  {0xFF2E, 0xFF}, {0xFF2F, 0xFF}};
 
     mute_ch1 = false;
@@ -383,7 +382,7 @@ sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
     }
 
     if (Channel1->reset) {
-        freq_clock     = 0;
+        freq_clock      = 0;
         Channel1->reset = 0;
         // printf("[ch1] reset\n");
 
@@ -392,7 +391,7 @@ sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
         // hz = env_step / 64
         env_step = Channel1->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
-        vol = Channel1->env_start;
+        vol      = Channel1->env_start;
 
         // hz = sweep_step / 128
         sweep_step = Channel1->sweep_time * TCLK_HZ / 128;
@@ -491,7 +490,7 @@ sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
     }
 
     if (Channel2->reset) {
-        freq_clock     = 0;
+        freq_clock      = 0;
         Channel2->reset = 0;
         // printf("[ch2] reset\n");
 
@@ -500,7 +499,7 @@ sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
         // hz = env_step / 64
         env_step = Channel2->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
-        vol = Channel2->env_start;
+        vol      = Channel2->env_start;
 
         Control->CH2_on = 1;
     }
@@ -566,7 +565,7 @@ sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
     }
 
     if (Channel3->reset) {
-        freq_clock     = 0;
+        freq_clock      = 0;
         Channel3->reset = 0;
         // printf("[ch3] reset\n");
 
@@ -642,14 +641,14 @@ sample_t Sound::updateCh4(unsigned tclock, bool length_tick) {
     }
 
     if (Channel4->reset) {
-        freq_clock     = 0;
+        freq_clock      = 0;
         Channel4->reset = 0;
         // printf("[ch4] reset\n");
 
         // hz = env_step / 64
         env_step = Channel4->env_sweep * TCLK_HZ / 64;
         env_ctr  = 0;
-        vol = Channel4->env_start;
+        vol      = Channel4->env_start;
 
         Control->CH4_on = 1;
         // initialize counter with 15 1-bits
