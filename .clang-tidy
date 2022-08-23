@@ -1,0 +1,9 @@
+Checks: 'clang-diagnostic-*,
+    clang-analyzer-*,
+    -cppcoreguidelines-*,
+    -cppcoreguidelines-pro-type-union-access,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-pro-bounds-constant-array-index,
+    performance-*,
+    portability-*,
+    -misc-*'
