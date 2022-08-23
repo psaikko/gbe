@@ -32,26 +32,12 @@ class Sound {
     bool sample_ready{false};
     unsigned clock{0};
     sample_t lsample{0}, rsample{0};
-    int8_t wave_pattern_ram[16];
     sample_t sample_map[16];
     sample_t square_map[33];
 
-    struct CH1;
-    struct CH2;
-    struct CH3;
-    struct CH4;
-    struct CTRL;
-
-    CH1 *Channel1;
-    CH2 *Channel2;
-    CH3 *Channel3;
-    CH4 *Channel4;
-    CTRL *Control;
+    uint8_t mem[SOUND_MEM_SIZE];
 
     int internal_256hz_counter{TCLK_HZ / 256};
-
-    std::unordered_map<uint16_t, uint8_t *> reg_pointers;
-    std::unordered_map<uint16_t, uint8_t> reg_masks;
 
     sample_t updateCh1(unsigned tclock, bool length_tick);
     sample_t updateCh2(unsigned tclock, bool length_tick);

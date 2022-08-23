@@ -31,9 +31,13 @@
 #define NR51_ADDR 0xFF25
 #define NR52_ADDR 0xFF26
 
-#define WAVE_ADDR 0xFF30
+#define SOUND_REGISTERS 22
+#define REG_OFFSET NR10_ADDR
 
-enum direction { Decrease, Increase };
+#define WAVE_ADDR     0xFF30
+#define WAVE_RAM_SIZE 16
+
+enum direction : uint8_t { Decrease, Increase };
 
 #define ENV_REGISTERS(name)                                                                                            \
     union {                                                                                                            \
@@ -51,8 +55,8 @@ enum direction { Decrease, Increase };
         uint8_t name;                                                                                                  \
     }
 
-struct Sound::CH1 {
-    enum op { Addition, Subtraction };
+struct CH1 {
+    enum op : uint8_t { Addition, Subtraction };
 
     union {
         struct {                      // rw
@@ -89,8 +93,9 @@ struct Sound::CH1 {
         uint8_t NR14;
     };
 };
+static_assert((sizeof(CH1) == 5));
 
-struct Sound::CH2 {
+struct CH2 {
 
     union {
         struct {
@@ -117,8 +122,9 @@ struct Sound::CH2 {
         uint8_t NR24;
     };
 };
+static_assert((sizeof(CH2) == 4));
 
-struct Sound::CH3 {
+struct CH3 {
     union {
         struct {
             uint8_t _1 : 7;
@@ -136,7 +142,7 @@ struct Sound::CH3 {
         struct {
             uint8_t _2 : 4;
             uint8_t volume : 2; // rw
-            uint8_t _3 : 4;
+            uint8_t _3 : 2;
             // 0=0% 1=100% 2=50% 3=25%
         };
         uint8_t NR32;
@@ -159,8 +165,9 @@ struct Sound::CH3 {
 
     // Wave Pattern RAM: FF30 - FF3F
 };
+static_assert((sizeof(CH3) == 5));
 
-struct Sound::CH4 {
+struct CH4 {
     union {
         struct {
             uint8_t sound_length : 6;
@@ -190,8 +197,9 @@ struct Sound::CH4 {
         uint8_t NR44;
     };
 };
+static_assert((sizeof(CH4) == 4));
 
-struct Sound::CTRL {
+struct CTRL {
     union {
         struct {                 // rw
             uint8_t SO1_vol : 3; // left channel volume
@@ -228,31 +236,10 @@ struct Sound::CTRL {
         uint8_t NR52;
     };
 };
+static_assert((sizeof(CTRL) == 3));
 
 Sound::Sound() {
-    Channel1 = new CH1();
-    Channel2 = new CH2();
-    Channel3 = new CH3();
-    Channel4 = new CH4();
-    Control  = new CTRL();
-
-    reg_pointers = {{NR10_ADDR, &(Channel1->NR10)}, {NR11_ADDR, &(Channel1->NR11)}, {NR12_ADDR, &(Channel1->NR12)},
-                    {NR13_ADDR, &(Channel1->NR13)}, {NR14_ADDR, &(Channel1->NR14)}, {NR21_ADDR, &(Channel2->NR21)},
-                    {NR22_ADDR, &(Channel2->NR22)}, {NR23_ADDR, &(Channel2->NR23)}, {NR24_ADDR, &(Channel2->NR24)},
-                    {NR30_ADDR, &(Channel3->NR30)}, {NR31_ADDR, &(Channel3->NR31)}, {NR32_ADDR, &(Channel3->NR32)},
-                    {NR33_ADDR, &(Channel3->NR33)}, {NR34_ADDR, &(Channel3->NR34)}, {NR41_ADDR, &(Channel4->NR41)},
-                    {NR42_ADDR, &(Channel4->NR42)}, {NR43_ADDR, &(Channel4->NR43)}, {NR44_ADDR, &(Channel4->NR44)},
-                    {NR50_ADDR, &(Control->NR50)},  {NR51_ADDR, &(Control->NR51)},  {NR52_ADDR, &(Control->NR52)}};
-
-    // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Register_Reading
-    reg_masks = {{NR10_ADDR, 0x80},        {NR11_ADDR, 0x3F}, {NR12_ADDR, 0x00}, {NR13_ADDR, 0xFF}, {NR14_ADDR, 0xBF},
-                 {NR20_UNUSED_ADDR, 0xFF}, {NR21_ADDR, 0x3f}, {NR22_ADDR, 0x00}, {NR23_ADDR, 0xFF}, {NR24_ADDR, 0xBF},
-                 {NR30_ADDR, 0x7F},        {NR31_ADDR, 0xFF}, {NR32_ADDR, 0x9F}, {NR33_ADDR, 0xFF}, {NR34_ADDR, 0xBF},
-                 {NR40_UNUSED_ADDR, 0xFF}, {NR41_ADDR, 0xFF}, {NR42_ADDR, 0x00}, {NR43_ADDR, 0x00}, {NR44_ADDR, 0xBF},
-                 {NR50_ADDR, 0x00},        {NR51_ADDR, 0x00}, {NR52_ADDR, 0x70}, {0xFF27, 0xFF},    {0xFF28, 0xFF},
-                 {0xFF29, 0xFF},           {0xFF2A, 0xFF},    {0xFF2B, 0xFF},    {0xFF2C, 0xFF},    {0xFF2D, 0xFF},
-                 {0xFF2E, 0xFF},           {0xFF2F, 0xFF}};
-
+    // initialize waveforms
     sample_t max_sample = std::numeric_limits<sample_t>::max() / 4;
     sample_t min_sample = std::numeric_limits<sample_t>::min() / 4;
 
@@ -266,47 +253,59 @@ Sound::Sound() {
 }
 
 void Sound::clearRegisters() {
-    for (auto pair : reg_pointers) {
-        if (pair.first != NR52_ADDR) {
-            *pair.second = 0;
-        }
+    for (uint16_t i = NR10_ADDR; i < WAVE_ADDR; i++) {
+        mem[i - REG_OFFSET] = 0;
     }
 }
 
 void Sound::writeByte(uint16_t addr, uint8_t val) {
+    auto Control               = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
+    const uint16_t addr_internal = addr - REG_OFFSET;
 
     if (addr == NR52_ADDR) {
+        //printf("[snd] write %02X->%02X to register %04X\n", val, val & 0x80, addr);
         // write only allowed to high (power) bit
-        Control->NR52 = val & 0x80;
-
+        mem[addr_internal] = val & 0x80;
         // zero write to power bit clears registers
         if (Control->sound_on == 0) {
             clearRegisters();
         }
     } else if (addr == NR20_UNUSED_ADDR || addr == NR40_UNUSED_ADDR || (addr > NR52_ADDR && addr < WAVE_ADDR)) {
-        printf("[snd] write %02X to unused register %04X\n", val, addr);
-    } else if (addr >= WAVE_ADDR && addr <= WAVE_ADDR + 0x000F) {
-        wave_pattern_ram[addr & 0x000F] = val;
+        //printf("[snd] write %02X to unused register %04X\n", val, addr);
+    } else if (addr >= WAVE_ADDR && addr < WAVE_ADDR + WAVE_RAM_SIZE) {
+        mem[addr_internal] = val;
     } else if (Control->sound_on) {
-        *reg_pointers[addr] = val;
+        //printf("[snd] write %02X to register %04X\n", val, addr);
+        mem[addr_internal] = val;
     }
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
+
+    const uint8_t reg_masks[32]{0x80, 0x3F, 0x00, 0xFF, 0xBF, 0xFF, 0x3f, 0x00,
+                                0xFF, 0xBF, 0x7F, 0xFF, 0x9F, 0xFF, 0xBF, 0xFF,
+                                0xFF, 0x00, 0x00, 0xBF, 0x00, 0x00, 0x70, 0xFF,
+                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    const uint16_t addr_internal = addr - REG_OFFSET;
+
     if (addr == NR20_UNUSED_ADDR || addr == NR40_UNUSED_ADDR || (addr > NR52_ADDR && addr < WAVE_ADDR)) {
-        printf("[snd] read from unused register %04X\n", addr);
+        //printf("[snd] read from unused register %04X\n", addr);
         return 0xFF;
-    } else if (addr >= WAVE_ADDR && addr <= WAVE_ADDR + 0x000F) {
-        return wave_pattern_ram[addr & 0x000F];
+    } else if (addr >= WAVE_ADDR && addr < WAVE_ADDR + WAVE_RAM_SIZE) {
+        return mem[addr_internal];
     } else {
-        // printf("[snd] read from register %04X\n", addr);
-        uint8_t val = *reg_pointers[addr];
-        // mask out select register bits as all 1s
-        return val | reg_masks[addr];
+        uint8_t val = mem[addr_internal];
+        // mask out select register bits as 1s
+        uint8_t masked = val | reg_masks[addr_internal];
+        //printf("[snd] read %02X->%02X from register %04X\n", val, masked, addr);
+        return masked;
     }
 }
 
 void Sound::update(unsigned tclk) {
+
+    auto Control = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
+
     clock += tclk * SAMPLE_RATE;
 
     bool tick_256hz = false;
@@ -321,7 +320,7 @@ void Sound::update(unsigned tclk) {
     sample_t ch1_sample = updateCh1(tclk, tick_256hz);
     sample_t ch4_sample = updateCh4(tclk, tick_256hz);
 
-    // generate a sample every TCLK_HS / SAMPLE_RATE clocks
+    // generate a sample every TCLK_HZ / SAMPLE_RATE clocks
     if (clock >= TCLK_HZ) {
         clock -= TCLK_HZ;
         sample_ready = true;
@@ -365,8 +364,6 @@ void Sound::update(unsigned tclk) {
         // TODO: volume control
         lsample = Control->SO1_vol ? sample_t(lsample) : 0;
         rsample = Control->SO2_vol ? sample_t(rsample) : 0;
-
-        // printf("[snd] %d\n", rsample);
     }
 }
 
@@ -381,6 +378,9 @@ void Sound::getSamples(sample_t *left, sample_t *right) {
 }
 
 sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
+
+    auto Channel1 = reinterpret_cast<CH1 *>(mem + (NR10_ADDR-REG_OFFSET));
+    auto Control  = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
 
     static unsigned freq_clock = 0;
 
@@ -493,6 +493,9 @@ sample_t Sound::updateCh1(unsigned tclock, bool length_tick) {
 
 sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
 
+    auto Channel2 = reinterpret_cast<CH2 *>(mem + (NR21_ADDR-REG_OFFSET));
+    auto Control  = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
+
     static unsigned freq_clock = 0;
 
     freq_clock += tclock;
@@ -573,6 +576,9 @@ sample_t Sound::updateCh2(unsigned tclock, bool length_tick) {
 
 sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
 
+    auto Channel3 = reinterpret_cast<CH3 *>(mem + (NR30_ADDR-REG_OFFSET));
+    auto Control  = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
+
     static unsigned freq_clock = 0;
     static uint8_t index       = 0;
 
@@ -614,7 +620,7 @@ sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
             index = (index + 1) % 32;
 
             // 4-bit samples played high bits first
-            uint8_t wave_sample = wave_pattern_ram[(31 - index) >> 1];
+            uint8_t wave_sample = mem[WAVE_ADDR + ((31 - index) >> 1)];
             // (index flip changes parity!)
             if (!(index % 2))
                 wave_sample &= 0x0F; // low 4 bytes
@@ -638,6 +644,9 @@ sample_t Sound::updateCh3(unsigned tclock, bool length_tick) {
 }
 
 sample_t Sound::updateCh4(unsigned tclock, bool length_tick) {
+
+    auto Channel4 = reinterpret_cast<CH4 *>(mem + (NR41_ADDR-REG_OFFSET));
+    auto Control  = reinterpret_cast<CTRL *>(mem + (NR50_ADDR-REG_OFFSET));
 
     static unsigned freq_clock = 0;
 
