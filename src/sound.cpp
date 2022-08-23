@@ -3,6 +3,36 @@
 #include <cstdio>
 #include <limits>
 
+#define NR10_ADDR 0xFF10
+#define NR11_ADDR 0xFF11
+#define NR12_ADDR 0xFF12
+#define NR13_ADDR 0xFF13
+#define NR14_ADDR 0xFF14
+
+#define NR20_UNUSED_ADDR 0xFF15
+#define NR21_ADDR        0xFF16
+#define NR22_ADDR        0xFF17
+#define NR23_ADDR        0xFF18
+#define NR24_ADDR        0xFF19
+
+#define NR30_ADDR 0xFF1A
+#define NR31_ADDR 0xFF1B
+#define NR32_ADDR 0xFF1C
+#define NR33_ADDR 0xFF1D
+#define NR34_ADDR 0xFF1E
+
+#define NR40_UNUSED_ADDR 0xFF1F
+#define NR41_ADDR        0xFF20
+#define NR42_ADDR        0xFF21
+#define NR43_ADDR        0xFF22
+#define NR44_ADDR        0xFF23
+
+#define NR50_ADDR 0xFF24
+#define NR51_ADDR 0xFF25
+#define NR52_ADDR 0xFF26
+
+#define WAVE_ADDR 0xFF30
+
 enum direction { Decrease, Increase };
 
 #define ENV_REGISTERS(name)                                                                                            \
@@ -199,33 +229,29 @@ struct Sound::CTRL {
     };
 };
 
-Sound::Sound() : samples(0), clock(0), lsample(0), rsample(0) {
+Sound::Sound() {
     Channel1 = new CH1();
     Channel2 = new CH2();
     Channel3 = new CH3();
     Channel4 = new CH4();
     Control  = new CTRL();
 
-    reg_pointers = {{0xFF10, &(Channel1->NR10)}, {0xFF11, &(Channel1->NR11)}, {0xFF12, &(Channel1->NR12)},
-                    {0xFF13, &(Channel1->NR13)}, {0xFF14, &(Channel1->NR14)}, {0xFF16, &(Channel2->NR21)},
-                    {0xFF17, &(Channel2->NR22)}, {0xFF18, &(Channel2->NR23)}, {0xFF19, &(Channel2->NR24)},
-                    {0xFF1A, &(Channel3->NR30)}, {0xFF1B, &(Channel3->NR31)}, {0xFF1C, &(Channel3->NR32)},
-                    {0xFF1D, &(Channel3->NR33)}, {0xFF1E, &(Channel3->NR34)}, {0xFF20, &(Channel4->NR41)},
-                    {0xFF21, &(Channel4->NR42)}, {0xFF22, &(Channel4->NR43)}, {0xFF23, &(Channel4->NR44)},
-                    {0xFF24, &(Control->NR50)},  {0xFF25, &(Control->NR51)},  {0xFF26, &(Control->NR52)}};
+    reg_pointers = {{NR10_ADDR, &(Channel1->NR10)}, {NR11_ADDR, &(Channel1->NR11)}, {NR12_ADDR, &(Channel1->NR12)},
+                    {NR13_ADDR, &(Channel1->NR13)}, {NR14_ADDR, &(Channel1->NR14)}, {NR21_ADDR, &(Channel2->NR21)},
+                    {NR22_ADDR, &(Channel2->NR22)}, {NR23_ADDR, &(Channel2->NR23)}, {NR24_ADDR, &(Channel2->NR24)},
+                    {NR30_ADDR, &(Channel3->NR30)}, {NR31_ADDR, &(Channel3->NR31)}, {NR32_ADDR, &(Channel3->NR32)},
+                    {NR33_ADDR, &(Channel3->NR33)}, {NR34_ADDR, &(Channel3->NR34)}, {NR41_ADDR, &(Channel4->NR41)},
+                    {NR42_ADDR, &(Channel4->NR42)}, {NR43_ADDR, &(Channel4->NR43)}, {NR44_ADDR, &(Channel4->NR44)},
+                    {NR50_ADDR, &(Control->NR50)},  {NR51_ADDR, &(Control->NR51)},  {NR52_ADDR, &(Control->NR52)}};
 
     // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Register_Reading
-    reg_masks = {{0xFF10, 0x80}, {0xFF11, 0x3F}, {0xFF12, 0x00}, {0xFF13, 0xFF}, {0xFF14, 0xBF}, {0xFF15, 0xFF},
-                 {0xFF16, 0x3f}, {0xFF17, 0x00}, {0xFF18, 0xFF}, {0xFF19, 0xBF}, {0xFF1A, 0x7F}, {0xFF1B, 0xFF},
-                 {0xFF1C, 0x9F}, {0xFF1D, 0xFF}, {0xFF1E, 0xBF}, {0xFF1F, 0xFF}, {0xFF20, 0xFF}, {0xFF21, 0x00},
-                 {0xFF22, 0x00}, {0xFF23, 0xBF}, {0xFF24, 0x00}, {0xFF25, 0x00}, {0xFF26, 0x70}, {0xFF27, 0xFF},
-                 {0xFF28, 0xFF}, {0xFF29, 0xFF}, {0xFF2A, 0xFF}, {0xFF2B, 0xFF}, {0xFF2C, 0xFF}, {0xFF2D, 0xFF},
-                 {0xFF2E, 0xFF}, {0xFF2F, 0xFF}};
-
-    mute_ch1 = false;
-    mute_ch2 = false;
-    mute_ch3 = false;
-    mute_ch4 = false;
+    reg_masks = {{NR10_ADDR, 0x80},        {NR11_ADDR, 0x3F}, {NR12_ADDR, 0x00}, {NR13_ADDR, 0xFF}, {NR14_ADDR, 0xBF},
+                 {NR20_UNUSED_ADDR, 0xFF}, {NR21_ADDR, 0x3f}, {NR22_ADDR, 0x00}, {NR23_ADDR, 0xFF}, {NR24_ADDR, 0xBF},
+                 {NR30_ADDR, 0x7F},        {NR31_ADDR, 0xFF}, {NR32_ADDR, 0x9F}, {NR33_ADDR, 0xFF}, {NR34_ADDR, 0xBF},
+                 {NR40_UNUSED_ADDR, 0xFF}, {NR41_ADDR, 0xFF}, {NR42_ADDR, 0x00}, {NR43_ADDR, 0x00}, {NR44_ADDR, 0xBF},
+                 {NR50_ADDR, 0x00},        {NR51_ADDR, 0x00}, {NR52_ADDR, 0x70}, {0xFF27, 0xFF},    {0xFF28, 0xFF},
+                 {0xFF29, 0xFF},           {0xFF2A, 0xFF},    {0xFF2B, 0xFF},    {0xFF2C, 0xFF},    {0xFF2D, 0xFF},
+                 {0xFF2E, 0xFF},           {0xFF2F, 0xFF}};
 
     sample_t max_sample = std::numeric_limits<sample_t>::max() / 4;
     sample_t min_sample = std::numeric_limits<sample_t>::min() / 4;
@@ -237,13 +263,11 @@ Sound::Sound() : samples(0), clock(0), lsample(0), rsample(0) {
     for (unsigned i = 0; i < 33; ++i) {
         square_map[i] = max_sample - ((max_sample - min_sample) * i) / 32;
     }
-
-    internal_256hz_counter = TCLK_HZ / 256;
 }
 
 void Sound::clearRegisters() {
     for (auto pair : reg_pointers) {
-        if (pair.first != 0xFF26) {
+        if (pair.first != NR52_ADDR) {
             *pair.second = 0;
         }
     }
@@ -251,17 +275,17 @@ void Sound::clearRegisters() {
 
 void Sound::writeByte(uint16_t addr, uint8_t val) {
 
-    if (addr == 0xFF26) {
+    if (addr == NR52_ADDR) {
         // write only allowed to high (power) bit
-        val &= 0x80;
-        *reg_pointers[addr] = val;
-        if (val == 0) {
-            // zero write to power bit clears registers
+        Control->NR52 = val & 0x80;
+
+        // zero write to power bit clears registers
+        if (Control->sound_on == 0) {
             clearRegisters();
         }
-    } else if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
+    } else if (addr == NR20_UNUSED_ADDR || addr == NR40_UNUSED_ADDR || (addr > NR52_ADDR && addr < WAVE_ADDR)) {
         printf("[snd] write %02X to unused register %04X\n", val, addr);
-    } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
+    } else if (addr >= WAVE_ADDR && addr <= WAVE_ADDR + 0x000F) {
         wave_pattern_ram[addr & 0x000F] = val;
     } else if (Control->sound_on) {
         *reg_pointers[addr] = val;
@@ -269,10 +293,10 @@ void Sound::writeByte(uint16_t addr, uint8_t val) {
 }
 
 uint8_t Sound::readByte(uint16_t addr) {
-    if (addr == 0xFF15 || addr == 0xFF1F || (addr >= 0xFF27 && addr <= 0xFF2F)) {
+    if (addr == NR20_UNUSED_ADDR || addr == NR40_UNUSED_ADDR || (addr > NR52_ADDR && addr < WAVE_ADDR)) {
         printf("[snd] read from unused register %04X\n", addr);
         return 0xFF;
-    } else if (addr >= 0xFF30 && addr <= 0xFF3F) {
+    } else if (addr >= WAVE_ADDR && addr <= WAVE_ADDR + 0x000F) {
         return wave_pattern_ram[addr & 0x000F];
     } else {
         // printf("[snd] read from register %04X\n", addr);

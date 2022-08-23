@@ -4,8 +4,9 @@
 #include <inttypes.h>
 #include <unordered_map>
 
-#define TCLK_HZ     4194304u
-#define SAMPLE_RATE 44000u
+#define TCLK_HZ        4194304u
+#define SAMPLE_RATE    44000u
+#define SOUND_MEM_SIZE 48
 
 class Sound {
   public:
@@ -20,17 +21,17 @@ class Sound {
     void writeByte(uint16_t addr, uint8_t val);
     uint8_t readByte(uint16_t addr);
 
-    bool mute_ch1;
-    bool mute_ch2;
-    bool mute_ch3;
-    bool mute_ch4;
+    bool mute_ch1{false};
+    bool mute_ch2{false};
+    bool mute_ch3{false};
+    bool mute_ch4{false};
 
-    unsigned long samples;
+    unsigned long samples{0};
 
   private:
-    bool sample_ready;
-    unsigned clock;
-    sample_t lsample, rsample;
+    bool sample_ready{false};
+    unsigned clock{0};
+    sample_t lsample{0}, rsample{0};
     int8_t wave_pattern_ram[16];
     sample_t sample_map[16];
     sample_t square_map[33];
@@ -47,7 +48,7 @@ class Sound {
     CH4 *Channel4;
     CTRL *Control;
 
-    int internal_256hz_counter;
+    int internal_256hz_counter{TCLK_HZ / 256};
 
     std::unordered_map<uint16_t, uint8_t *> reg_pointers;
     std::unordered_map<uint16_t, uint8_t> reg_masks;
